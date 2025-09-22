@@ -149,4 +149,7 @@ LOGGING = {
             'propagate': False,
         },
     },
+# Desabilitar CSRF temporariamente
+if os.environ.get('DISABLE_CSRF', 'False').lower() == 'true':
+    MIDDLEWARE = [m for m in MIDDLEWARE if m != 'django.middleware.csrf.CsrfViewMiddleware']
 }
