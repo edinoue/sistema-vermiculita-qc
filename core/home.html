@@ -3,208 +3,142 @@
 {% block title %}Sistema de Controle de Qualidade - Vermiculita{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-12 mb-4">
-        <div class="jumbotron bg-primary text-white p-5 rounded">
-            <div class="container">
+<div class="container mt-4">
+    <!-- Cabeçalho Principal -->
+    <div class="row">
+        <div class="col-12">
+            <div class="jumbotron bg-primary text-white p-5 rounded mb-4">
                 <h1 class="display-4">
                     <i class="bi bi-gem"></i> Sistema de Controle de Qualidade
                 </h1>
-                <p class="lead">Mineração de Vermiculita - Controle de Qualidade Inteligente</p>
+                <p class="lead">Mineração de Vermiculita - Sistema Online e Funcionando!</p>
                 <hr class="my-4 bg-white">
-                <p>Sistema completo para controle de qualidade na mineração, com análises estatísticas, laudos automáticos e interface mobile-first.</p>
-                <div class="mt-4">
-                    <a class="btn btn-light btn-lg me-3" href="/admin/" role="button">
-                        <i class="bi bi-graph-up"></i> Dashboard
-                    </a>
-                    <a class="btn btn-outline-light btn-lg me-3" href="/mobile/" role="button">
-                        <i class="bi bi-phone"></i> Interface Mobile
-                    </a>
-                    <a class="btn btn-outline-light btn-lg" href="/admin/" role="button">
-                        <i class="bi bi-plus-circle"></i> Nova Análise
-                    </a>
+                <p>Bem-vindo ao sistema completo de controle de qualidade para mineração.</p>
+                <a class="btn btn-light btn-lg" href="/admin/" role="button">
+                    <i class="bi bi-gear"></i> Acessar Sistema
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cards de Funcionalidades -->
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-clipboard-data text-primary fs-1 mb-3"></i>
+                    <h5 class="card-title">Análises Pontuais</h5>
+                    <p class="card-text">Registro de análises durante os turnos com validação automática.</p>
+                    <a href="/admin/" class="btn btn-primary">Acessar</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-graph-up text-success fs-1 mb-3"></i>
+                    <h5 class="card-title">Dashboard & SPC</h5>
+                    <p class="card-text">Dashboards em tempo real com cartas de controle estatístico.</p>
+                    <a href="/admin/" class="btn btn-success">Acessar</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-file-earmark-pdf text-info fs-1 mb-3"></i>
+                    <h5 class="card-title">Laudos & Ordens</h5>
+                    <p class="card-text">Geração automática de laudos de qualidade e ordens de carregamento.</p>
+                    <a href="/admin/" class="btn btn-info">Acessar</a>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-<!-- Cards de Funcionalidades -->
-<div class="row">
-    <div class="col-lg-3 col-md-6 mb-4">
-        <div class="card h-100 border-primary">
-            <div class="card-body text-center">
-                <i class="bi bi-clipboard-data text-primary fs-1 mb-3"></i>
-                <h5 class="card-title">Análises Pontuais</h5>
-                <p class="card-text">Registro de análises durante os turnos com validação automática contra especificações.</p>
-                <a href="/admin/" class="btn btn-primary">
-                    <i class="bi bi-plus"></i> Nova Análise
-                </a>
+    <!-- Informações do Sistema -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="bi bi-lightning"></i> Acesso Rápido
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="/admin/" class="btn btn-outline-primary">
+                            <i class="bi bi-plus-circle"></i> Nova Análise
+                        </a>
+                        <a href="/admin/" class="btn btn-outline-success">
+                            <i class="bi bi-graph-up"></i> Relatórios
+                        </a>
+                        <a href="/admin/" class="btn btn-outline-info">
+                            <i class="bi bi-download"></i> Exportar Dados
+                        </a>
+                        <a href="/admin/" class="btn btn-outline-secondary">
+                            <i class="bi bi-gear"></i> Administração
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="bi bi-info-circle"></i> Status do Sistema
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-success" role="alert">
+                        <h6 class="alert-heading">
+                            <i class="bi bi-check-circle"></i> Sistema Online!
+                        </h6>
+                        <p class="mb-0">O sistema está funcionando perfeitamente e pronto para uso.</p>
+                    </div>
+                    
+                    <table class="table table-sm">
+                        <tr>
+                            <td><strong>Versão:</strong></td>
+                            <td>1.0.0</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Status:</strong></td>
+                            <td><span class="badge bg-success">Online</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Usuário:</strong></td>
+                            <td>{{ user.username|default:"Visitante" }}</td>
+                        </tr>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
-    
-    <div class="col-lg-3 col-md-6 mb-4">
-        <div class="card h-100 border-success">
-            <div class="card-body text-center">
-                <i class="bi bi-graph-up text-success fs-1 mb-3"></i>
-                <h5 class="card-title">Dashboard & SPC</h5>
-                <p class="card-text">Dashboards em tempo real com cartas de controle estatístico e análises de capabilidade.</p>
-                <a href="/admin/" class="btn btn-success">
-                    <i class="bi bi-eye"></i> Ver Dashboard
-                </a>
-            </div>
-        </div>
-    </div>
-    
-    <div class="col-lg-3 col-md-6 mb-4">
-        <div class="card h-100 border-info">
-            <div class="card-body text-center">
-                <i class="bi bi-file-earmark-pdf text-info fs-1 mb-3"></i>
-                <h5 class="card-title">Laudos & Ordens</h5>
-                <p class="card-text">Geração automática de laudos de qualidade e ordens de carregamento com QR codes.</p>
-                <a href="/admin/" class="btn btn-info">
-                    <i class="bi bi-file-text"></i> Ver Laudos
-                </a>
-            </div>
-        </div>
-    </div>
-    
-    <div class="col-lg-3 col-md-6 mb-4">
-        <div class="card h-100 border-warning">
-            <div class="card-body text-center">
-                <i class="bi bi-qr-code text-warning fs-1 mb-3"></i>
-                <h5 class="card-title">QR Codes</h5>
-                <p class="card-text">Acesso rápido às informações das linhas de produção via QR codes para dispositivos móveis.</p>
-                <a href="/admin/" class="btn btn-warning">
-                    <i class="bi bi-qr-code"></i> Ver QR Codes
-                </a>
-            </div>
-        </div>
-    </div>
-</div>
 
-<!-- Estatísticas Rápidas -->
-<div class="row">
-    <div class="col-12 mb-4">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="bi bi-speedometer2"></i> Estatísticas do Sistema
+    <!-- Instruções -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="alert alert-info" role="alert">
+                <h5 class="alert-heading">
+                    <i class="bi bi-lightbulb"></i> Como usar o sistema
                 </h5>
+                <p>Para começar a usar o sistema:</p>
+                <ol>
+                    <li>Clique em <strong>"Acessar Sistema"</strong> ou <strong>"Administração"</strong></li>
+                    <li>Faça login com: <strong>usuário: admin</strong> / <strong>senha: admin123</strong></li>
+                    <li>Configure produtos, propriedades e especificações</li>
+                    <li>Comece a registrar análises de qualidade</li>
+                </ol>
+                <hr>
+                <p class="mb-0">
+                    <strong>Dica:</strong> O sistema funciona perfeitamente no celular! 
+                    Acesse <a href="/mobile/" class="alert-link">/mobile/</a> para a interface otimizada.
+                </p>
             </div>
-            <div class="card-body">
-                <div class="row text-center">
-                    <div class="col-md-3 col-6 mb-3">
-                        <div class="border rounded p-3">
-                            <h3 class="text-primary">0</h3>
-                            <small class="text-muted">Total de Análises</small>
-                        </div>
-                    </div>
-                    <div class="col-md-3 col-6 mb-3">
-                        <div class="border rounded p-3">
-                            <h3 class="text-success">0</h3>
-                            <small class="text-muted">Laudos Gerados</small>
-                        </div>
-                    </div>
-                    <div class="col-md-3 col-6 mb-3">
-                        <div class="border rounded p-3">
-                            <h3 class="text-info">100%</h3>
-                            <small class="text-muted">Taxa de Aprovação</small>
-                        </div>
-                    </div>
-                    <div class="col-md-3 col-6 mb-3">
-                        <div class="border rounded p-3">
-                            <h3 class="text-warning">0</h3>
-                            <small class="text-muted">Últimos 30 dias</small>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Acesso Rápido -->
-<div class="row">
-    <div class="col-md-6 mb-4">
-        <div class="card">
-            <div class="card-header">
-                <h6 class="mb-0">
-                    <i class="bi bi-lightning"></i> Acesso Rápido
-                </h6>
-            </div>
-            <div class="card-body">
-                <div class="d-grid gap-2">
-                    <a href="/admin/" class="btn btn-outline-primary">
-                        <i class="bi bi-plus-circle"></i> Nova Análise Pontual
-                    </a>
-                    <a href="/admin/" class="btn btn-outline-success">
-                        <i class="bi bi-graph-up"></i> Cartas de Controle
-                    </a>
-                    <a href="/admin/" class="btn btn-outline-info">
-                        <i class="bi bi-download"></i> Exportar Dados
-                    </a>
-                    <a href="/admin/" class="btn btn-outline-secondary">
-                        <i class="bi bi-gear"></i> Administração
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <div class="col-md-6 mb-4">
-        <div class="card">
-            <div class="card-header">
-                <h6 class="mb-0">
-                    <i class="bi bi-info-circle"></i> Informações do Sistema
-                </h6>
-            </div>
-            <div class="card-body">
-                <table class="table table-sm">
-                    <tr>
-                        <td><strong>Versão:</strong></td>
-                        <td>1.0.0</td>
-                    </tr>
-                    <tr>
-                        <td><strong>Última Atualização:</strong></td>
-                        <td>{{ "now"|date:"d/m/Y H:i" }}</td>
-                    </tr>
-                    <tr>
-                        <td><strong>Usuário:</strong></td>
-                        <td>{{ user.get_full_name|default:user.username }}</td>
-                    </tr>
-                    <tr>
-                        <td><strong>Perfil:</strong></td>
-                        <td>
-                            {% if user.is_superuser %}
-                                <span class="badge bg-danger">Administrador</span>
-                            {% elif user.is_staff %}
-                                <span class="badge bg-warning">Staff</span>
-                            {% else %}
-                                <span class="badge bg-primary">Usuário</span>
-                            {% endif %}
-                        </td>
-                    </tr>
-                </table>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Mensagem de Boas-vindas -->
-<div class="row">
-    <div class="col-12">
-        <div class="alert alert-success" role="alert">
-            <h4 class="alert-heading">
-                <i class="bi bi-check-circle"></i> Sistema Funcionando!
-            </h4>
-            <p>Bem-vindo ao Sistema de Controle de Qualidade da Vermiculita. O sistema está online e pronto para uso.</p>
-            <hr>
-            <p class="mb-0">
-                <strong>Próximos passos:</strong> 
-                Acesse o <a href="/admin/" class="alert-link">painel administrativo</a> para começar a configurar produtos, propriedades e especificações.
-            </p>
         </div>
     </div>
 </div>
@@ -218,52 +152,30 @@
     }
     
     .card {
-        transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        transition: transform 0.2s ease-in-out;
         border-radius: 10px;
     }
     
     .card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-    }
-    
-    .border {
-        border-color: #dee2e6 !important;
-        border-radius: 8px;
-        transition: all 0.2s ease-in-out;
-    }
-    
-    .border:hover {
-        border-color: #007bff !important;
-        background-color: #f8f9fa;
+        transform: translateY(-3px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
     }
     
     .btn {
         border-radius: 8px;
-        font-weight: 500;
     }
     
     .alert {
         border-radius: 10px;
-        border: none;
-    }
-    
-    .table {
-        margin-bottom: 0;
-    }
-    
-    .badge {
-        font-size: 0.75em;
     }
 </style>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-    // Detectar dispositivo móvel e sugerir interface mobile
     document.addEventListener('DOMContentLoaded', function() {
+        // Detectar dispositivo móvel
         if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-            // Mostrar toast sugerindo interface mobile após 3 segundos
             setTimeout(() => {
                 if (confirm('📱 Dispositivo móvel detectado!\n\nDeseja acessar a interface otimizada para celular?')) {
                     window.location.href = '/mobile/';
@@ -271,20 +183,7 @@
             }, 3000);
         }
         
-        // Adicionar efeito de hover nos cards
-        const cards = document.querySelectorAll('.card');
-        cards.forEach(card => {
-            card.addEventListener('mouseenter', function() {
-                this.style.transform = 'translateY(-5px)';
-            });
-            
-            card.addEventListener('mouseleave', function() {
-                this.style.transform = 'translateY(0)';
-            });
-        });
-        
-        // Mostrar mensagem de sucesso
-        console.log('🎉 Sistema de Controle de Qualidade - Vermiculita carregado com sucesso!');
+        console.log('🎉 Sistema de Controle de Qualidade carregado com sucesso!');
     });
 </script>
 {% endblock %}
