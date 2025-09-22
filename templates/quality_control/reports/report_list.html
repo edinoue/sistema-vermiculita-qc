@@ -1,0 +1,279 @@
+{% extends 'base.html' %}
+
+{% block title %}Laudos de Qualidade{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12 mb-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-file-earmark-text"></i> Laudos de Qualidade
+                </h5>
+                <a href="{% url 'quality_control:report_create' %}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> Novo Laudo
+                </a>
+            </div>
+            <div class="card-body">
+                <!-- Filtros -->
+                <form method="get" class="mb-4">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label for="status" class="form-label">Status</label>
+                            <select class="form-select" id="status" name="status">
+                                <option value="">Todos os status</option>
+                                {% for value, label in status_choices %}
+                                    <option value="{{ value }}" {% if current_filters.status == value %}selected{% endif %}>
+                                        {{ label }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="product" class="form-label">Produto</label>
+                            <select class="form-select" id="product" name="product">
+                                <option value="">Todos os produtos</option>
+                                {% for product in products %}
+                                    <option value="{{ product.id }}" {% if current_filters.product == product.id|stringformat:"s" %}selected{% endif %}>
+                                        {{ product.name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="line" class="form-label">Linha</label>
+                            <select class="form-select" id="line" name="line">
+                                <option value="">Todas as linhas</option>
+                                {% for line in production_lines %}
+                                    <option value="{{ line.id }}" {% if current_filters.line == line.id|stringformat:"s" %}selected{% endif %}>
+                                        {{ line.name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="search" class="form-label">Buscar</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="search" name="search" 
+                                       value="{{ current_filters.search }}" placeholder="Número, lote, cliente...">
+                                <button class="btn btn-outline-secondary" type="submit">
+                                    <i class="bi bi-search"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+
+                <!-- Tabela de laudos -->
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Número</th>
+                                <th>Produto</th>
+                                <th>Linha</th>
+                                <th>Período</th>
+                                <th>Cliente</th>
+                                <th>Status</th>
+                                <th>Criado em</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for report in reports %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ report.report_number }}</strong>
+                                        {% if report.batch_number %}
+                                            <br><small class="text-muted">Lote: {{ report.batch_number }}</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {{ report.product.name }}
+                                        {% if report.quantity %}
+                                            <br><small class="text-muted">{{ report.quantity }} ton</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ report.production_line.name }}</td>
+                                    <td>
+                                        {{ report.start_date|date:"d/m/Y" }}
+                                        {% if report.start_date != report.end_date %}
+                                            <br>a {{ report.end_date|date:"d/m/Y" }}
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if report.customer_name %}
+                                            {{ report.customer_name }}
+                                            {% if report.destination %}
+                                                <br><small class="text-muted">{{ report.destination }}</small>
+                                            {% endif %}
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if report.status == 'APPROVED' %}
+                                            <span class="badge bg-success">{{ report.get_status_display }}</span>
+                                        {% elif report.status == 'PENDING' %}
+                                            <span class="badge bg-warning">{{ report.get_status_display }}</span>
+                                        {% elif report.status == 'REJECTED' %}
+                                            <span class="badge bg-danger">{{ report.get_status_display }}</span>
+                                        {% elif report.status == 'CANCELLED' %}
+                                            <span class="badge bg-secondary">{{ report.get_status_display }}</span>
+                                        {% else %}
+                                            <span class="badge bg-light text-dark">{{ report.get_status_display }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {{ report.created_at|date:"d/m/Y H:i" }}
+                                        <br><small class="text-muted">{{ report.created_by.get_full_name|default:report.created_by.username }}</small>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <a href="{% url 'quality_control:report_detail' report.pk %}" 
+                                               class="btn btn-outline-primary" title="Ver detalhes">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            {% if report.is_approved %}
+                                                <a href="{% url 'quality_control:generate_report_pdf' report.pk %}" 
+                                                   class="btn btn-outline-success" title="Download PDF">
+                                                    <i class="bi bi-file-pdf"></i>
+                                                </a>
+                                            {% endif %}
+                                            {% if report.can_be_approved and perms.quality_control.change_qualityreport %}
+                                                <a href="{% url 'quality_control:approve_report' report.pk %}" 
+                                                   class="btn btn-outline-success" title="Aprovar"
+                                                   onclick="return confirm('Confirma a aprovação deste laudo?')">
+                                                    <i class="bi bi-check-circle"></i>
+                                                </a>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="8" class="text-center text-muted py-4">
+                                        <i class="bi bi-inbox fs-1 mb-3"></i>
+                                        <br>Nenhum laudo encontrado com os filtros aplicados.
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Paginação -->
+                {% if is_paginated %}
+                    <nav aria-label="Paginação dos laudos">
+                        <ul class="pagination justify-content-center">
+                            {% if page_obj.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                        <i class="bi bi-chevron-double-left"></i>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                        <i class="bi bi-chevron-left"></i>
+                                    </a>
+                                </li>
+                            {% endif %}
+
+                            {% for num in page_obj.paginator.page_range %}
+                                {% if page_obj.number == num %}
+                                    <li class="page-item active">
+                                        <span class="page-link">{{ num }}</span>
+                                    </li>
+                                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{ num }}</a>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+
+                            {% if page_obj.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                        <i class="bi bi-chevron-right"></i>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                        <i class="bi bi-chevron-double-right"></i>
+                                    </a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Estatísticas rápidas -->
+<div class="row">
+    <div class="col-md-3 col-6 mb-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h4 class="text-primary" id="totalReports">{{ reports|length }}</h4>
+                <small class="text-muted">Total de Laudos</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6 mb-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h4 class="text-success" id="approvedReports">-</h4>
+                <small class="text-muted">Aprovados</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6 mb-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h4 class="text-warning" id="pendingReports">-</h4>
+                <small class="text-muted">Pendentes</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6 mb-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h4 class="text-info" id="approvalRate">-</h4>
+                <small class="text-muted">Taxa de Aprovação</small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Carregar estatísticas
+    document.addEventListener('DOMContentLoaded', function() {
+        loadReportStats();
+    });
+    
+    function loadReportStats() {
+        fetch('/qc/api/report-stats/')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('totalReports').textContent = data.total_reports;
+                document.getElementById('approvedReports').textContent = data.approved_reports;
+                document.getElementById('pendingReports').textContent = data.pending_reports;
+                document.getElementById('approvalRate').textContent = data.approval_rate.toFixed(1) + '%';
+            })
+            .catch(error => {
+                console.error('Erro ao carregar estatísticas:', error);
+            });
+    }
+    
+    // Auto-submit do formulário de filtros quando mudar seleção
+    document.querySelectorAll('select[name="status"], select[name="product"], select[name="line"]').forEach(select => {
+        select.addEventListener('change', function() {
+            this.form.submit();
+        });
+    });
+</script>
+{% endblock %}

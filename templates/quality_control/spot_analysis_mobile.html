@@ -1,0 +1,231 @@
+{% extends 'base.html' %}
+
+{% block title %}Nova Análise Pontual - Mobile{% endblock %}
+
+{% block content %}
+<div class="mobile-optimized">
+    <!-- Header -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">
+                <i class="bi bi-plus-circle"></i> Nova Análise Pontual
+            </h5>
+        </div>
+        <div class="card-body text-center">
+            <h6>{{ current_shift.get_name_display }} - {{ today|date:"d/m/Y" }}</h6>
+            <small class="text-muted">Registre até 3 medições por propriedade</small>
+        </div>
+    </div>
+
+    <!-- Formulário -->
+    <form method="post" id="spotAnalysisForm">
+        {% csrf_token %}
+        
+        <div class="card mb-4">
+            <div class="card-body">
+                <!-- Data e Turno (ocultos, preenchidos automaticamente) -->
+                <input type="hidden" name="date" value="{{ today|date:'Y-m-d' }}">
+                <input type="hidden" name="shift" value="{{ current_shift.id }}">
+                
+                <!-- Linha de Produção -->
+                <div class="mb-3">
+                    <label for="production_line" class="form-label">
+                        <i class="bi bi-diagram-3"></i> Linha de Produção *
+                    </label>
+                    <select class="form-select" id="production_line" name="production_line" required>
+                        <option value="">Selecione uma linha</option>
+                        {% for line in production_lines %}
+                            <option value="{{ line.id }}">{{ line.name }} ({{ line.code }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Produto -->
+                <div class="mb-3">
+                    <label for="product" class="form-label">
+                        <i class="bi bi-box"></i> Produto *
+                    </label>
+                    <select class="form-select" id="product" name="product" required onchange="loadPropertiesByProduct(this.value, 'property')">
+                        <option value="">Selecione um produto</option>
+                        {% for product in products %}
+                            <option value="{{ product.id }}">{{ product.name }} ({{ product.code }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Propriedade -->
+                <div class="mb-3">
+                    <label for="property" class="form-label">
+                        <i class="bi bi-clipboard-data"></i> Propriedade *
+                    </label>
+                    <select class="form-select" id="property" name="property" required onchange="updateUnitField()">
+                        <option value="">Primeiro selecione um produto</option>
+                    </select>
+                </div>
+
+                <!-- Sequência -->
+                <div class="mb-3">
+                    <label for="sequence" class="form-label">
+                        <i class="bi bi-hash"></i> Sequência (1, 2 ou 3) *
+                    </label>
+                    <select class="form-select" id="sequence" name="sequence" required>
+                        <option value="">Selecione</option>
+                        <option value="1">1ª Medição</option>
+                        <option value="2">2ª Medição</option>
+                        <option value="3">3ª Medição</option>
+                    </select>
+                </div>
+
+                <!-- Valor -->
+                <div class="row">
+                    <div class="col-8">
+                        <div class="mb-3">
+                            <label for="value" class="form-label">
+                                <i class="bi bi-123"></i> Valor *
+                            </label>
+                            <input type="number" class="form-control" id="value" name="value" step="0.0001" required>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="mb-3">
+                            <label for="unit" class="form-label">Unidade</label>
+                            <input type="text" class="form-control" id="unit" name="unit" readonly>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ação Tomada -->
+                <div class="mb-3">
+                    <label for="action_taken" class="form-label">
+                        <i class="bi bi-wrench"></i> Ação Tomada (opcional)
+                    </label>
+                    <textarea class="form-control" id="action_taken" name="action_taken" rows="3" placeholder="Descreva ajustes realizados no equipamento..."></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Botões -->
+        <div class="d-grid gap-2 mb-4">
+            <button type="submit" class="btn btn-primary btn-lg">
+                <i class="bi bi-check-circle"></i> Registrar Análise
+            </button>
+            <a href="{% url 'core:mobile_home' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Voltar
+            </a>
+        </div>
+    </form>
+
+    <!-- Análises Recentes -->
+    <div class="card">
+        <div class="card-header">
+            <h6 class="mb-0">
+                <i class="bi bi-clock-history"></i> Análises de Hoje
+            </h6>
+        </div>
+        <div class="card-body">
+            <div id="recentAnalyses">
+                <p class="text-muted text-center">Carregando...</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Atualizar campo de unidade baseado na propriedade selecionada
+    function updateUnitField() {
+        const propertySelect = document.getElementById('property');
+        const unitField = document.getElementById('unit');
+        
+        if (propertySelect.value) {
+            // Buscar informações da propriedade
+            fetch(`/api/properties/${propertySelect.value}/`)
+                .then(response => response.json())
+                .then(data => {
+                    unitField.value = data.unit || '';
+                })
+                .catch(error => {
+                    console.error('Erro ao buscar propriedade:', error);
+                    unitField.value = '';
+                });
+        } else {
+            unitField.value = '';
+        }
+    }
+    
+    // Carregar análises recentes
+    function loadRecentAnalyses() {
+        const today = new Date().toISOString().split('T')[0];
+        
+        fetch(`/api/spot-analyses/?date=${today}&limit=5`)
+            .then(response => response.json())
+            .then(data => {
+                const container = document.getElementById('recentAnalyses');
+                
+                if (data.results && data.results.length > 0) {
+                    let html = '';
+                    data.results.forEach(analysis => {
+                        const statusClass = analysis.status === 'APPROVED' ? 'text-success' : 
+                                          analysis.status === 'ALERT' ? 'text-warning' : 'text-danger';
+                        
+                        html += `
+                            <div class="border-bottom pb-2 mb-2">
+                                <div class="d-flex justify-content-between">
+                                    <small><strong>${analysis.property_identifier}</strong></small>
+                                    <small class="${statusClass}">${analysis.status_display}</small>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <small>${analysis.production_line_name}</small>
+                                    <small>${analysis.value} ${analysis.unit}</small>
+                                </div>
+                                <small class="text-muted">#${analysis.sequence} - ${new Date(analysis.sample_time).toLocaleTimeString()}</small>
+                            </div>
+                        `;
+                    });
+                    container.innerHTML = html;
+                } else {
+                    container.innerHTML = '<p class="text-muted text-center">Nenhuma análise registrada hoje.</p>';
+                }
+            })
+            .catch(error => {
+                console.error('Erro ao carregar análises:', error);
+                document.getElementById('recentAnalyses').innerHTML = 
+                    '<p class="text-danger text-center">Erro ao carregar análises.</p>';
+            });
+    }
+    
+    // Validação do formulário
+    document.getElementById('spotAnalysisForm').addEventListener('submit', function(e) {
+        const value = document.getElementById('value').value;
+        const sequence = document.getElementById('sequence').value;
+        
+        if (!value || isNaN(value)) {
+            e.preventDefault();
+            alert('Por favor, informe um valor numérico válido.');
+            return;
+        }
+        
+        if (!sequence || ![1, 2, 3].includes(parseInt(sequence))) {
+            e.preventDefault();
+            alert('Por favor, selecione uma sequência válida (1, 2 ou 3).');
+            return;
+        }
+    });
+    
+    // Carregar dados quando a página carregar
+    document.addEventListener('DOMContentLoaded', function() {
+        loadRecentAnalyses();
+        
+        // Atualizar análises a cada 30 segundos
+        setInterval(loadRecentAnalyses, 30000);
+    });
+    
+    // Vibração no celular quando registrar análise (se suportado)
+    document.getElementById('spotAnalysisForm').addEventListener('submit', function() {
+        if ('vibrate' in navigator) {
+            navigator.vibrate(200);
+        }
+    });
+</script>
+{% endblock %}

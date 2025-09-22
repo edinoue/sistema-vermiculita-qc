@@ -1,0 +1,174 @@
+{% extends 'base.html' %}
+
+{% block title %}Mobile - Controle de Qualidade{% endblock %}
+
+{% block content %}
+<div class="mobile-optimized">
+    <!-- Header com informações do turno atual -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">
+                <i class="bi bi-clock"></i> Turno Atual
+            </h5>
+        </div>
+        <div class="card-body text-center">
+            {% if current_shift %}
+                <h3 class="text-primary">{{ current_shift.get_name_display }}</h3>
+                <p class="mb-1">{{ current_shift.start_time|time:"H:i" }} - {{ current_shift.end_time|time:"H:i" }}</p>
+            {% else %}
+                <h3 class="text-muted">Turno não definido</h3>
+            {% endif %}
+            <small class="text-muted">{{ current_time|date:"d/m/Y H:i" }}</small>
+        </div>
+    </div>
+
+    <!-- Ações Rápidas -->
+    <div class="row g-3 mb-4">
+        <div class="col-6">
+            <a href="{% url 'quality_control:spot_analysis_create' %}" class="btn btn-primary w-100 h-100 d-flex flex-column justify-content-center align-items-center" style="min-height: 120px;">
+                <i class="bi bi-plus-circle fs-1 mb-2"></i>
+                <span>Nova Análise Pontual</span>
+            </a>
+        </div>
+        <div class="col-6">
+            <a href="{% url 'quality_control:composite_sample_create' %}" class="btn btn-success w-100 h-100 d-flex flex-column justify-content-center align-items-center" style="min-height: 120px;">
+                <i class="bi bi-collection fs-1 mb-2"></i>
+                <span>Amostra Composta</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Linhas de Produção -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">
+                <i class="bi bi-diagram-3"></i> Linhas de Produção
+            </h5>
+        </div>
+        <div class="card-body">
+            {% for line in production_lines %}
+                <div class="d-grid gap-2 mb-3">
+                    <a href="{% url 'core:qr_code' line.code %}" class="btn btn-outline-primary btn-lg">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>{{ line.name }}</strong><br>
+                                <small class="text-muted">{{ line.code }}</small>
+                            </div>
+                            <i class="bi bi-qr-code fs-3"></i>
+                        </div>
+                    </a>
+                </div>
+            {% empty %}
+                <p class="text-muted text-center">Nenhuma linha de produção ativa encontrada.</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Acesso Rápido -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">
+                <i class="bi bi-lightning"></i> Acesso Rápido
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="row g-2">
+                <div class="col-6">
+                    <a href="{% url 'quality_control:spot_analysis' %}" class="btn btn-outline-secondary w-100">
+                        <i class="bi bi-list-ul"></i><br>
+                        <small>Ver Análises</small>
+                    </a>
+                </div>
+                <div class="col-6">
+                    <a href="{% url 'quality_control:composite_sample' %}" class="btn btn-outline-secondary w-100">
+                        <i class="bi bi-archive"></i><br>
+                        <small>Ver Amostras</small>
+                    </a>
+                </div>
+                <div class="col-6">
+                    <a href="{% url 'core:dashboard' %}" class="btn btn-outline-info w-100">
+                        <i class="bi bi-graph-up"></i><br>
+                        <small>Dashboard</small>
+                    </a>
+                </div>
+                <div class="col-6">
+                    <a href="/admin/" class="btn btn-outline-warning w-100">
+                        <i class="bi bi-gear"></i><br>
+                        <small>Admin</small>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Instruções de Uso -->
+<div class="modal fade" id="instructionsModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Como Usar</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <h6>Análises Pontuais:</h6>
+                <ul>
+                    <li>Registre até 3 medições por turno</li>
+                    <li>Selecione linha, produto e propriedade</li>
+                    <li>Informe o valor e unidade</li>
+                    <li>Descreva ações tomadas se necessário</li>
+                </ul>
+                
+                <h6>Amostras Compostas:</h6>
+                <ul>
+                    <li>Colete ao final do turno</li>
+                    <li>Registre quantidade produzida</li>
+                    <li>Adicione observações importantes</li>
+                </ul>
+                
+                <h6>QR Codes:</h6>
+                <ul>
+                    <li>Cada linha tem um QR Code fixo</li>
+                    <li>Mostra dados do turno atual</li>
+                    <li>Atualiza automaticamente</li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Botão de Ajuda Flutuante -->
+<button type="button" class="btn btn-info position-fixed bottom-0 end-0 m-3 rounded-circle" data-bs-toggle="modal" data-bs-target="#instructionsModal" style="width: 60px; height: 60px; z-index: 1000;">
+    <i class="bi bi-question-lg fs-4"></i>
+</button>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Atualizar horário a cada minuto
+    setInterval(function() {
+        location.reload();
+    }, 60000);
+    
+    // Detectar orientação do dispositivo
+    function handleOrientationChange() {
+        if (window.orientation !== undefined) {
+            // Ajustar layout baseado na orientação
+            const cards = document.querySelectorAll('.card');
+            if (Math.abs(window.orientation) === 90) {
+                // Paisagem
+                cards.forEach(card => card.style.marginBottom = '0.5rem');
+            } else {
+                // Retrato
+                cards.forEach(card => card.style.marginBottom = '1rem');
+            }
+        }
+    }
+    
+    window.addEventListener('orientationchange', handleOrientationChange);
+    document.addEventListener('DOMContentLoaded', handleOrientationChange);
+</script>
+{% endblock %}

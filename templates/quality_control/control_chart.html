@@ -1,0 +1,523 @@
+{% extends 'base.html' %}
+
+{% block title %}Cartas de Controle SPC{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-graph-up-arrow"></i> Cartas de Controle Estatístico de Processo (SPC)
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">
+                    As cartas de controle permitem monitorar a estabilidade do processo ao longo do tempo,
+                    identificando variações especiais que requerem investigação.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filtros -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="bi bi-funnel"></i> Filtros
+                </h6>
+            </div>
+            <div class="card-body">
+                <form id="chartFilters">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label for="property" class="form-label">Propriedade *</label>
+                            <select class="form-select" id="property" name="property" required>
+                                <option value="">Selecione uma propriedade</option>
+                                {% for prop in properties %}
+                                    <option value="{{ prop.id }}">{{ prop.identifier }} - {{ prop.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="production_line" class="form-label">Linha de Produção</label>
+                            <select class="form-select" id="production_line" name="production_line">
+                                <option value="">Todas as linhas</option>
+                                {% for line in production_lines %}
+                                    <option value="{{ line.id }}">{{ line.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label for="chart_type" class="form-label">Tipo de Carta</label>
+                            <select class="form-select" id="chart_type" name="chart_type">
+                                <option value="individual">Individual (I-MR)</option>
+                                <option value="xbar_r">X̄-R</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label for="days" class="form-label">Período (dias)</label>
+                            <select class="form-select" id="days" name="days">
+                                <option value="7">7 dias</option>
+                                <option value="15">15 dias</option>
+                                <option value="30" selected>30 dias</option>
+                                <option value="60">60 dias</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="bi bi-search"></i> Gerar Carta
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Área dos Gráficos -->
+<div id="chartContainer" style="display: none;">
+    <!-- Carta Individual ou X̄ -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0" id="primaryChartTitle">
+                        <i class="bi bi-graph-up"></i> Carta Individual
+                    </h6>
+                    <div class="btn-group btn-group-sm">
+                        <button type="button" class="btn btn-outline-info" onclick="exportChart('primaryChart')">
+                            <i class="bi bi-download"></i> Exportar
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary" onclick="printChart()">
+                            <i class="bi bi-printer"></i> Imprimir
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <canvas id="primaryChart" height="400"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Carta Moving Range ou Range -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0" id="secondaryChartTitle">
+                        <i class="bi bi-graph-down"></i> Carta Moving Range
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="secondaryChart" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estatísticas e Interpretação -->
+    <div class="row">
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="bi bi-calculator"></i> Estatísticas
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div id="chartStatistics">
+                        <!-- Estatísticas serão inseridas aqui via JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="bi bi-exclamation-triangle"></i> Pontos Fora de Controle
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div id="outOfControlPoints">
+                        <!-- Pontos fora de controle serão inseridos aqui via JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Mensagem de Instrução -->
+<div id="instructionMessage" class="row">
+    <div class="col-12">
+        <div class="alert alert-info text-center">
+            <i class="bi bi-info-circle fs-3 mb-3"></i>
+            <h5>Selecione uma propriedade para gerar a carta de controle</h5>
+            <p class="mb-0">
+                As cartas de controle mostram a variabilidade do processo ao longo do tempo,
+                permitindo identificar causas especiais de variação.
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let primaryChart, secondaryChart;
+    let currentChartData = null;
+    
+    // Submissão do formulário
+    document.getElementById('chartFilters').addEventListener('submit', function(e) {
+        e.preventDefault();
+        generateControlChart();
+    });
+    
+    function generateControlChart() {
+        const formData = new FormData(document.getElementById('chartFilters'));
+        const params = new URLSearchParams(formData);
+        
+        if (!formData.get('property')) {
+            alert('Por favor, selecione uma propriedade.');
+            return;
+        }
+        
+        // Mostrar loading
+        document.getElementById('instructionMessage').style.display = 'none';
+        document.getElementById('chartContainer').style.display = 'block';
+        
+        fetch(`/api/control-chart-data/?${params}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+                
+                currentChartData = data;
+                renderControlCharts(data);
+                updateStatistics(data);
+                updateOutOfControlPoints(data);
+            })
+            .catch(error => {
+                console.error('Erro ao gerar carta:', error);
+                alert('Erro ao gerar carta de controle: ' + error.message);
+                document.getElementById('chartContainer').style.display = 'none';
+                document.getElementById('instructionMessage').style.display = 'block';
+            });
+    }
+    
+    function renderControlCharts(data) {
+        const chartType = data.chart_type;
+        
+        if (chartType === 'individual') {
+            renderIndividualChart(data);
+            renderMovingRangeChart(data);
+            document.getElementById('primaryChartTitle').innerHTML = 
+                '<i class="bi bi-graph-up"></i> Carta Individual (I)';
+            document.getElementById('secondaryChartTitle').innerHTML = 
+                '<i class="bi bi-graph-down"></i> Carta Moving Range (MR)';
+        } else if (chartType === 'xbar_r') {
+            renderXBarChart(data);
+            renderRangeChart(data);
+            document.getElementById('primaryChartTitle').innerHTML = 
+                '<i class="bi bi-graph-up"></i> Carta X̄ (Média)';
+            document.getElementById('secondaryChartTitle').innerHTML = 
+                '<i class="bi bi-graph-down"></i> Carta R (Amplitude)';
+        }
+    }
+    
+    function renderIndividualChart(data) {
+        const ctx = document.getElementById('primaryChart').getContext('2d');
+        
+        if (primaryChart) {
+            primaryChart.destroy();
+        }
+        
+        const chartData = data.individual_chart;
+        const specs = data.specifications || {};
+        
+        const datasets = [{
+            label: 'Valores Individuais',
+            data: chartData.values,
+            borderColor: 'rgb(54, 162, 235)',
+            backgroundColor: 'rgba(54, 162, 235, 0.1)',
+            pointBackgroundColor: chartData.out_of_control.map(ooc => ooc ? 'red' : 'rgb(54, 162, 235)'),
+            pointBorderColor: chartData.out_of_control.map(ooc => ooc ? 'red' : 'rgb(54, 162, 235)'),
+            pointRadius: chartData.out_of_control.map(ooc => ooc ? 6 : 3),
+            tension: 0
+        }];
+        
+        // Adicionar linhas de controle
+        const labels = data.timestamps || chartData.values.map((_, i) => `Ponto ${i+1}`);
+        
+        // Linha central
+        datasets.push({
+            label: 'Linha Central (X̄)',
+            data: new Array(chartData.values.length).fill(chartData.mean),
+            borderColor: 'green',
+            borderDash: [5, 5],
+            pointRadius: 0,
+            fill: false
+        });
+        
+        // Limites de controle
+        datasets.push({
+            label: 'LSC',
+            data: new Array(chartData.values.length).fill(chartData.ucl),
+            borderColor: 'red',
+            borderDash: [10, 5],
+            pointRadius: 0,
+            fill: false
+        });
+        
+        datasets.push({
+            label: 'LIC',
+            data: new Array(chartData.values.length).fill(chartData.lcl),
+            borderColor: 'red',
+            borderDash: [10, 5],
+            pointRadius: 0,
+            fill: false
+        });
+        
+        // Adicionar especificações se disponíveis
+        if (specs.usl !== undefined) {
+            datasets.push({
+                label: 'LSE',
+                data: new Array(chartData.values.length).fill(specs.usl),
+                borderColor: 'orange',
+                borderDash: [2, 2],
+                pointRadius: 0,
+                fill: false
+            });
+        }
+        
+        if (specs.lsl !== undefined) {
+            datasets.push({
+                label: 'LIE',
+                data: new Array(chartData.values.length).fill(specs.lsl),
+                borderColor: 'orange',
+                borderDash: [2, 2],
+                pointRadius: 0,
+                fill: false
+            });
+        }
+        
+        primaryChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: datasets
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Valor'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Sequência'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            afterLabel: function(context) {
+                                if (chartData.out_of_control[context.dataIndex]) {
+                                    return 'FORA DE CONTROLE';
+                                }
+                                return '';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+    
+    function renderMovingRangeChart(data) {
+        const ctx = document.getElementById('secondaryChart').getContext('2d');
+        
+        if (secondaryChart) {
+            secondaryChart.destroy();
+        }
+        
+        const chartData = data.moving_range_chart;
+        
+        secondaryChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: chartData.values.map((_, i) => `MR ${i+1}`),
+                datasets: [{
+                    label: 'Moving Range',
+                    data: chartData.values,
+                    borderColor: 'rgb(255, 99, 132)',
+                    backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                    pointBackgroundColor: chartData.out_of_control.map(ooc => ooc ? 'red' : 'rgb(255, 99, 132)'),
+                    pointRadius: chartData.out_of_control.map(ooc => ooc ? 6 : 3),
+                    tension: 0
+                }, {
+                    label: 'Linha Central (MR̄)',
+                    data: new Array(chartData.values.length).fill(chartData.mean),
+                    borderColor: 'green',
+                    borderDash: [5, 5],
+                    pointRadius: 0,
+                    fill: false
+                }, {
+                    label: 'LSC',
+                    data: new Array(chartData.values.length).fill(chartData.ucl),
+                    borderColor: 'red',
+                    borderDash: [10, 5],
+                    pointRadius: 0,
+                    fill: false
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Moving Range'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    }
+                }
+            }
+        });
+    }
+    
+    function updateStatistics(data) {
+        const chartData = data.individual_chart || data.xbar_chart;
+        const specs = data.specifications || {};
+        
+        let html = `
+            <div class="row g-3">
+                <div class="col-6">
+                    <div class="text-center">
+                        <h6 class="text-primary">${chartData.mean.toFixed(4)}</h6>
+                        <small class="text-muted">Média</small>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="text-center">
+                        <h6 class="text-info">${(chartData.ucl - chartData.lcl).toFixed(4)}</h6>
+                        <small class="text-muted">Amplitude de Controle</small>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="text-center">
+                        <h6 class="text-success">${chartData.ucl.toFixed(4)}</h6>
+                        <small class="text-muted">LSC</small>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="text-center">
+                        <h6 class="text-warning">${chartData.lcl.toFixed(4)}</h6>
+                        <small class="text-muted">LIC</small>
+                    </div>
+                </div>
+        `;
+        
+        if (specs.target !== undefined) {
+            html += `
+                <div class="col-12">
+                    <hr>
+                    <div class="text-center">
+                        <h6 class="text-secondary">${specs.target.toFixed(4)}</h6>
+                        <small class="text-muted">Valor Alvo</small>
+                    </div>
+                </div>
+            `;
+        }
+        
+        html += '</div>';
+        
+        document.getElementById('chartStatistics').innerHTML = html;
+    }
+    
+    function updateOutOfControlPoints(data) {
+        const primaryData = data.individual_chart || data.xbar_chart;
+        const secondaryData = data.moving_range_chart || data.range_chart;
+        
+        const primaryOOC = primaryData.out_of_control.map((ooc, i) => ooc ? i : null).filter(i => i !== null);
+        const secondaryOOC = secondaryData.out_of_control.map((ooc, i) => ooc ? i : null).filter(i => i !== null);
+        
+        let html = '';
+        
+        if (primaryOOC.length === 0 && secondaryOOC.length === 0) {
+            html = '<div class="alert alert-success"><i class="bi bi-check-circle"></i> Processo sob controle estatístico</div>';
+        } else {
+            html = '<div class="alert alert-warning"><i class="bi bi-exclamation-triangle"></i> Pontos fora de controle detectados:</div>';
+            
+            if (primaryOOC.length > 0) {
+                html += `<p><strong>Carta Principal:</strong> Pontos ${primaryOOC.map(i => i+1).join(', ')}</p>`;
+            }
+            
+            if (secondaryOOC.length > 0) {
+                html += `<p><strong>Carta Secundária:</strong> Pontos ${secondaryOOC.map(i => i+1).join(', ')}</p>`;
+            }
+            
+            html += `
+                <small class="text-muted">
+                    Investigue as causas especiais que podem ter gerado estes pontos fora dos limites de controle.
+                </small>
+            `;
+        }
+        
+        document.getElementById('outOfControlPoints').innerHTML = html;
+    }
+    
+    function exportChart(chartId) {
+        const chart = chartId === 'primaryChart' ? primaryChart : secondaryChart;
+        if (chart) {
+            const url = chart.toBase64Image();
+            const link = document.createElement('a');
+            link.download = `carta_controle_${chartId}_${new Date().toISOString().split('T')[0]}.png`;
+            link.href = url;
+            link.click();
+        }
+    }
+    
+    function printChart() {
+        window.print();
+    }
+</script>
+
+<style>
+    @media print {
+        .card-header .btn-group {
+            display: none !important;
+        }
+        
+        .card {
+            break-inside: avoid;
+            margin-bottom: 1rem;
+        }
+    }
+</style>
+{% endblock %}
