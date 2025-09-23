@@ -1,38 +1,70 @@
 # Arquivo: quality_control/urls.py
-# Substitua o conteúdo do arquivo quality_control/urls.py
+# Substitua COMPLETAMENTE o conteúdo do arquivo quality_control/urls.py
 
 from django.urls import path
 from django.views.decorators.csrf import csrf_exempt
-from . import views, dashboard_views
+from django.http import HttpResponse
+from . import views
 
 app_name = 'quality_control'
 
-# Aplicar csrf_exempt em todas as views
-csrf_exempt_views = csrf_exempt(views.SpotAnalysisCreateView.as_view())
-csrf_exempt_dashboard = csrf_exempt(dashboard_views.DashboardView.as_view())
-csrf_exempt_control_chart = csrf_exempt(dashboard_views.ControlChartView.as_view())
+# View simples para páginas que ainda não existem
+def pagina_em_desenvolvimento(request):
+    html = """
+    <!DOCTYPE html>
+    <html lang="pt-br">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Em Desenvolvimento - Brasil Minérios</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
+    </head>
+    <body>
+        <div class="container mt-5">
+            <div class="row justify-content-center">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header text-center bg-warning">
+                            <h4><i class="bi bi-tools"></i> Em Desenvolvimento</h4>
+                        </div>
+                        <div class="card-body text-center">
+                            <p class="lead">Esta funcionalidade está sendo desenvolvida.</p>
+                            <p>Por enquanto, use o <strong>Admin do Django</strong> para gerenciar os dados.</p>
+                            <div class="d-grid gap-2">
+                                <a href="/admin/" class="btn btn-primary">
+                                    <i class="bi bi-gear"></i> Ir para Admin
+                                </a>
+                                <a href="/" class="btn btn-outline-secondary">
+                                    <i class="bi bi-house"></i> Voltar ao Início
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+    return HttpResponse(html)
 
 urlpatterns = [
-    # Dashboard
-    path('dashboard/', csrf_exempt_dashboard, name='dashboard'),
+    # Dashboard - página em desenvolvimento
+    path('dashboard/', csrf_exempt(pagina_em_desenvolvimento), name='dashboard'),
     
-    # Análises pontuais
-    path('spot-analysis/create/', csrf_exempt_views, name='spot_analysis_create'),
-    path('spot-analysis/', csrf_exempt(views.SpotAnalysisListView.as_view()), name='spot_analysis_list'),
+    # Análises pontuais - página em desenvolvimento
+    path('spot-analysis/create/', csrf_exempt(pagina_em_desenvolvimento), name='spot_analysis_create'),
+    path('spot-analysis/', csrf_exempt(pagina_em_desenvolvimento), name='spot_analysis_list'),
     
-    # Cartas de controle
-    path('control-chart/', csrf_exempt_control_chart, name='control_chart'),
-    path('control-chart/<str:product_code>/<str:property_name>/', 
-         csrf_exempt(dashboard_views.ControlChartDetailView.as_view()), 
-         name='control_chart_detail'),
+    # Cartas de controle - página em desenvolvimento
+    path('control-chart/', csrf_exempt(pagina_em_desenvolvimento), name='control_chart'),
     
-    # Laudos e relatórios
-    path('reports/', csrf_exempt(views.ReportListView.as_view()), name='report_list'),
-    path('reports/create/', csrf_exempt(views.ReportCreateView.as_view()), name='report_create'),
-    path('reports/<int:pk>/', csrf_exempt(views.ReportDetailView.as_view()), name='report_detail'),
+    # Laudos e relatórios - página em desenvolvimento
+    path('reports/', csrf_exempt(pagina_em_desenvolvimento), name='report_list'),
+    path('reports/create/', csrf_exempt(pagina_em_desenvolvimento), name='report_create'),
     
-    # APIs (sem CSRF)
-    path('api/current-shift/', csrf_exempt(views.CurrentShiftAPIView.as_view()), name='current_shift_api'),
-    path('api/shift-data/', csrf_exempt(views.ShiftDataAPIView.as_view()), name='shift_data_api'),
-    path('api/dashboard-data/', csrf_exempt(dashboard_views.DashboardDataAPIView.as_view()), name='dashboard_data_api'),
+    # APIs básicas (se existirem)
+    path('api/current-shift/', csrf_exempt(pagina_em_desenvolvimento), name='current_shift_api'),
+    path('api/shift-data/', csrf_exempt(pagina_em_desenvolvimento), name='shift_data_api'),
 ]
