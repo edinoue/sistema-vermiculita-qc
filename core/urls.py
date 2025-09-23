@@ -1,12 +1,16 @@
+"""
+URLs do app core
+"""
+
 from django.urls import path
 from . import views
 
 app_name = 'core'
 
 urlpatterns = [
+    # Views principais
     path('', views.HomeView.as_view(), name='home'),
-    path('mobile/', views.mobile_home, name='mobile_home'),
-    path('status/', views.sistema_status, name='sistema_status'),
-    path('login-simples/', views.login_sem_csrf, name='login_simples'),
-    path('dashboard-simples/', views.dashboard_simples, name='dashboard_simples'),
+    path('login/', views.LoginView.as_view(), name='login'),
+    path('logout/', views.LogoutView.as_view(), name='logout'),
+    path('dashboard/', views.DashboardView.as_view(), name='dashboard'),
 ]
