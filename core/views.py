@@ -1,244 +1,175 @@
-# Arquivo: core/views.py
-# Substitua o conteúdo do arquivo core/views.py por este código
+"""
+Views do app core
+"""
 
-from django.shortcuts import render, redirect
-from django.http import HttpResponse, JsonResponse
-from django.contrib.auth import authenticate, login
-from django.contrib.auth.decorators import login_required
-from django.views.decorators.csrf import csrf_exempt
-from django.views.generic import TemplateView
-from django.utils.decorators import method_decorator
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views.generic import TemplateView, View
 from django.contrib import messages
-import json
+from django.http import JsonResponse
+from django.utils import timezone
+from datetime import datetime, time
 
-@method_decorator(csrf_exempt, name='dispatch')
+from .models import ProductionLine, Shift
+from quality_control.models import SpotAnalysis, CompositeSample
+
+
 class HomeView(TemplateView):
+    """
+    Página inicial - redireciona baseado no dispositivo
+    """
     template_name = 'core/home.html'
     
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['sistema_online'] = True
-        context['empresa'] = 'Brasil Minérios'
-        return context
+    def get(self, request, *args, **kwargs):
+        # Detectar se é mobile e redirecionar
+        user_agent = request.META.get('HTTP_USER_AGENT', '').lower()
+        is_mobile = any(device in user_agent for device in ['mobile', 'android', 'iphone'])
+        
+        if is_mobile:
+            return redirect('core:mobile_home')
+        
+        if request.user.is_authenticated:
+            return redirect('quality_control:dashboard')
+        
+        return super().get(request, *args, **kwargs)
 
-@csrf_exempt
-def mobile_home(request):
-    """View para interface mobile"""
-    return render(request, 'core/mobile_home.html', {
-        'sistema_online': True,
-        'empresa': 'Brasil Minérios',
-        'versao': '1.0.0'
-    })
 
-@csrf_exempt
-def login_sem_csrf(request):
-    """Login personalizado sem CSRF"""
-    if request.method == 'POST':
+class LoginView(View):
+    """
+    View de login
+    """
+    template_name = 'registration/login.html'
+    
+    def get(self, request):
+        if request.user.is_authenticated:
+            return redirect('quality_control:dashboard')
+        return render(request, self.template_name)
+    
+    def post(self, request):
         username = request.POST.get('username')
         password = request.POST.get('password')
         
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
-            next_url = request.GET.get('next', '/dashboard-simples/')
+            next_url = request.GET.get('next', 'quality_control:dashboard')
             return redirect(next_url)
         else:
-            messages.error(request, 'Usuário ou senha incorretos')
-    
-    html = """
-    <!DOCTYPE html>
-    <html lang="pt-br">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Login - Brasil Minérios</title>
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
-        <style>
-            body {
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                min-height: 100vh;
-            }
-            .card {
-                border-radius: 15px;
-                box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            }
-        </style>
-    </head>
-    <body class="d-flex align-items-center">
-        <div class="container">
-            <div class="row justify-content-center">
-                <div class="col-md-6 col-lg-4">
-                    <div class="card">
-                        <div class="card-header text-center bg-primary text-white">
-                            <h4><i class="bi bi-shield-lock"></i> Acesso ao Sistema</h4>
-                            <p class="mb-0">Brasil Minérios</p>
-                        </div>
-                        <div class="card-body p-4">
-                            <form method="post">
-                                <div class="mb-3">
-                                    <label for="username" class="form-label">
-                                        <i class="bi bi-person"></i> Usuário:
-                                    </label>
-                                    <input type="text" class="form-control form-control-lg" 
-                                           id="username" name="username" required 
-                                           placeholder="Digite seu usuário">
-                                </div>
-                                <div class="mb-4">
-                                    <label for="password" class="form-label">
-                                        <i class="bi bi-lock"></i> Senha:
-                                    </label>
-                                    <input type="password" class="form-control form-control-lg" 
-                                           id="password" name="password" required 
-                                           placeholder="Digite sua senha">
-                                </div>
-                                <div class="d-grid">
-                                    <button type="submit" class="btn btn-primary btn-lg">
-                                        <i class="bi bi-box-arrow-in-right"></i> Entrar
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                        <div class="card-footer text-center text-muted">
-                            <small>Sistema de Controle de Qualidade v1.0</small>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </body>
-    </html>
-    """
-    return HttpResponse(html)
+            messages.error(request, 'Usuário ou senha inválidos.')
+            return render(request, self.template_name)
 
-@csrf_exempt
-def dashboard_simples(request):
-    """Dashboard simples sem CSRF"""
-    if not request.user.is_authenticated:
-        return redirect('/login-simples/?next=/dashboard-simples/')
+
+class LogoutView(View):
+    """
+    View de logout
+    """
+    def get(self, request):
+        logout(request)
+        return redirect('core:home')
+
+
+class DashboardView(LoginRequiredMixin, TemplateView):
+    """
+    Dashboard principal do sistema
+    """
+    template_name = 'core/dashboard.html'
     
-    html = f"""
-    <!DOCTYPE html>
-    <html lang="pt-br">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Dashboard - Brasil Minérios</title>
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
-    </head>
-    <body>
-        <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-            <div class="container">
-                <a class="navbar-brand" href="/">
-                    <i class="bi bi-gem"></i> Brasil Minérios
-                </a>
-                <div class="navbar-nav ms-auto">
-                    <span class="navbar-text me-3">
-                        <i class="bi bi-person-circle"></i> {request.user.username}
-                    </span>
-                    <a class="nav-link" href="/admin/">
-                        <i class="bi bi-gear"></i> Admin
-                    </a>
-                </div>
-            </div>
-        </nav>
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
         
-        <div class="container mt-4">
-            <div class="row">
-                <div class="col-12">
-                    <div class="alert alert-success">
-                        <h4><i class="bi bi-check-circle"></i> Bem-vindo ao Sistema!</h4>
-                        <p class="mb-0">Login realizado com sucesso. Todas as funcionalidades estão disponíveis.</p>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="row">
-                <div class="col-md-3 mb-3">
-                    <div class="card text-center">
-                        <div class="card-body">
-                            <i class="bi bi-clipboard-data text-primary fs-1"></i>
-                            <h5 class="card-title">Análises</h5>
-                            <p class="card-text">Registro de qualidade</p>
-                            <a href="/admin/" class="btn btn-primary">Acessar</a>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="col-md-3 mb-3">
-                    <div class="card text-center">
-                        <div class="card-body">
-                            <i class="bi bi-graph-up text-success fs-1"></i>
-                            <h5 class="card-title">Dashboard</h5>
-                            <p class="card-text">Gráficos e SPC</p>
-                            <a href="/admin/" class="btn btn-success">Acessar</a>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="col-md-3 mb-3">
-                    <div class="card text-center">
-                        <div class="card-body">
-                            <i class="bi bi-file-pdf text-info fs-1"></i>
-                            <h5 class="card-title">Laudos</h5>
-                            <p class="card-text">Relatórios PDF</p>
-                            <a href="/admin/" class="btn btn-info">Acessar</a>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="col-md-3 mb-3">
-                    <div class="card text-center">
-                        <div class="card-body">
-                            <i class="bi bi-gear text-secondary fs-1"></i>
-                            <h5 class="card-title">Admin</h5>
-                            <p class="card-text">Configurações</p>
-                            <a href="/admin/" class="btn btn-secondary">Acessar</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="row mt-4">
-                <div class="col-12">
-                    <div class="card">
-                        <div class="card-header">
-                            <h5><i class="bi bi-info-circle"></i> Informações do Sistema</h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <p><strong>Empresa:</strong> Brasil Minérios</p>
-                                    <p><strong>Versão:</strong> 1.0.0</p>
-                                    <p><strong>Status:</strong> <span class="badge bg-success">Operacional</span></p>
-                                </div>
-                                <div class="col-md-6">
-                                    <p><strong>Usuário:</strong> {request.user.username}</p>
-                                    <p><strong>Plataforma:</strong> Railway</p>
-                                    <p><strong>Banco:</strong> PostgreSQL</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </body>
-    </html>
-    """
-    return HttpResponse(html)
+        # Estatísticas básicas
+        today = timezone.now().date()
+        context.update({
+            'today': today,
+            'total_lines': ProductionLine.objects.filter(is_active=True).count(),
+            'today_spot_analyses': SpotAnalysis.objects.filter(date=today).count(),
+            'today_composite_samples': CompositeSample.objects.filter(date=today).count(),
+        })
+        
+        return context
 
-@csrf_exempt
-def sistema_status(request):
-    """API para verificar status do sistema"""
-    return JsonResponse({
-        'status': 'operacional',
-        'empresa': 'Brasil Minérios',
-        'versao': '1.0.0',
-        'csrf_disabled': True,
-        'usuario_logado': request.user.is_authenticated,
-        'usuario': request.user.username if request.user.is_authenticated else None,
-        'plataforma': 'Railway',
-        'banco': 'PostgreSQL'
-    })
+
+class MobileHomeView(TemplateView):
+    """
+    Página inicial otimizada para mobile
+    """
+    template_name = 'core/mobile_home.html'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        # Informações do turno atual
+        current_time = timezone.now().time()
+        current_shift = self.get_current_shift(current_time)
+        
+        context.update({
+            'current_shift': current_shift,
+            'production_lines': ProductionLine.objects.filter(is_active=True),
+            'current_time': timezone.now(),
+        })
+        
+        return context
+    
+    def get_current_shift(self, current_time):
+        """
+        Determina o turno atual baseado no horário
+        """
+        try:
+            # Turno A: 06:00 - 18:00
+            if time(6, 0) <= current_time < time(18, 0):
+                return Shift.objects.get(name='A')
+            # Turno B: 18:00 - 06:00
+            else:
+                return Shift.objects.get(name='B')
+        except Shift.DoesNotExist:
+            return None
+
+
+class QRCodeView(TemplateView):
+    """
+    View acessada via QR Code para mostrar dados do turno atual
+    """
+    template_name = 'core/qr_shift_summary.html'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        line_code = kwargs.get('line_code')
+        production_line = get_object_or_404(ProductionLine, code=line_code, is_active=True)
+        
+        # Determinar turno atual
+        current_time = timezone.now().time()
+        today = timezone.now().date()
+        
+        if time(6, 0) <= current_time < time(18, 0):
+            current_shift = Shift.objects.get(name='A')
+        else:
+            current_shift = Shift.objects.get(name='B')
+        
+        # Buscar análises pontuais do turno atual
+        spot_analyses = SpotAnalysis.objects.filter(
+            production_line=production_line,
+            date=today,
+            shift=current_shift
+        ).order_by('-sample_time')
+        
+        # Buscar amostra composta do turno atual
+        try:
+            composite_sample = CompositeSample.objects.get(
+                production_line=production_line,
+                date=today,
+                shift=current_shift
+            )
+        except CompositeSample.DoesNotExist:
+            composite_sample = None
+        
+        context.update({
+            'production_line': production_line,
+            'current_shift': current_shift,
+            'today': today,
+            'spot_analyses': spot_analyses,
+            'composite_sample': composite_sample,
+        })
+        
+        return context
