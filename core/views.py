@@ -1,4 +1,4 @@
-_# Arquivo: core/views.py
+# Arquivo: core/views.py
 # Substitua o conteúdo do arquivo core/views.py por este código
 
 from django.shortcuts import render, redirect
@@ -11,36 +11,35 @@ from django.utils.decorators import method_decorator
 from django.contrib import messages
 import json
 
-@method_decorator(csrf_exempt, name=\'dispatch\')
+@method_decorator(csrf_exempt, name='dispatch')
 class HomeView(TemplateView):
-    template_name = \'core/home.html\'
-    
+    template_name = 'core/home.html' 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context[\'sistema_online\'] = True
+        context['sistema_online'] = True
         return context
 
 @csrf_exempt
 def mobile_home(request):
     """View para interface mobile"""
-    return render(request, \'core/mobile_home.html\', {
-        \'sistema_online\': True,
-        \'versao\': \'1.0.0\'
+    return render(request, 'core/mobile_home.html', {
+        'sistema_online': True,
+        'versao': '1.0.0'
     })
 
 @csrf_exempt
 def login_sem_csrf(request):
     """Login personalizado sem CSRF"""
-    if request.method == \'POST\':
-        username = request.POST.get(\'username\')
-        password = request.POST.get(\'password\')
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
         
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
-            return redirect(\'/admin/\')
+            return redirect('/admin/')
         else:
-            messages.error(request, \'Usuário ou senha incorretos\')
+            messages.error(request, 'Usuário ou senha incorretos')
     
     html = """
     <!DOCTYPE html>
@@ -93,7 +92,7 @@ def login_sem_csrf(request):
 def dashboard_simples(request):
     """Dashboard simples sem CSRF"""
     if not request.user.is_authenticated:
-        return redirect(\'/login-simples/\')
+        return redirect('/login-simples/')
     
     html = f"""
     <!DOCTYPE html>
@@ -166,10 +165,9 @@ def dashboard_simples(request):
 def sistema_status(request):
     """API para verificar status do sistema"""
     return JsonResponse({
-        \'status\': \'online\',
-        \'versao\': \'1.0.0\',
-        \'csrf_disabled\': True,
-        \'usuario_logado\': request.user.is_authenticated,
-        \'usuario\': request.user.username if request.user.is_authenticated else None
-    })_
-
+        'status': 'online',
+        'versao': '1.0.0',
+        'csrf_disabled': True,
+        'usuario_logado': request.user.is_authenticated,
+        'usuario': request.user.username if request.user.is_authenticated else None
+    })
