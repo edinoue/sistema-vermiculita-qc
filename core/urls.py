@@ -1,35 +1,18 @@
-"""
-URLs do app core
-"""
+# Arquivo: core/urls.py
+# Substitua COMPLETAMENTE o conteúdo do arquivo core/urls.py
 
 from django.urls import path
-from . import views, auxiliary_views
+from . import views
 
 app_name = 'core'
 
 urlpatterns = [
-    # Views principais
+    # URLs básicas
     path('', views.HomeView.as_view(), name='home'),
-    path('login/', views.LoginView.as_view(), name='login'),
-    path('logout/', views.LogoutView.as_view(), name='logout'),
-    path('dashboard/', views.DashboardView.as_view(), name='dashboard'),
-    path('mobile/', views.MobileHomeView.as_view(), name='mobile_home'),
+    path('mobile/', views.mobile_home, name='mobile_home'),
+    path('status/', views.sistema_status, name='sistema_status'),
     
-    # QR Codes e visualizações públicas
-    path('qr/<str:line_code>/', auxiliary_views.QRCodeView.as_view(), name='qr_code'),
-    path('line-summary/<str:line_code>/', auxiliary_views.LineSummaryView.as_view(), name='line_summary'),
-    path('shift-summary/<str:date>/<str:shift>/<int:line_id>/', auxiliary_views.ShiftSummaryView.as_view(), name='shift_summary'),
-    path('generate-shift-qr/<int:line_id>/<str:date_str>/<str:shift_name>/', auxiliary_views.generate_shift_qr, name='generate_shift_qr'),
-    
-    # Exportação e importação de dados
-    path('export/', auxiliary_views.DataExportView.as_view(), name='data_export'),
-    path('export/data/', auxiliary_views.export_data, name='export_data'),
-    path('import/', auxiliary_views.DataImportView.as_view(), name='data_import'),
-    
-    # Backup e restore
-    path('backup/', auxiliary_views.BackupView.as_view(), name='backup'),
-    path('backup/create/', auxiliary_views.create_backup, name='create_backup'),
-    
-    # APIs
-    path('api/system-stats/', auxiliary_views.SystemStatsAPIView.as_view(), name='system_stats_api'),
+    # URLs sem CSRF
+    path('login-simples/', views.login_sem_csrf, name='login_simples'),
+    path('dashboard-simples/', views.dashboard_simples, name='dashboard_simples'),
 ]
