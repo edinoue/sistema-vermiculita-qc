@@ -1,231 +1,273 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Análises Pontuais - Brasil Minérios</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
-</head>
-<body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-        <div class="container">
-            <a class="navbar-brand" href="/">
-                <i class="bi bi-gem"></i> Brasil Minérios
-            </a>
-            <div class="navbar-nav ms-auto">
-                <a class="nav-link" href="/qc/dashboard/">Dashboard</a>
-                <a class="nav-link" href="/qc/spot-analysis/create/">Nova Análise</a>
-                <a class="nav-link" href="/admin/">Admin</a>
-                <span class="navbar-text ms-3">
-                    <i class="bi bi-person-circle"></i> {{ user.username }}
-                </span>
-            </div>
-        </div>
-    </nav>
+{% extends 'base.html' %}
+{% load static %}
 
-    <div class="container mt-4">
-        <div class="row">
-            <div class="col-12">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h2><i class="bi bi-clipboard-data"></i> Análises Pontuais</h2>
-                    <a href="/qc/spot-analysis/create/" class="btn btn-primary">
-                        <i class="bi bi-plus-circle"></i> Nova Análise
+{% block title %}Análises Pontuais - Brasil Minérios{% endblock %}
+
+{% block extra_css %}
+<style>
+    .analysis-card {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        margin-bottom: 1rem;
+        padding: 1rem;
+        border-left: 4px solid #007bff;
+    }
+    
+    .analysis-card.approved {
+        border-left-color: #28a745;
+    }
+    
+    .analysis-card.rejected {
+        border-left-color: #dc3545;
+    }
+    
+    .analysis-card.alert {
+        border-left-color: #ffc107;
+    }
+    
+    .filter-section {
+        background: #f8f9fa;
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 2rem;
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+    
+    .stat-card {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        text-align: center;
+    }
+    
+    .stat-number {
+        font-size: 2rem;
+        font-weight: bold;
+        color: #007bff;
+    }
+    
+    .btn-create {
+        position: fixed;
+        bottom: 2rem;
+        right: 2rem;
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: #007bff;
+        color: white;
+        border: none;
+        font-size: 1.5rem;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        z-index: 1000;
+    }
+    
+    @media (max-width: 768px) {
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .filter-section {
+            padding: 0.5rem;
+        }
+        
+        .analysis-card {
+            padding: 0.75rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="h3 mb-4">
+                <i class="fas fa-chart-line"></i>
+                Análises Pontuais
+            </h1>
+            
+            <!-- Estatísticas -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number">{{ total_analyses }}</div>
+                    <div class="text-muted">Total de Análises</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">{{ products.count }}</div>
+                    <div class="text-muted">Produtos</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">{{ lines.count }}</div>
+                    <div class="text-muted">Linhas de Produção</div>
+                </div>
+            </div>
+            
+            <!-- Filtros -->
+            <div class="filter-section">
+                <form method="get" class="row g-3">
+                    <div class="col-md-3">
+                        <label for="product" class="form-label">Produto</label>
+                        <select name="product" id="product" class="form-select">
+                            <option value="">Todos os produtos</option>
+                            {% for product in products %}
+                            <option value="{{ product.id }}" {% if request.GET.product == product.id|stringformat:"s" %}selected{% endif %}>
+                                {{ product.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="line" class="form-label">Linha</label>
+                        <select name="line" id="line" class="form-select">
+                            <option value="">Todas as linhas</option>
+                            {% for line in lines %}
+                            <option value="{{ line.id }}" {% if request.GET.line == line.id|stringformat:"s" %}selected{% endif %}>
+                                {{ line.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="date_from" class="form-label">Data Inicial</label>
+                        <input type="date" name="date_from" id="date_from" class="form-control" value="{{ request.GET.date_from }}">
+                    </div>
+                    <div class="col-md-2">
+                        <label for="date_to" class="form-label">Data Final</label>
+                        <input type="date" name="date_to" id="date_to" class="form-control" value="{{ request.GET.date_to }}">
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary me-2">
+                            <i class="fas fa-search"></i> Filtrar
+                        </button>
+                        <a href="{% url 'quality_control:spot_analysis_list' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-times"></i>
+                        </a>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Lista de Análises -->
+            <div class="analyses-list">
+                {% for analysis in analyses %}
+                <div class="analysis-card {{ analysis.status|lower }}">
+                    <div class="row align-items-center">
+                        <div class="col-md-2">
+                            <strong>{{ analysis.analysis_datetime|date:"d/m/Y H:i" }}</strong>
+                            <br>
+                            <small class="text-muted">{{ analysis.shift.name }}</small>
+                        </div>
+                        <div class="col-md-2">
+                            <strong>{{ analysis.product.name }}</strong>
+                            <br>
+                            <small class="text-muted">{{ analysis.line.name }}</small>
+                        </div>
+                        <div class="col-md-2">
+                            <span class="badge bg-primary">{{ analysis.sample_id }}</span>
+                        </div>
+                        <div class="col-md-3">
+                            {% if analysis.observations %}
+                                <small>{{ analysis.observations|truncatechars:100 }}</small>
+                            {% else %}
+                                <small class="text-muted">Sem observações</small>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-2">
+                            <small class="text-muted">Por: {{ analysis.operator.get_full_name|default:analysis.operator.username }}</small>
+                        </div>
+                        <div class="col-md-1 text-end">
+                            {% if analysis.status == 'APPROVED' %}
+                                <span class="badge bg-success">Aprovado</span>
+                            {% elif analysis.status == 'REJECTED' %}
+                                <span class="badge bg-danger">Reprovado</span>
+                            {% else %}
+                                <span class="badge bg-warning">Alerta</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center py-5">
+                    <i class="fas fa-chart-line fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">Nenhuma análise encontrada</h5>
+                    <p class="text-muted">Comece criando sua primeira análise pontual.</p>
+                    <a href="{% url 'quality_control:spot_analysis_create' %}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Nova Análise
                     </a>
                 </div>
+                {% endfor %}
             </div>
-        </div>
-
-        <!-- Filtros -->
-        <div class="row mb-4">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-header">
-                        <h6 class="mb-0"><i class="bi bi-funnel"></i> Filtros</h6>
-                    </div>
-                    <div class="card-body">
-                        <form method="get" class="row g-3">
-                            <div class="col-md-3">
-                                <label for="product" class="form-label">Produto:</label>
-                                <select name="product" id="product" class="form-select">
-                                    <option value="">Todos os produtos</option>
-                                    {% for product in products %}
-                                        <option value="{{ product.id }}" {% if request.GET.product == product.id|stringformat:"s" %}selected{% endif %}>
-                                            {{ product.name }}
-                                        </option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <div class="col-md-3">
-                                <label for="line" class="form-label">Linha:</label>
-                                <select name="line" id="line" class="form-select">
-                                    <option value="">Todas as linhas</option>
-                                    {% for line in lines %}
-                                        <option value="{{ line.id }}" {% if request.GET.line == line.id|stringformat:"s" %}selected{% endif %}>
-                                            {{ line.name }}
-                                        </option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <div class="col-md-2">
-                                <label for="date_from" class="form-label">Data Início:</label>
-                                <input type="date" name="date_from" id="date_from" class="form-control" value="{{ request.GET.date_from }}">
-                            </div>
-                            <div class="col-md-2">
-                                <label for="date_to" class="form-label">Data Fim:</label>
-                                <input type="date" name="date_to" id="date_to" class="form-control" value="{{ request.GET.date_to }}">
-                            </div>
-                            <div class="col-md-2">
-                                <label class="form-label">&nbsp;</label>
-                                <div class="d-grid">
-                                    <button type="submit" class="btn btn-outline-primary">
-                                        <i class="bi bi-search"></i> Filtrar
-                                    </button>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Estatísticas -->
-        <div class="row mb-4">
-            <div class="col-md-4">
-                <div class="card text-center">
-                    <div class="card-body">
-                        <h3 class="text-primary">{{ total_analyses }}</h3>
-                        <p class="mb-0">Total de Análises</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card text-center">
-                    <div class="card-body">
-                        <h3 class="text-success">{{ products.count }}</h3>
-                        <p class="mb-0">Produtos Cadastrados</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card text-center">
-                    <div class="card-body">
-                        <h3 class="text-info">{{ lines.count }}</h3>
-                        <p class="mb-0">Linhas de Produção</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Tabela de Análises -->
-        <div class="row">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-header">
-                        <h6 class="mb-0"><i class="bi bi-table"></i> Lista de Análises</h6>
-                    </div>
-                    <div class="card-body">
-                        {% if analyses %}
-                            <div class="table-responsive">
-                                <table class="table table-striped table-hover">
-                                    <thead class="table-dark">
-                                        <tr>
-                                            <th>Data/Hora</th>
-                                            <th>Produto</th>
-                                            <th>Linha</th>
-                                            <th>Turno</th>
-                                            <th>Amostra</th>
-                                            <th>Operador</th>
-                                            <th>Ações</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {% for analysis in analyses %}
-                                            <tr>
-                                                <td>
-                                                    <small>
-                                                        {{ analysis.analysis_datetime|date:"d/m/Y" }}<br>
-                                                        {{ analysis.analysis_datetime|time:"H:i" }}
-                                                    </small>
-                                                </td>
-                                                <td>
-                                                    <strong>{{ analysis.product.name }}</strong><br>
-                                                    <small class="text-muted">{{ analysis.product.code }}</small>
-                                                </td>
-                                                <td>{{ analysis.line.name }}</td>
-                                                <td>
-                                                    <span class="badge bg-{% if analysis.shift.name == 'A' %}primary{% else %}secondary{% endif %}">
-                                                        {{ analysis.shift.name }}
-                                                    </span>
-                                                </td>
-                                                <td>
-                                                    <code>{{ analysis.sample_id }}</code>
-                                                </td>
-                                                <td>{{ analysis.operator.username }}</td>
-                                                <td>
-                                                    <div class="btn-group btn-group-sm">
-                                                        <a href="/admin/quality_control/spotanalysis/{{ analysis.id }}/change/" 
-                                                           class="btn btn-outline-primary" title="Editar">
-                                                            <i class="bi bi-pencil"></i>
-                                                        </a>
-                                                        <a href="/admin/quality_control/spotanalysis/{{ analysis.id }}/" 
-                                                           class="btn btn-outline-info" title="Detalhes">
-                                                            <i class="bi bi-eye"></i>
-                                                        </a>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        {% endfor %}
-                                    </tbody>
-                                </table>
-                            </div>
-
-                            <!-- Paginação -->
-                            {% if is_paginated %}
-                                <nav aria-label="Paginação">
-                                    <ul class="pagination justify-content-center">
-                                        {% if page_obj.has_previous %}
-                                            <li class="page-item">
-                                                <a class="page-link" href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Primeira</a>
-                                            </li>
-                                            <li class="page-item">
-                                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Anterior</a>
-                                            </li>
-                                        {% endif %}
-
-                                        <li class="page-item active">
-                                            <span class="page-link">
-                                                Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
-                                            </span>
-                                        </li>
-
-                                        {% if page_obj.has_next %}
-                                            <li class="page-item">
-                                                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Próxima</a>
-                                            </li>
-                                            <li class="page-item">
-                                                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Última</a>
-                                            </li>
-                                        {% endif %}
-                                    </ul>
-                                </nav>
-                            {% endif %}
-                        {% else %}
-                            <div class="text-center py-5">
-                                <i class="bi bi-inbox display-1 text-muted"></i>
-                                <h4 class="text-muted mt-3">Nenhuma análise encontrada</h4>
-                                <p class="text-muted">Comece criando sua primeira análise pontual.</p>
-                                <a href="/qc/spot-analysis/create/" class="btn btn-primary">
-                                    <i class="bi bi-plus-circle"></i> Criar Primeira Análise
-                                </a>
-                            </div>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
+            
+            <!-- Paginação -->
+            {% if is_paginated %}
+            <nav aria-label="Paginação">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page=1{% if request.GET.product %}&product={{ request.GET.product }}{% endif %}{% if request.GET.line %}&line={{ request.GET.line }}{% endif %}{% if request.GET.date_from %}&date_from={{ request.GET.date_from }}{% endif %}{% if request.GET.date_to %}&date_to={{ request.GET.date_to }}{% endif %}">Primeira</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.product %}&product={{ request.GET.product }}{% endif %}{% if request.GET.line %}&line={{ request.GET.line }}{% endif %}{% if request.GET.date_from %}&date_from={{ request.GET.date_from }}{% endif %}{% if request.GET.date_to %}&date_to={{ request.GET.date_to }}{% endif %}">Anterior</a>
+                        </li>
+                    {% endif %}
+                    
+                    <li class="page-item active">
+                        <span class="page-link">{{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+                    </li>
+                    
+                    {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.product %}&product={{ request.GET.product }}{% endif %}{% if request.GET.line %}&line={{ request.GET.line }}{% endif %}{% if request.GET.date_from %}&date_from={{ request.GET.date_from }}{% endif %}{% if request.GET.date_to %}&date_to={{ request.GET.date_to }}{% endif %}">Próxima</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.product %}&product={{ request.GET.product }}{% endif %}{% if request.GET.line %}&line={{ request.GET.line }}{% endif %}{% if request.GET.date_from %}&date_from={{ request.GET.date_from }}{% endif %}{% if request.GET.date_to %}&date_to={{ request.GET.date_to }}{% endif %}">Última</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
         </div>
     </div>
+</div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+<!-- Botão flutuante para criar nova análise -->
+<a href="{% url 'quality_control:spot_analysis_create' %}" class="btn-create" title="Nova Análise">
+    <i class="fas fa-plus"></i>
+</a>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-submit do formulário de filtros quando mudança nos selects
+    const filterForm = document.querySelector('.filter-section form');
+    const selects = filterForm.querySelectorAll('select');
+    
+    selects.forEach(select => {
+        select.addEventListener('change', function() {
+            filterForm.submit();
+        });
+    });
+    
+    // Animação suave para os cards
+    const cards = document.querySelectorAll('.analysis-card');
+    cards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        
+        setTimeout(() => {
+            card.style.transition = 'all 0.3s ease';
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, index * 50);
+    });
+});
+</script>
+{% endblock %}

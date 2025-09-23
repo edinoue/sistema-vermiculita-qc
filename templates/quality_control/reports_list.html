@@ -1,0 +1,543 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Relatórios - Brasil Minérios{% endblock %}
+
+{% block extra_css %}
+<style>
+    .reports-header {
+        background: linear-gradient(135deg, #28a745, #20c997);
+        color: white;
+        padding: 2rem 0;
+        margin-bottom: 2rem;
+        border-radius: 0 0 20px 20px;
+    }
+    
+    .report-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        margin-bottom: 1.5rem;
+        transition: all 0.3s ease;
+    }
+    
+    .report-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 15px rgba(0,0,0,0.15);
+    }
+    
+    .report-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: white;
+        margin-right: 1rem;
+    }
+    
+    .report-icon.monthly {
+        background: linear-gradient(135deg, #007bff, #0056b3);
+    }
+    
+    .report-icon.products {
+        background: linear-gradient(135deg, #28a745, #20c997);
+    }
+    
+    .report-icon.quality {
+        background: linear-gradient(135deg, #ffc107, #e0a800);
+    }
+    
+    .report-icon.export {
+        background: linear-gradient(135deg, #17a2b8, #138496);
+    }
+    
+    .chart-container {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+    }
+    
+    .chart-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+    
+    .stat-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        text-align: center;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    
+    .stat-number {
+        font-size: 2rem;
+        font-weight: bold;
+        color: #28a745;
+        margin-bottom: 0.5rem;
+    }
+    
+    .stat-label {
+        color: #6c757d;
+        font-weight: 500;
+    }
+    
+    .export-section {
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .export-btn {
+        border-radius: 8px;
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        margin-right: 1rem;
+        margin-bottom: 0.5rem;
+        transition: all 0.3s ease;
+    }
+    
+    .export-btn:hover {
+        transform: translateY(-2px);
+    }
+    
+    @media (max-width: 768px) {
+        .reports-header {
+            padding: 1rem 0;
+        }
+        
+        .report-card {
+            padding: 1rem;
+        }
+        
+        .report-icon {
+            width: 50px;
+            height: 50px;
+            font-size: 1.25rem;
+        }
+        
+        .export-btn {
+            width: 100%;
+            margin-right: 0;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Header dos Relatórios -->
+<div class="reports-header">
+    <div class="container-fluid">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="h2 mb-2">
+                    <i class="fas fa-chart-bar"></i>
+                    Relatórios e Análises
+                </h1>
+                <p class="mb-0 opacity-75">
+                    Visualize dados, gere relatórios e exporte informações do sistema
+                </p>
+            </div>
+            <div class="col-md-4 text-md-end">
+                <a href="{% url 'quality_control:dashboard' %}" class="btn btn-light">
+                    <i class="fas fa-arrow-left"></i> Voltar ao Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid">
+    <!-- Estatísticas Gerais -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-number">{{ total_analyses }}</div>
+            <div class="stat-label">Total de Análises</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ analyses_by_month|length }}</div>
+            <div class="stat-label">Meses com Dados</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ top_products|length }}</div>
+            <div class="stat-label">Produtos Analisados</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">100%</div>
+            <div class="stat-label">Disponibilidade</div>
+        </div>
+    </div>
+    
+    <!-- Seção de Exportação -->
+    <div class="export-section">
+        <h4 class="mb-3">
+            <i class="fas fa-download"></i>
+            Exportar Dados
+        </h4>
+        <p class="text-muted mb-3">
+            Exporte dados do sistema em diferentes formatos para análise externa.
+        </p>
+        
+        <div class="row">
+            <div class="col-md-6">
+                <button class="btn btn-success export-btn" onclick="exportData('excel')">
+                    <i class="fas fa-file-excel"></i>
+                    Exportar para Excel
+                </button>
+                <button class="btn btn-danger export-btn" onclick="exportData('pdf')">
+                    <i class="fas fa-file-pdf"></i>
+                    Exportar para PDF
+                </button>
+            </div>
+            <div class="col-md-6">
+                <button class="btn btn-info export-btn" onclick="exportData('csv')">
+                    <i class="fas fa-file-csv"></i>
+                    Exportar para CSV
+                </button>
+                <button class="btn btn-warning export-btn" onclick="exportData('json')">
+                    <i class="fas fa-file-code"></i>
+                    Exportar JSON
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Tipos de Relatórios -->
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="report-card">
+                <div class="d-flex align-items-center">
+                    <div class="report-icon monthly">
+                        <i class="fas fa-calendar-alt"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                        <h5 class="mb-1">Relatório Mensal</h5>
+                        <p class="text-muted mb-2">Análise completa das atividades do mês</p>
+                        <button class="btn btn-primary btn-sm" onclick="generateReport('monthly')">
+                            <i class="fas fa-chart-line"></i>
+                            Gerar Relatório
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-6">
+            <div class="report-card">
+                <div class="d-flex align-items-center">
+                    <div class="report-icon products">
+                        <i class="fas fa-box"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                        <h5 class="mb-1">Relatório por Produto</h5>
+                        <p class="text-muted mb-2">Análises detalhadas por produto</p>
+                        <button class="btn btn-success btn-sm" onclick="generateReport('products')">
+                            <i class="fas fa-chart-pie"></i>
+                            Gerar Relatório
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-6">
+            <div class="report-card">
+                <div class="d-flex align-items-center">
+                    <div class="report-icon quality">
+                        <i class="fas fa-award"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                        <h5 class="mb-1">Relatório de Qualidade</h5>
+                        <p class="text-muted mb-2">Indicadores de qualidade e conformidade</p>
+                        <button class="btn btn-warning btn-sm" onclick="generateReport('quality')">
+                            <i class="fas fa-medal"></i>
+                            Gerar Relatório
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-6">
+            <div class="report-card">
+                <div class="d-flex align-items-center">
+                    <div class="report-icon export">
+                        <i class="fas fa-shipping-fast"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                        <h5 class="mb-1">Relatório de Expedição</h5>
+                        <p class="text-muted mb-2">Dados de carregamento e expedição</p>
+                        <button class="btn btn-info btn-sm" onclick="generateReport('shipping')">
+                            <i class="fas fa-truck"></i>
+                            Gerar Relatório
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <!-- Gráfico de Análises por Mês -->
+        <div class="col-lg-8">
+            <div class="chart-container">
+                <div class="chart-title">
+                    <i class="fas fa-chart-line"></i>
+                    Análises por Mês
+                </div>
+                <canvas id="monthlyChart" height="300"></canvas>
+            </div>
+        </div>
+        
+        <!-- Top Produtos -->
+        <div class="col-lg-4">
+            <div class="chart-container">
+                <div class="chart-title">
+                    <i class="fas fa-trophy"></i>
+                    Produtos Mais Analisados
+                </div>
+                
+                {% for product in top_products %}
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <strong>{{ product.product__name }}</strong>
+                        <br>
+                        <small class="text-muted">{{ product.product__code }}</small>
+                    </div>
+                    <div class="text-end">
+                        <span class="badge bg-primary">{{ product.count }}</span>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center py-4">
+                    <i class="fas fa-inbox fa-2x text-muted mb-2"></i>
+                    <p class="text-muted">Nenhum dado disponível</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Loading -->
+<div class="modal fade" id="loadingModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body text-center py-4">
+                <div class="spinner-border text-primary mb-3" role="status">
+                    <span class="visually-hidden">Carregando...</span>
+                </div>
+                <h5>Gerando Relatório</h5>
+                <p class="text-muted">Por favor, aguarde...</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Dados do gráfico mensal
+    const monthlyData = {
+        labels: [
+            {% for item in analyses_by_month %}
+            '{{ item.month }}'{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ],
+        datasets: [{
+            label: 'Análises',
+            data: [
+                {% for item in analyses_by_month %}
+                {{ item.count }}{% if not forloop.last %},{% endif %}
+                {% endfor %}
+            ],
+            backgroundColor: 'rgba(40, 167, 69, 0.1)',
+            borderColor: '#28a745',
+            borderWidth: 3,
+            fill: true,
+            tension: 0.4
+        }]
+    };
+    
+    // Gráfico de linha mensal
+    const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
+    new Chart(monthlyCtx, {
+        type: 'line',
+        data: monthlyData,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+    
+    // Animação dos cards
+    const cards = document.querySelectorAll('.report-card, .chart-container, .stat-card');
+    cards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        
+        setTimeout(() => {
+            card.style.transition = 'all 0.5s ease';
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, index * 100);
+    });
+});
+
+function generateReport(type) {
+    const modal = new bootstrap.Modal(document.getElementById('loadingModal'));
+    modal.show();
+    
+    // Simular geração de relatório
+    setTimeout(() => {
+        modal.hide();
+        
+        // Criar um blob com dados simulados
+        const reportData = `Relatório ${type.toUpperCase()}\n\nGerado em: ${new Date().toLocaleString('pt-BR')}\n\nDados do sistema Brasil Minérios\n\nTotal de análises: {{ total_analyses }}\nProdutos analisados: {{ top_products|length }}\n\nEste é um relatório de demonstração.`;
+        
+        const blob = new Blob([reportData], { type: 'text/plain' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `relatorio_${type}_${new Date().toISOString().slice(0, 10)}.txt`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+        
+        // Mostrar mensagem de sucesso
+        const toast = document.createElement('div');
+        toast.className = 'toast align-items-center text-white bg-success border-0 position-fixed top-0 end-0 m-3';
+        toast.style.zIndex = '9999';
+        toast.innerHTML = `
+            <div class="d-flex">
+                <div class="toast-body">
+                    <i class="fas fa-check-circle me-2"></i>
+                    Relatório ${type} gerado com sucesso!
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        `;
+        document.body.appendChild(toast);
+        
+        const bsToast = new bootstrap.Toast(toast);
+        bsToast.show();
+        
+        setTimeout(() => {
+            document.body.removeChild(toast);
+        }, 5000);
+        
+    }, 2000);
+}
+
+function exportData(format) {
+    const modal = new bootstrap.Modal(document.getElementById('loadingModal'));
+    modal.show();
+    
+    // Simular exportação
+    setTimeout(() => {
+        modal.hide();
+        
+        let mimeType, extension, data;
+        
+        switch(format) {
+            case 'excel':
+                mimeType = 'application/vnd.ms-excel';
+                extension = 'xls';
+                data = 'Dados exportados para Excel\nProduto,Análises\n{% for product in top_products %}{{ product.product__name }},{{ product.count }}\n{% endfor %}';
+                break;
+            case 'csv':
+                mimeType = 'text/csv';
+                extension = 'csv';
+                data = 'Produto,Análises\n{% for product in top_products %}{{ product.product__name }},{{ product.count }}\n{% endfor %}';
+                break;
+            case 'json':
+                mimeType = 'application/json';
+                extension = 'json';
+                data = JSON.stringify({
+                    total_analyses: {{ total_analyses }},
+                    export_date: new Date().toISOString(),
+                    products: [
+                        {% for product in top_products %}
+                        {
+                            name: '{{ product.product__name }}',
+                            code: '{{ product.product__code }}',
+                            count: {{ product.count }}
+                        }{% if not forloop.last %},{% endif %}
+                        {% endfor %}
+                    ]
+                }, null, 2);
+                break;
+            default:
+                mimeType = 'application/pdf';
+                extension = 'pdf';
+                data = 'Dados exportados para PDF (simulação)';
+        }
+        
+        const blob = new Blob([data], { type: mimeType });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `dados_brasil_minerios_${new Date().toISOString().slice(0, 10)}.${extension}`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+        
+        // Mostrar mensagem de sucesso
+        const toast = document.createElement('div');
+        toast.className = 'toast align-items-center text-white bg-success border-0 position-fixed top-0 end-0 m-3';
+        toast.style.zIndex = '9999';
+        toast.innerHTML = `
+            <div class="d-flex">
+                <div class="toast-body">
+                    <i class="fas fa-download me-2"></i>
+                    Dados exportados em ${format.toUpperCase()}!
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        `;
+        document.body.appendChild(toast);
+        
+        const bsToast = new bootstrap.Toast(toast);
+        bsToast.show();
+        
+        setTimeout(() => {
+            document.body.removeChild(toast);
+        }, 5000);
+        
+    }, 1500);
+}
+</script>
+{% endblock %}
