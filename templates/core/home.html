@@ -33,9 +33,18 @@
                     <p class="lead">Brasil Minérios</p>
                     <hr class="my-4 bg-white">
                     <p>Sistema completo de controle de qualidade para mineração.</p>
-                    <a class="btn btn-light btn-lg" href="/login-simples/">
-                        <i class="bi bi-box-arrow-in-right"></i> Acessar Sistema
-                    </a>
+                    {% if user.is_authenticated %}
+                        <a class="btn btn-light btn-lg" href="/dashboard-simples/">
+                            <i class="bi bi-speedometer2"></i> Acessar Dashboard
+                        </a>
+                        <a class="btn btn-outline-light btn-lg ms-2" href="/admin/">
+                            <i class="bi bi-gear"></i> Administração
+                        </a>
+                    {% else %}
+                        <a class="btn btn-light btn-lg" href="/login-simples/">
+                            <i class="bi bi-box-arrow-in-right"></i> Fazer Login
+                        </a>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -48,7 +57,11 @@
                         <i class="bi bi-clipboard-data text-primary fs-1 mb-3"></i>
                         <h5 class="card-title">Análises Pontuais</h5>
                         <p class="card-text">Registro de análises durante os turnos com validação automática contra especificações.</p>
-                        <a href="/login-simples/" class="btn btn-primary">Acessar</a>
+                        {% if user.is_authenticated %}
+                            <a href="/qc/spot-analysis/create/" class="btn btn-primary">Acessar</a>
+                        {% else %}
+                            <a href="/login-simples/" class="btn btn-primary">Fazer Login</a>
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -59,7 +72,11 @@
                         <i class="bi bi-graph-up text-success fs-1 mb-3"></i>
                         <h5 class="card-title">Dashboard & SPC</h5>
                         <p class="card-text">Dashboards em tempo real com cartas de controle estatístico e análises de capabilidade.</p>
-                        <a href="/login-simples/" class="btn btn-success">Acessar</a>
+                        {% if user.is_authenticated %}
+                            <a href="/qc/dashboard/" class="btn btn-success">Acessar</a>
+                        {% else %}
+                            <a href="/login-simples/" class="btn btn-success">Fazer Login</a>
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -70,7 +87,11 @@
                         <i class="bi bi-file-earmark-pdf text-info fs-1 mb-3"></i>
                         <h5 class="card-title">Laudos & Ordens</h5>
                         <p class="card-text">Geração automática de laudos de qualidade e ordens de carregamento com QR codes.</p>
-                        <a href="/login-simples/" class="btn btn-info">Acessar</a>
+                        {% if user.is_authenticated %}
+                            <a href="/qc/reports/" class="btn btn-info">Acessar</a>
+                        {% else %}
+                            <a href="/login-simples/" class="btn btn-info">Fazer Login</a>
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -86,20 +107,35 @@
                         </h6>
                     </div>
                     <div class="card-body">
-                        <div class="d-grid gap-2">
-                            <a href="/login-simples/" class="btn btn-outline-primary">
-                                <i class="bi bi-plus-circle"></i> Nova Análise
-                            </a>
-                            <a href="/login-simples/" class="btn btn-outline-success">
-                                <i class="bi bi-graph-up"></i> Relatórios
-                            </a>
-                            <a href="/login-simples/" class="btn btn-outline-info">
-                                <i class="bi bi-download"></i> Exportar Dados
-                            </a>
-                            <a href="/login-simples/" class="btn btn-outline-secondary">
-                                <i class="bi bi-gear"></i> Administração
-                            </a>
-                        </div>
+                        {% if user.is_authenticated %}
+                            <div class="d-grid gap-2">
+                                <a href="/qc/spot-analysis/create/" class="btn btn-outline-primary">
+                                    <i class="bi bi-plus-circle"></i> Nova Análise
+                                </a>
+                                <a href="/qc/dashboard/" class="btn btn-outline-success">
+                                    <i class="bi bi-graph-up"></i> Dashboard
+                                </a>
+                                <a href="/qc/control-chart/" class="btn btn-outline-warning">
+                                    <i class="bi bi-graph-up-arrow"></i> Cartas de Controle
+                                </a>
+                                <a href="/export/" class="btn btn-outline-info">
+                                    <i class="bi bi-download"></i> Exportar Dados
+                                </a>
+                                <a href="/admin/" class="btn btn-outline-secondary">
+                                    <i class="bi bi-gear"></i> Administração
+                                </a>
+                            </div>
+                        {% else %}
+                            <div class="alert alert-info">
+                                <i class="bi bi-info-circle"></i> 
+                                <strong>Faça login</strong> para acessar as funcionalidades do sistema.
+                            </div>
+                            <div class="d-grid">
+                                <a href="/login-simples/" class="btn btn-primary">
+                                    <i class="bi bi-box-arrow-in-right"></i> Fazer Login
+                                </a>
+                            </div>
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -125,6 +161,12 @@
                                 <td><strong>Plataforma:</strong></td>
                                 <td><span class="badge bg-primary">Railway</span></td>
                             </tr>
+                            {% if user.is_authenticated %}
+                            <tr>
+                                <td><strong>Usuário:</strong></td>
+                                <td>{{ user.username }}</td>
+                            </tr>
+                            {% endif %}
                             <tr>
                                 <td><strong>Última Atualização:</strong></td>
                                 <td>Setembro 2025</td>
@@ -168,6 +210,19 @@
             </div>
         </div>
 
+        <!-- Interface Mobile -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="alert alert-primary">
+                    <h5><i class="bi bi-phone"></i> Interface Mobile Disponível</h5>
+                    <p class="mb-2">O sistema possui uma interface otimizada para dispositivos móveis, perfeita para uso no campo.</p>
+                    <a href="/mobile/" class="btn btn-primary btn-sm">
+                        <i class="bi bi-phone"></i> Acessar Versão Mobile
+                    </a>
+                </div>
+            </div>
+        </div>
+
         <!-- Footer -->
         <div class="row mt-5">
             <div class="col-12 text-center">
@@ -182,7 +237,7 @@
     
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Detectar dispositivo móvel 2
+        // Detectar dispositivo móvel
         document.addEventListener('DOMContentLoaded', function() {
             if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
                 setTimeout(() => {
