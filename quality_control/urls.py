@@ -1,41 +1,38 @@
-"""
-URLs do app quality_control
-"""
+# Arquivo: quality_control/urls.py
+# Substitua o conteúdo do arquivo quality_control/urls.py
 
-from django.urls import path, include
-from rest_framework.routers import DefaultRouter
-from . import views, api_views, dashboard_views
+from django.urls import path
+from django.views.decorators.csrf import csrf_exempt
+from . import views, dashboard_views
 
 app_name = 'quality_control'
 
-# API Router
-router = DefaultRouter()
-router.register(r'products', api_views.ProductViewSet)
-router.register(r'properties', api_views.PropertyViewSet)
-router.register(r'spot-analyses', api_views.SpotAnalysisViewSet)
-router.register(r'composite-samples', api_views.CompositeSampleViewSet)
+# Aplicar csrf_exempt em todas as views
+csrf_exempt_views = csrf_exempt(views.SpotAnalysisCreateView.as_view())
+csrf_exempt_dashboard = csrf_exempt(dashboard_views.DashboardView.as_view())
+csrf_exempt_control_chart = csrf_exempt(dashboard_views.ControlChartView.as_view())
 
 urlpatterns = [
-    # Web Views
-    path('spot-analysis/', views.SpotAnalysisView.as_view(), name='spot_analysis'),
-    path('spot-analysis/create/', views.SpotAnalysisCreateView.as_view(), name='spot_analysis_create'),
-    path('composite-sample/', views.CompositeSampleView.as_view(), name='composite_sample'),
-    path('composite-sample/create/', views.CompositeSampleCreateView.as_view(), name='composite_sample_create'),
-    path('shift-summary/<str:date>/<str:shift>/<int:line_id>/', views.ShiftSummaryView.as_view(), name='shift_summary'),
+    # Dashboard
+    path('dashboard/', csrf_exempt_dashboard, name='dashboard'),
     
-    # Dashboard Views
-    path('dashboard/', dashboard_views.DashboardView.as_view(), name='dashboard'),
-    path('control-chart/', dashboard_views.ControlChartView.as_view(), name='control_chart'),
-    path('capability-analysis/', dashboard_views.CapabilityAnalysisView.as_view(), name='capability_analysis'),
-    path('correlation-analysis/', dashboard_views.CorrelationAnalysisView.as_view(), name='correlation_analysis'),
+    # Análises pontuais
+    path('spot-analysis/create/', csrf_exempt_views, name='spot_analysis_create'),
+    path('spot-analysis/', csrf_exempt(views.SpotAnalysisListView.as_view()), name='spot_analysis_list'),
     
-    # API URLs
-    path('', include(router.urls)),
-    path('current-shift/', api_views.CurrentShiftView.as_view(), name='current_shift'),
-    path('shift-data/<str:date>/<str:shift>/<int:line_id>/', api_views.ShiftDataView.as_view(), name='shift_data'),
+    # Cartas de controle
+    path('control-chart/', csrf_exempt_control_chart, name='control_chart'),
+    path('control-chart/<str:product_code>/<str:property_name>/', 
+         csrf_exempt(dashboard_views.ControlChartDetailView.as_view()), 
+         name='control_chart_detail'),
     
-    # Dashboard API URLs
-    path('api/dashboard-data/', dashboard_views.DashboardDataAPIView.as_view(), name='dashboard_data_api'),
-    path('api/control-chart-data/', dashboard_views.ControlChartDataAPIView.as_view(), name='control_chart_data_api'),
-    path('api/capability-data/', dashboard_views.CapabilityDataAPIView.as_view(), name='capability_data_api'),
+    # Laudos e relatórios
+    path('reports/', csrf_exempt(views.ReportListView.as_view()), name='report_list'),
+    path('reports/create/', csrf_exempt(views.ReportCreateView.as_view()), name='report_create'),
+    path('reports/<int:pk>/', csrf_exempt(views.ReportDetailView.as_view()), name='report_detail'),
+    
+    # APIs (sem CSRF)
+    path('api/current-shift/', csrf_exempt(views.CurrentShiftAPIView.as_view()), name='current_shift_api'),
+    path('api/shift-data/', csrf_exempt(views.ShiftDataAPIView.as_view()), name='shift_data_api'),
+    path('api/dashboard-data/', csrf_exempt(dashboard_views.DashboardDataAPIView.as_view()), name='dashboard_data_api'),
 ]
