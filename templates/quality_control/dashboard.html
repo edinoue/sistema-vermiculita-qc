@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Brasil Minérios</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="bi bi-gem"></i> Brasil Minérios
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/qc/spot-analysis/">Análises</a>
+                <a class="nav-link" href="/qc/spot-analysis/create/">Nova Análise</a>
+                <a class="nav-link" href="/qc/reports/">Laudos</a>
+                <a class="nav-link" href="/admin/">Admin</a>
+                <span class="navbar-text ms-3">
+                    <i class="bi bi-person-circle"></i> {{ user.username }}
+                </span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-4">
+        <div class="row">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2><i class="bi bi-speedometer2"></i> Dashboard de Controle de Qualidade</h2>
+                    <div class="btn-group">
+                        <button class="btn btn-outline-primary" onclick="refreshDashboard()">
+                            <i class="bi bi-arrow-clockwise"></i> Atualizar
+                        </button>
+                        <a href="/qc/spot-analysis/create/" class="btn btn-primary">
+                            <i class="bi bi-plus-circle"></i> Nova Análise
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cards de Estatísticas -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card text-center h-100">
+                    <div class="card-body">
+                        <i class="bi bi-clipboard-data text-primary fs-1"></i>
+                        <h3 class="mt-2">{{ total_analyses }}</h3>
+                        <p class="text-muted mb-0">Total de Análises</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center h-100">
+                    <div class="card-body">
+                        <i class="bi bi-calendar-day text-success fs-1"></i>
+                        <h3 class="mt-2">{{ today_analyses }}</h3>
+                        <p class="text-muted mb-0">Análises Hoje</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center h-100">
+                    <div class="card-body">
+                        <i class="bi bi-box text-info fs-1"></i>
+                        <h3 class="mt-2">{{ products_count }}</h3>
+                        <p class="text-muted mb-0">Produtos</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center h-100">
+                    <div class="card-body">
+                        <i class="bi bi-diagram-3 text-warning fs-1"></i>
+                        <h3 class="mt-2">{{ lines_count }}</h3>
+                        <p class="text-muted mb-0">Linhas de Produção</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gráficos -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card h-100">
+                    <div class="card-header">
+                        <h6 class="mb-0"><i class="bi bi-bar-chart"></i> Análises por Produto (Últimos 30 dias)</h6>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="productChart" width="400" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card h-100">
+                    <div class="card-header">
+                        <h6 class="mb-0"><i class="bi bi-pie-chart"></i> Análises por Linha (Últimos 7 dias)</h6>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="lineChart" width="400" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Análises Recentes -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="mb-0"><i class="bi bi-clock-history"></i> Análises Recentes</h6>
+                    </div>
+                    <div class="card-body">
+                        {% if recent_analyses %}
+                            <div class="table-responsive">
+                                <table class="table table-striped table-hover">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th>Data/Hora</th>
+                                            <th>Produto</th>
+                                            <th>Linha</th>
+                                            <th>Turno</th>
+                                            <th>Amostra</th>
+                                            <th>Operador</th>
+                                            <th>Ações</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for analysis in recent_analyses %}
+                                            <tr>
+                                                <td>
+                                                    <small>
+                                                        {{ analysis.analysis_datetime|date:"d/m/Y" }}<br>
+                                                        {{ analysis.analysis_datetime|time:"H:i" }}
+                                                    </small>
+                                                </td>
+                                                <td>
+                                                    <strong>{{ analysis.product.name }}</strong><br>
+                                                    <small class="text-muted">{{ analysis.product.code }}</small>
+                                                </td>
+                                                <td>{{ analysis.line.name }}</td>
+                                                <td>
+                                                    <span class="badge bg-{% if analysis.shift.name == 'A' %}primary{% else %}secondary{% endif %}">
+                                                        {{ analysis.shift.name }}
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <code>{{ analysis.sample_id|default:"N/A" }}</code>
+                                                </td>
+                                                <td>{{ analysis.operator.username }}</td>
+                                                <td>
+                                                    <div class="btn-group btn-group-sm">
+                                                        <a href="/admin/quality_control/spotanalysis/{{ analysis.id }}/change/" 
+                                                           class="btn btn-outline-primary" title="Editar">
+                                                            <i class="bi bi-pencil"></i>
+                                                        </a>
+                                                        <a href="/admin/quality_control/spotanalysis/{{ analysis.id }}/" 
+                                                           class="btn btn-outline-info" title="Detalhes">
+                                                            <i class="bi bi-eye"></i>
+                                                        </a>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="text-center mt-3">
+                                <a href="/qc/spot-analysis/" class="btn btn-outline-primary">
+                                    <i class="bi bi-list"></i> Ver Todas as Análises
+                                </a>
+                            </div>
+                        {% else %}
+                            <div class="text-center py-5">
+                                <i class="bi bi-inbox display-1 text-muted"></i>
+                                <h4 class="text-muted mt-3">Nenhuma análise encontrada</h4>
+                                <p class="text-muted">Comece criando sua primeira análise pontual.</p>
+                                <a href="/qc/spot-analysis/create/" class="btn btn-primary">
+                                    <i class="bi bi-plus-circle"></i> Criar Primeira Análise
+                                </a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Dados dos gráficos (vindos do Django)
+        const productData = {{ analyses_by_product|safe }};
+        const lineData = {{ analyses_by_line|safe }};
+
+        // Gráfico de Produtos
+        const productCtx = document.getElementById('productChart').getContext('2d');
+        new Chart(productCtx, {
+            type: 'bar',
+            data: {
+                labels: productData.map(item => item.product__name || 'Sem nome'),
+                datasets: [{
+                    label: 'Número de Análises',
+                    data: productData.map(item => item.count),
+                    backgroundColor: [
+                        'rgba(54, 162, 235, 0.8)',
+                        'rgba(255, 99, 132, 0.8)',
+                        'rgba(255, 206, 86, 0.8)',
+                        'rgba(75, 192, 192, 0.8)',
+                        'rgba(153, 102, 255, 0.8)'
+                    ],
+                    borderColor: [
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(255, 206, 86, 1)',
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(153, 102, 255, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                }
+            }
+        });
+
+        // Gráfico de Linhas
+        const lineCtx = document.getElementById('lineChart').getContext('2d');
+        new Chart(lineCtx, {
+            type: 'doughnut',
+            data: {
+                labels: lineData.map(item => item.line__name || 'Sem nome'),
+                datasets: [{
+                    data: lineData.map(item => item.count),
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.8)',
+                        'rgba(54, 162, 235, 0.8)',
+                        'rgba(255, 206, 86, 0.8)',
+                        'rgba(75, 192, 192, 0.8)',
+                        'rgba(153, 102, 255, 0.8)'
+                    ],
+                    borderColor: [
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 206, 86, 1)',
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(153, 102, 255, 1)'
+                    ],
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+
+        // Função para atualizar dashboard
+        function refreshDashboard() {
+            location.reload();
+        }
+
+        // Atualizar automaticamente a cada 5 minutos
+        setInterval(refreshDashboard, 300000);
+
+        console.log('📊 Dashboard carregado com sucesso!');
+    </script>
+</body>
+</html>
