@@ -14,7 +14,7 @@ from datetime import datetime, timedelta
 import json
 
 from core.models import Plant, ProductionLine, Shift
-from .models import Product, Property, Specification, SpotAnalysis, CompositeAnalysis, ChemicalAnalysis
+from .models import Product, Property, Specification, SpotAnalysis, CompositeSample, ChemicalAnalysis
 
 @method_decorator(csrf_exempt, name='dispatch')
 @method_decorator(login_required, name='dispatch')
