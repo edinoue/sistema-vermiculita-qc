@@ -3,7 +3,7 @@ URLs do app quality_control
 """
 
 from django.urls import path
-from . import views, views_simple, views_import, views_composite, views_spot_fixed
+from . import views, views_simple, views_import, views_composite, views_spot_fixed, views_spot_improved
 
 app_name = 'quality_control'
 
@@ -20,6 +20,9 @@ urlpatterns = [
     path('spot-analysis/create/', views.SpotAnalysisCreateView.as_view(), name='spot_analysis_create'),
     path('spot-analysis/create-simple/', views_simple.spot_analysis_create_simple, name='spot_analysis_create_simple'),
     path('spot-analysis/create-fixed/', views_spot_fixed.spot_analysis_create_fixed, name='spot_analysis_create_fixed'),
+    path('spot-analysis/create-improved/', views_spot_improved.spot_analysis_create_improved, name='spot_analysis_create_improved'),
+    path('spot-analysis/<int:analysis_id>/edit/', views_spot_improved.spot_analysis_edit_improved, name='spot_analysis_edit_improved'),
+    path('spot-analysis/<int:analysis_id>/detail/', views_spot_improved.spot_analysis_detail_improved, name='spot_analysis_detail_improved'),
     
     # Amostras Compostas
     path('composite-sample/', views_composite.composite_sample_list, name='composite_sample_list'),

@@ -1,0 +1,253 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Detalhes da Análise - Brasil Minérios QC{% endblock %}
+
+{% block extra_css %}
+<style>
+    .analysis-detail {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+    }
+    
+    .detail-header {
+        background: linear-gradient(135deg, #2c5530, #4a7c59);
+        color: white;
+        padding: 1.5rem;
+        border-radius: 15px 15px 0 0;
+        margin: -2rem -2rem 2rem -2rem;
+        text-align: center;
+    }
+    
+    .detail-section {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        border-left: 4px solid #2c5530;
+    }
+    
+    .section-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #2c5530;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+    }
+    
+    .property-result {
+        background: white;
+        border: 2px solid #e9ecef;
+        border-radius: 10px;
+        padding: 1rem;
+        margin-bottom: 0.5rem;
+        transition: all 0.3s ease;
+    }
+    
+    .property-result:hover {
+        border-color: #2c5530;
+        box-shadow: 0 2px 4px rgba(44, 85, 48, 0.1);
+    }
+    
+    .property-name {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #2c5530;
+        margin: 0;
+    }
+    
+    .property-value {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #2c5530;
+    }
+    
+    .property-unit {
+        background: #f8f9fa;
+        color: #6c757d;
+        padding: 0.25rem 0.75rem;
+        border-radius: 15px;
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+    
+    .property-method {
+        font-size: 0.9rem;
+        color: #6c757d;
+        font-style: italic;
+    }
+    
+    .status-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+    
+    .status-pendente {
+        background: #fff3cd;
+        color: #856404;
+    }
+    
+    .status-aprovado {
+        background: #d4edda;
+        color: #155724;
+    }
+    
+    .status-rejeitado {
+        background: #f8d7da;
+        color: #721c24;
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, #2c5530, #4a7c59);
+        border: none;
+        border-radius: 8px;
+        padding: 0.75rem 2rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(44, 85, 48, 0.3);
+    }
+    
+    .btn-secondary {
+        border-radius: 8px;
+        padding: 0.75rem 2rem;
+        font-weight: 600;
+    }
+    
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+    }
+    
+    .info-item {
+        background: white;
+        padding: 1rem;
+        border-radius: 8px;
+        border-left: 4px solid #2c5530;
+    }
+    
+    .info-label {
+        font-size: 0.9rem;
+        color: #6c757d;
+        font-weight: 500;
+        margin-bottom: 0.25rem;
+    }
+    
+    .info-value {
+        font-size: 1rem;
+        color: #2c5530;
+        font-weight: 600;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="analysis-detail">
+        <div class="detail-header">
+            <h2 class="mb-0">
+                <i class="bi bi-clipboard-data"></i> Detalhes da Análise Pontual
+            </h2>
+            <p class="mb-0">Informações completas da análise realizada</p>
+        </div>
+        
+        <!-- Informações Básicas -->
+        <div class="detail-section">
+            <h4 class="section-title">
+                <i class="bi bi-info-circle"></i> Informações da Análise
+            </h4>
+            
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">Data da Análise</div>
+                    <div class="info-value">{{ analysis.date|date:"d/m/Y" }}</div>
+                </div>
+                
+                <div class="info-item">
+                    <div class="info-label">Produto</div>
+                    <div class="info-value">{{ analysis.product.code }} - {{ analysis.product.name }}</div>
+                </div>
+                
+                <div class="info-item">
+                    <div class="info-label">Linha de Produção</div>
+                    <div class="info-value">{{ analysis.production_line.name }} ({{ analysis.production_line.code }})</div>
+                </div>
+                
+                <div class="info-item">
+                    <div class="info-label">Turno</div>
+                    <div class="info-value">{{ analysis.shift.get_name_display }}</div>
+                </div>
+                
+                <div class="info-item">
+                    <div class="info-label">Data e Hora da Amostra</div>
+                    <div class="info-value">{{ analysis.sample_time|date:"d/m/Y H:i" }}</div>
+                </div>
+                
+                <div class="info-item">
+                    <div class="info-label">Sequência</div>
+                    <div class="info-value">{{ analysis.sequence }}</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Resultados das Propriedades -->
+        <div class="detail-section">
+            <h4 class="section-title">
+                <i class="bi bi-clipboard-data"></i> Resultados das Propriedades
+            </h4>
+            
+            {% if related_analyses %}
+                <div class="row">
+                    {% for result in related_analyses %}
+                    <div class="col-md-6 col-lg-4 mb-3">
+                        <div class="property-result">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h5 class="property-name">{{ result.property.name }}</h5>
+                                <span class="property-unit">{{ result.property.unit }}</span>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="property-value">{{ result.value }}</span>
+                                <span class="status-badge status-{{ result.status|lower }}">{{ result.get_status_display }}</span>
+                            </div>
+                            
+                            {% if result.test_method %}
+                            <div class="property-method">
+                                <i class="bi bi-gear"></i> {{ result.test_method }}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center text-muted py-4">
+                    <i class="bi bi-exclamation-circle"></i>
+                    <p>Nenhum resultado de propriedade encontrado para esta análise.</p>
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- Botões de Ação -->
+        <div class="d-flex gap-3 justify-content-end mt-4">
+            <a href="{% url 'quality_control:spot_analysis_list' %}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Voltar
+            </a>
+            <a href="{% url 'quality_control:spot_analysis_edit_improved' analysis.id %}" class="btn btn-primary">
+                <i class="bi bi-pencil-square"></i> Editar Análise
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
