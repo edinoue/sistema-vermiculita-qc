@@ -94,7 +94,7 @@ def composite_sample_create(request):
     
     # Obter dados para o formulário
     products = Product.objects.filter(is_active=True).order_by('display_order')
-    lines = ProductionLine.objects.filter(is_active=True).order_by('display_order')
+    lines = ProductionLine.objects.filter(is_active=True).order_by('name')
     shifts = Shift.objects.all()
     properties = Property.objects.filter(is_active=True).order_by('display_order')
     
@@ -156,7 +156,7 @@ def composite_sample_edit(request, sample_id):
     
     # Obter dados para o formulário
     products = Product.objects.filter(is_active=True).order_by('display_order')
-    lines = ProductionLine.objects.filter(is_active=True).order_by('display_order')
+    lines = ProductionLine.objects.filter(is_active=True).order_by('name')
     shifts = Shift.objects.all()
     properties = Property.objects.filter(is_active=True).order_by('display_order')
     results = CompositeSampleResult.objects.filter(sample=sample).select_related('property')

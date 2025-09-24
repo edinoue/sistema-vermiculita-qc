@@ -72,7 +72,7 @@ def spot_analysis_create_fixed(request):
     
     # Obter dados para o formulário
     products = Product.objects.filter(is_active=True).order_by('display_order')
-    lines = ProductionLine.objects.filter(is_active=True).order_by('display_order')
+    lines = ProductionLine.objects.filter(is_active=True).order_by('name')
     shifts = Shift.objects.all()
     properties = Property.objects.filter(is_active=True).order_by('display_order')
     
