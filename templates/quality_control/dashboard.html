@@ -78,6 +78,32 @@
         padding: 1.5rem;
         box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         margin-bottom: 2rem;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .chart-container canvas {
+        max-height: 300px !important;
+        max-width: 100% !important;
+        height: auto !important;
+        width: auto !important;
+    }
+    
+    .chart-container {
+        height: 350px;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .chart-container .chart-title {
+        flex-shrink: 0;
+    }
+    
+    .chart-container > div:last-child {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
     
     .chart-title {
@@ -306,7 +332,9 @@
                     <i class="fas fa-chart-pie"></i>
                     Análises por Produto (Últimos 30 dias)
                 </div>
-                <canvas id="productChart" height="250"></canvas>
+                <div style="height: 250px; display: flex; align-items: center; justify-content: center;">
+                    <canvas id="productChart" height="250" style="max-height: 250px; max-width: 100%;"></canvas>
+                </div>
             </div>
         </div>
         
@@ -317,7 +345,9 @@
                     <i class="fas fa-chart-bar"></i>
                     Análises por Linha (Últimos 7 dias)
                 </div>
-                <canvas id="lineChart" height="250"></canvas>
+                <div style="height: 250px; display: flex; align-items: center; justify-content: center;">
+                    <canvas id="lineChart" height="250" style="max-height: 250px; max-width: 100%;"></canvas>
+                </div>
             </div>
         </div>
     </div>
@@ -330,7 +360,9 @@
                     <i class="fas fa-chart-line"></i>
                     Análises por Dia (Últimos 30 dias)
                 </div>
-                <canvas id="dailyChart" height="200"></canvas>
+                <div style="height: 200px; display: flex; align-items: center; justify-content: center;">
+                    <canvas id="dailyChart" height="200" style="max-height: 200px; max-width: 100%;"></canvas>
+                </div>
             </div>
         </div>
         
@@ -495,6 +527,7 @@ document.addEventListener('DOMContentLoaded', function() {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                aspectRatio: 2.5,
                 scales: {
                     y: {
                         beginAtZero: true,
@@ -537,6 +570,7 @@ document.addEventListener('DOMContentLoaded', function() {
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            aspectRatio: 1.5,
             plugins: {
                 legend: {
                     position: 'bottom',
@@ -566,6 +600,7 @@ document.addEventListener('DOMContentLoaded', function() {
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            aspectRatio: 1.5,
             scales: {
                 y: {
                     beginAtZero: true,
