@@ -204,12 +204,38 @@ def dashboard_view(request):
 def reports_list_view(request):
     """Lista de laudos e relatórios"""
     
-    # Análises por período
-    analyses_by_month = SpotAnalysis.objects.extra(
-        select={'month': "DATE_FORMAT(sample_time, '%%Y-%%m')"}
-    ).values('month').annotate(
-        count=Count('id')
-    ).order_by('-month')[:12]
+    # Análises por período - versão simplificada
+    # Buscar análises dos últimos 12 meses
+    from datetime import datetime, timedelta
+    
+    end_date = timezone.now().date()
+    start_date = end_date - timedelta(days=365)
+    
+    # Agrupar por mês manualmente
+    analyses_by_month = []
+    current_date = start_date
+    while current_date <= end_date:
+        month_start = current_date.replace(day=1)
+        if current_date.month == 12:
+            month_end = current_date.replace(year=current_date.year + 1, month=1, day=1) - timedelta(days=1)
+        else:
+            month_end = current_date.replace(month=current_date.month + 1, day=1) - timedelta(days=1)
+        
+        count = SpotAnalysis.objects.filter(
+            sample_time__date__range=[month_start, month_end]
+        ).count()
+        
+        if count > 0:
+            analyses_by_month.append({
+                'month': month_start.strftime('%Y-%m'),
+                'count': count
+            })
+        
+        # Próximo mês
+        if current_date.month == 12:
+            current_date = current_date.replace(year=current_date.year + 1, month=1, day=1)
+        else:
+            current_date = current_date.replace(month=current_date.month + 1, day=1)
     
     # Produtos mais analisados
     top_products = SpotAnalysis.objects.values(
@@ -219,7 +245,7 @@ def reports_list_view(request):
     ).order_by('-count')[:10]
     
     context = {
-        'analyses_by_month': list(analyses_by_month),
+        'analyses_by_month': analyses_by_month,
         'top_products': list(top_products),
         'total_analyses': SpotAnalysis.objects.count(),
     }
