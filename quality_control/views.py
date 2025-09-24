@@ -159,19 +159,44 @@ def analysis_type_selection_view(request):
 def dashboard_view(request):
     """Dashboard principal com estatísticas"""
     
-    # Estatísticas gerais
-    total_analyses = SpotAnalysis.objects.count()
+    # Estatísticas gerais - incluindo amostras compostas
+    total_spot_analyses = SpotAnalysis.objects.count()
+    total_composite_samples = CompositeSample.objects.count()
+    total_analyses = total_spot_analyses + total_composite_samples
+    
     today_analyses = SpotAnalysis.objects.filter(
         sample_time__date=timezone.now().date()
     ).count()
     
-    # Análises por produto (últimos 30 dias)
+    # Análises por produto (últimos 30 dias) - incluindo amostras compostas
     thirty_days_ago = timezone.now() - timedelta(days=30)
-    analyses_by_product = SpotAnalysis.objects.filter(
+    
+    # Análises pontuais por produto
+    spot_analyses_by_product = SpotAnalysis.objects.filter(
         sample_time__gte=thirty_days_ago
     ).values('product__name').annotate(
         count=Count('id')
     ).order_by('-count')[:5]
+    
+    # Amostras compostas por produto
+    composite_analyses_by_product = CompositeSample.objects.filter(
+        date__gte=thirty_days_ago.date()
+    ).values('product__name').annotate(
+        count=Count('id')
+    ).order_by('-count')[:5]
+    
+    # Combinar análises pontuais e compostas
+    analyses_by_product = list(spot_analyses_by_product)
+    for item in composite_analyses_by_product:
+        # Verificar se já existe o produto na lista
+        existing = next((x for x in analyses_by_product if x['product__name'] == item['product__name']), None)
+        if existing:
+            existing['count'] += item['count']
+        else:
+            analyses_by_product.append(item)
+    
+    # Ordenar por count
+    analyses_by_product.sort(key=lambda x: x['count'], reverse=True)
     
     # Análises por linha (últimos 7 dias)
     seven_days_ago = timezone.now() - timedelta(days=7)
@@ -181,15 +206,45 @@ def dashboard_view(request):
         count=Count('id')
     ).order_by('-count')
     
-    # Análises recentes
-    recent_analyses = SpotAnalysis.objects.select_related(
+    # Análises recentes - incluindo amostras compostas
+    recent_spot_analyses = SpotAnalysis.objects.select_related(
         'product', 'production_line', 'shift', 'operator'
-    ).order_by('-sample_time')[:10]
+    ).order_by('-sample_time')[:5]
+    
+    recent_composite_samples = CompositeSample.objects.select_related(
+        'product', 'production_line', 'shift'
+    ).order_by('-date', '-collection_time')[:5]
+    
+    # Combinar análises recentes
+    recent_analyses = []
+    for analysis in recent_spot_analyses:
+        recent_analyses.append({
+            'type': 'spot',
+            'product': analysis.product,
+            'production_line': analysis.production_line,
+            'date': analysis.sample_time,
+            'shift': analysis.shift
+        })
+    
+    for sample in recent_composite_samples:
+        recent_analyses.append({
+            'type': 'composite',
+            'product': sample.product,
+            'production_line': sample.production_line,
+            'date': sample.collection_time,
+            'shift': sample.shift
+        })
+    
+    # Ordenar por data
+    recent_analyses.sort(key=lambda x: x['date'], reverse=True)
+    recent_analyses = recent_analyses[:10]
     
     context = {
         'total_analyses': total_analyses,
+        'total_spot_analyses': total_spot_analyses,
+        'total_composite_samples': total_composite_samples,
         'today_analyses': today_analyses,
-        'analyses_by_product': list(analyses_by_product),
+        'analyses_by_product': analyses_by_product,
         'analyses_by_line': list(analyses_by_line),
         'recent_analyses': recent_analyses,
         'products_count': Product.objects.count(),
@@ -329,29 +384,61 @@ def dashboard_data_api(request):
     # Dados dos últimos 30 dias
     thirty_days_ago = timezone.now() - timedelta(days=30)
     
-    # Análises por dia
-    daily_analyses = []
+    # Análises pontuais por dia
+    daily_spot_analyses = []
+    daily_composite_analyses = []
+    labels = []
+    
     for i in range(30):
         date = (timezone.now() - timedelta(days=i)).date()
-        count = SpotAnalysis.objects.filter(sample_time__date=date).count()
-        daily_analyses.append({
-            'date': date.strftime('%Y-%m-%d'),
-            'count': count
-        })
+        spot_count = SpotAnalysis.objects.filter(sample_time__date=date).count()
+        composite_count = CompositeSample.objects.filter(date=date).count()
+        
+        daily_spot_analyses.append(spot_count)
+        daily_composite_analyses.append(composite_count)
+        labels.append(date.strftime('%d/%m'))
     
-    # Análises por produto
-    product_analyses = SpotAnalysis.objects.filter(
+    # Análises por produto (últimos 30 dias)
+    spot_by_product = SpotAnalysis.objects.filter(
         sample_time__gte=thirty_days_ago
     ).values('product__name').annotate(
         count=Count('id')
     ).order_by('-count')[:10]
     
+    composite_by_product = CompositeSample.objects.filter(
+        date__gte=thirty_days_ago.date()
+    ).values('product__name').annotate(
+        count=Count('id')
+    ).order_by('-count')[:10]
+    
+    # Análises por linha (últimos 7 dias)
+    seven_days_ago = timezone.now() - timedelta(days=7)
+    analyses_by_line = SpotAnalysis.objects.filter(
+        sample_time__gte=seven_days_ago
+    ).values('production_line__name').annotate(
+        count=Count('id')
+    ).order_by('-count')
+    
     return JsonResponse({
         'success': True,
-        'daily_analyses': daily_analyses[::-1],  # Ordem cronológica
-        'product_analyses': list(product_analyses),
-        'total_analyses': SpotAnalysis.objects.count(),
-        'today_analyses': SpotAnalysis.objects.filter(
-            sample_time__date=timezone.now().date()
-        ).count(),
+        'daily_data': {
+            'labels': labels[::-1],  # Ordem cronológica
+            'spot_analyses': daily_spot_analyses[::-1],
+            'composite_analyses': daily_composite_analyses[::-1]
+        },
+        'product_data': {
+            'spot': list(spot_by_product),
+            'composite': list(composite_by_product)
+        },
+        'line_data': list(analyses_by_line),
+        'totals': {
+            'spot_analyses': SpotAnalysis.objects.count(),
+            'composite_samples': CompositeSample.objects.count(),
+            'today_spot': SpotAnalysis.objects.filter(
+                sample_time__date=timezone.now().date()
+            ).count(),
+            'today_composite': CompositeSample.objects.filter(
+                date=timezone.now().date()
+            ).count()
+        }
     })
