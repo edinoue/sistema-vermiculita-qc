@@ -4,11 +4,33 @@ Configuração do Django Admin para o app quality_control
 
 from django.contrib import admin
 from .models import (
-    Product, Property, ProductPropertyMap, Specification,
+    AnalysisType, AnalysisTypeProperty, Product, Property, ProductPropertyMap, Specification,
     SpotAnalysis, CompositeSample, CompositeSampleResult,
     ChemicalAnalysis, ChemicalAnalysisResult,
     QualityReport, LoadingOrder
 )
+
+
+@admin.register(AnalysisType)
+class AnalysisTypeAdmin(admin.ModelAdmin):
+    list_display = ['code', 'name', 'frequency_per_shift', 'is_active', 'created_at']
+    list_filter = ['is_active', 'created_at']
+    search_fields = ['code', 'name']
+    ordering = ['code']
+
+
+class AnalysisTypePropertyInline(admin.TabularInline):
+    model = AnalysisTypeProperty
+    extra = 0
+    fields = ['property', 'is_required', 'display_order', 'is_active']
+
+
+@admin.register(AnalysisTypeProperty)
+class AnalysisTypePropertyAdmin(admin.ModelAdmin):
+    list_display = ['analysis_type', 'property', 'is_required', 'display_order', 'is_active']
+    list_filter = ['analysis_type', 'property__category', 'is_required', 'is_active']
+    search_fields = ['analysis_type__name', 'property__name']
+    ordering = ['analysis_type', 'display_order']
 
 
 @admin.register(Product)
@@ -59,8 +81,8 @@ class CompositeSampleAdmin(admin.ModelAdmin):
 
 @admin.register(SpotAnalysis)
 class SpotAnalysisAdmin(admin.ModelAdmin):
-    list_display = ['date', 'shift', 'production_line', 'product', 'property', 'sequence', 'value', 'status']
-    list_filter = ['date', 'shift', 'production_line', 'product', 'property', 'status']
+    list_display = ['analysis_type', 'date', 'shift', 'production_line', 'product', 'property', 'sequence', 'value', 'status']
+    list_filter = ['analysis_type', 'date', 'shift', 'production_line', 'product', 'property', 'status']
     search_fields = ['production_line__name', 'product__name', 'property__name']
     ordering = ['-date', '-sample_time']
 

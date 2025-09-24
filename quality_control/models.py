@@ -12,6 +12,25 @@ import uuid
 from core.models import AuditModel, Plant, ProductionLine, Shift
 
 
+class AnalysisType(AuditModel):
+    """
+    Tipos de análise (Pontual, Composta, etc.)
+    """
+    name = models.CharField('Nome', max_length=100, unique=True)
+    code = models.CharField('Código', max_length=20, unique=True)
+    description = models.TextField('Descrição', blank=True)
+    frequency_per_shift = models.PositiveIntegerField('Frequência por Turno', default=1)
+    is_active = models.BooleanField('Ativo', default=True)
+    
+    class Meta:
+        verbose_name = 'Tipo de Análise'
+        verbose_name_plural = 'Tipos de Análise'
+        ordering = ['name']
+    
+    def __str__(self):
+        return f"{self.code} - {self.name}"
+
+
 class Product(AuditModel):
     """
     Modelo para representar produtos (Vermiculita Concentrada, Expandida, AM30, etc.)
@@ -62,6 +81,26 @@ class Property(AuditModel):
     
     def __str__(self):
         return f"{self.identifier} - {self.name}"
+
+
+class AnalysisTypeProperty(AuditModel):
+    """
+    Configuração de quais propriedades aparecem em cada tipo de análise
+    """
+    analysis_type = models.ForeignKey(AnalysisType, on_delete=models.CASCADE, verbose_name='Tipo de Análise')
+    property = models.ForeignKey(Property, on_delete=models.CASCADE, verbose_name='Propriedade')
+    is_required = models.BooleanField('Obrigatório', default=False)
+    display_order = models.PositiveIntegerField('Ordem de Exibição', default=0)
+    is_active = models.BooleanField('Ativo', default=True)
+    
+    class Meta:
+        verbose_name = 'Propriedade do Tipo de Análise'
+        verbose_name_plural = 'Propriedades dos Tipos de Análise'
+        unique_together = [['analysis_type', 'property']]
+        ordering = ['display_order', 'property__name']
+    
+    def __str__(self):
+        return f"{self.analysis_type.name} - {self.property.name}"
 
 
 class ProductPropertyMap(AuditModel):
@@ -117,7 +156,7 @@ class Specification(AuditModel):
 
 class SpotAnalysis(AuditModel):
     """
-    Análises pontuais realizadas durante o turno
+    Análises realizadas durante o turno (pontuais ou compostas)
     """
     STATUS_CHOICES = [
         ('APPROVED', 'Aprovado'),
@@ -126,6 +165,7 @@ class SpotAnalysis(AuditModel):
     ]
     
     # Identificação
+    analysis_type = models.ForeignKey(AnalysisType, on_delete=models.PROTECT, verbose_name='Tipo de Análise')
     date = models.DateField('Data')
     shift = models.ForeignKey(Shift, on_delete=models.PROTECT, verbose_name='Turno')
     production_line = models.ForeignKey(ProductionLine, on_delete=models.PROTECT, verbose_name='Linha de Produção')
@@ -150,7 +190,7 @@ class SpotAnalysis(AuditModel):
         verbose_name = 'Análise Pontual'
         verbose_name_plural = 'Análises Pontuais'
         ordering = ['-date', '-sample_time']
-        unique_together = [['date', 'shift', 'production_line', 'product', 'property', 'sequence']]
+        unique_together = [['analysis_type', 'date', 'shift', 'production_line', 'product', 'property', 'sequence']]
     
     def __str__(self):
         return f"{self.date} - {self.shift} - {self.production_line} - {self.property.identifier} #{self.sequence}"

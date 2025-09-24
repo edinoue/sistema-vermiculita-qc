@@ -12,7 +12,10 @@ urlpatterns = [
     path('', views.dashboard_view, name='dashboard'),
     path('dashboard/', views.dashboard_view, name='dashboard_main'),
     
-    # Análises pontuais
+    # Seleção de tipo de análise
+    path('analysis-type-selection/', views.analysis_type_selection_view, name='analysis_type_selection'),
+    
+    # Análises
     path('spot-analysis/', views.SpotAnalysisListView.as_view(), name='spot_analysis_list'),
     path('spot-analysis/create/', views.SpotAnalysisCreateView.as_view(), name='spot_analysis_create'),
     

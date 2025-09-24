@@ -1,0 +1,521 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Nova Análise - Sistema de Controle de Qualidade{% endblock %}
+
+{% block extra_css %}
+<style>
+    .analysis-form {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+    }
+    
+    .form-header {
+        background: linear-gradient(135deg, #2c5530, #4a7c59);
+        color: white;
+        padding: 1.5rem;
+        border-radius: 15px 15px 0 0;
+        margin: -2rem -2rem 2rem -2rem;
+        text-align: center;
+    }
+    
+    .analysis-type-badge {
+        background: rgba(255,255,255,0.2);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        display: inline-block;
+        margin-bottom: 1rem;
+    }
+    
+    .form-section {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        border-left: 4px solid #2c5530;
+    }
+    
+    .section-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #2c5530;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .form-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .form-group {
+        margin-bottom: 1rem;
+    }
+    
+    .form-label {
+        font-weight: 600;
+        color: #2c5530;
+        margin-bottom: 0.5rem;
+    }
+    
+    .form-control, .form-select {
+        border-radius: 8px;
+        border: 2px solid #e9ecef;
+        padding: 10px 12px;
+        font-size: 14px;
+        transition: all 0.3s ease;
+    }
+    
+    .form-control:focus, .form-select:focus {
+        border-color: #2c5530;
+        box-shadow: 0 0 0 0.2rem rgba(44, 85, 48, 0.25);
+    }
+    
+    .properties-table {
+        background: white;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        margin-top: 1rem;
+    }
+    
+    .properties-table table {
+        margin: 0;
+    }
+    
+    .properties-table th {
+        background: #2c5530;
+        color: white;
+        border: none;
+        padding: 1rem;
+        font-weight: 600;
+        text-align: center;
+    }
+    
+    .properties-table td {
+        padding: 1rem;
+        border-bottom: 1px solid #e9ecef;
+        vertical-align: middle;
+    }
+    
+    .properties-table tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+    
+    .property-name {
+        font-weight: 600;
+        color: #2c5530;
+    }
+    
+    .property-unit {
+        color: #6c757d;
+        font-size: 0.9rem;
+    }
+    
+    .property-required {
+        color: #dc3545;
+        font-weight: bold;
+    }
+    
+    .value-input {
+        text-align: center;
+        font-weight: 600;
+    }
+    
+    .unit-display {
+        color: #6c757d;
+        font-size: 0.9rem;
+        text-align: center;
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, #2c5530, #4a7c59);
+        border: none;
+        border-radius: 10px;
+        padding: 12px 30px;
+        font-weight: 600;
+        font-size: 16px;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(44, 85, 48, 0.3);
+    }
+    
+    .btn-secondary {
+        border-radius: 10px;
+        padding: 12px 30px;
+        font-weight: 600;
+        font-size: 16px;
+    }
+    
+    .loading {
+        display: none;
+        text-align: center;
+        padding: 2rem;
+    }
+    
+    .loading.show {
+        display: block;
+    }
+    
+    .spinner {
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #2c5530;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 1rem;
+    }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    .current-shift {
+        background: linear-gradient(135deg, #17a2b8, #138496);
+        color: white;
+        padding: 1rem;
+        border-radius: 10px;
+        margin-bottom: 1.5rem;
+        text-align: center;
+    }
+    
+    .shift-info {
+        font-size: 1.1rem;
+        font-weight: 600;
+    }
+    
+    .shift-time {
+        font-size: 0.9rem;
+        opacity: 0.9;
+    }
+    
+    @media (max-width: 768px) {
+        .analysis-form {
+            padding: 1rem;
+            margin: 1rem;
+        }
+        
+        .form-header {
+            margin: -1rem -1rem 1.5rem -1rem;
+            padding: 1rem;
+        }
+        
+        .form-row {
+            grid-template-columns: 1fr;
+        }
+        
+        .properties-table {
+            font-size: 0.9rem;
+        }
+        
+        .properties-table th,
+        .properties-table td {
+            padding: 0.75rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="analysis-form">
+                <div class="form-header">
+                    <div class="analysis-type-badge">
+                        <i class="bi bi-{{ analysis_type_icon }}"></i> {{ analysis_type_name }}
+                    </div>
+                    <h3 class="mb-2">
+                        <i class="bi bi-clipboard-data"></i> Nova Análise
+                    </h3>
+                    <p class="mb-0">{{ analysis_type_description }}</p>
+                </div>
+                
+                <!-- Turno Atual -->
+                {% if current_shift %}
+                <div class="current-shift">
+                    <div class="shift-info">
+                        <i class="bi bi-clock"></i> Turno Atual: {{ current_shift.name }}
+                    </div>
+                    <div class="shift-time">
+                        {{ current_shift.start_time|time:"H:i" }} - {{ current_shift.end_time|time:"H:i" }}
+                    </div>
+                </div>
+                {% endif %}
+                
+                <form method="post" id="analysisForm">
+                    {% csrf_token %}
+                    
+                    <!-- Informações de Identificação -->
+                    <div class="form-section">
+                        <div class="section-title">
+                            <i class="bi bi-info-circle"></i> Identificação da Amostra
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="date" class="form-label required-field">Data da Análise</label>
+                                <input type="date" class="form-control" id="date" name="date" required>
+                                <div class="help-text">Data em que a análise foi realizada</div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="product" class="form-label required-field">Produto</label>
+                                <select class="form-select" id="product" name="product" required>
+                                    <option value="">Selecione um produto</option>
+                                    {% for product in products %}
+                                    <option value="{{ product.id }}">{{ product.code }} - {{ product.name }}</option>
+                                    {% endfor %}
+                                </select>
+                                <div class="help-text">Produto a ser analisado</div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="production_line" class="form-label required-field">Linha de Produção</label>
+                                <select class="form-select" id="production_line" name="production_line" required>
+                                    <option value="">Selecione uma linha</option>
+                                    {% for line in lines %}
+                                    <option value="{{ line.id }}">{{ line.name }} ({{ line.code }})</option>
+                                    {% endfor %}
+                                </select>
+                                <div class="help-text">Linha onde a análise foi realizada</div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="shift" class="form-label required-field">Turno</label>
+                                <select class="form-select" id="shift" name="shift" required>
+                                    <option value="">Selecione um turno</option>
+                                    {% for shift in shifts %}
+                                    <option value="{{ shift.id }}" {% if current_shift and shift.id == current_shift.id %}selected{% endif %}>
+                                        {{ shift.name }} ({{ shift.start_time|time:"H:i" }} - {{ shift.end_time|time:"H:i" }})
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                                <div class="help-text">Turno de trabalho</div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="sample_time" class="form-label required-field">Data e Hora da Análise</label>
+                                <input type="datetime-local" class="form-control" id="sample_time" name="sample_time" required>
+                                <div class="help-text">Data e hora em que a análise foi realizada</div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="sequence" class="form-label required-field">Sequência</label>
+                                <select class="form-select" id="sequence" name="sequence" required>
+                                    <option value="">Selecione a sequência</option>
+                                    {% for i in "123"|make_list %}
+                                    <option value="{{ i }}">{{ i }}ª Análise</option>
+                                    {% endfor %}
+                                </select>
+                                <div class="help-text">Sequência da análise no turno</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Propriedades para Análise -->
+                    <div class="form-section">
+                        <div class="section-title">
+                            <i class="bi bi-flask"></i> Propriedades para Análise
+                        </div>
+                        
+                        <div class="properties-table">
+                            <table class="table table-hover mb-0">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 30%;">Propriedade</th>
+                                        <th style="width: 15%;">Unidade</th>
+                                        <th style="width: 20%;">Valor</th>
+                                        <th style="width: 20%;">Método</th>
+                                        <th style="width: 15%;">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="propertiesTableBody">
+                                    <!-- Propriedades serão carregadas dinamicamente via JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <!-- Botões -->
+                    <div class="d-flex gap-3 justify-content-end">
+                        <a href="{% url 'quality_control:analysis_type_selection' %}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> Voltar
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle"></i> Salvar Análise
+                        </button>
+                    </div>
+                </form>
+                
+                <!-- Loading -->
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p>Salvando análise...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-preencher data/hora atual
+    const now = new Date();
+    const dateInput = document.getElementById('date');
+    const datetimeInput = document.getElementById('sample_time');
+    
+    // Preencher data atual
+    dateInput.value = now.toISOString().slice(0, 10);
+    
+    // Preencher data/hora atual para sample_time
+    datetimeInput.value = now.toISOString().slice(0, 16);
+    
+    // Carregar propriedades baseado no produto selecionado
+    const productSelect = document.getElementById('product');
+    const propertiesTableBody = document.getElementById('propertiesTableBody');
+    
+    productSelect.addEventListener('change', function() {
+        const productId = this.value;
+        if (productId) {
+            loadPropertiesForProduct(productId);
+        } else {
+            propertiesTableBody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">Selecione um produto para carregar as propriedades</td></tr>';
+        }
+    });
+    
+    function loadPropertiesForProduct(productId) {
+        // Simular carregamento de propriedades
+        // Em produção, isso viria de uma API
+        const properties = [
+            { id: 1, name: 'Umidade', unit: '%', required: true },
+            { id: 2, name: 'Temperatura', unit: '°C', required: true },
+            { id: 3, name: 'Densidade', unit: 'g/cm³', required: false },
+            { id: 4, name: 'pH', unit: '', required: false },
+        ];
+        
+        let html = '';
+        properties.forEach(property => {
+            html += `
+                <tr>
+                    <td>
+                        <div class="property-name">${property.name}</div>
+                        ${property.required ? '<span class="property-required">*</span>' : ''}
+                    </td>
+                    <td>
+                        <div class="unit-display">${property.unit}</div>
+                    </td>
+                    <td>
+                        <input type="number" 
+                               class="form-control value-input" 
+                               name="property_${property.id}_value" 
+                               step="0.0001"
+                               ${property.required ? 'required' : ''}
+                               placeholder="0.0000">
+                    </td>
+                    <td>
+                        <input type="text" 
+                               class="form-control" 
+                               name="property_${property.id}_method" 
+                               placeholder="Método">
+                    </td>
+                    <td>
+                        <span class="badge bg-secondary">Pendente</span>
+                    </td>
+                </tr>
+            `;
+        });
+        
+        propertiesTableBody.innerHTML = html;
+    }
+    
+    // Validação do formulário
+    const form = document.getElementById('analysisForm');
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // Mostrar loading
+        document.getElementById('loading').classList.add('show');
+        
+        // Validar campos obrigatórios
+        const requiredFields = form.querySelectorAll('[required]');
+        let isValid = true;
+        
+        requiredFields.forEach(field => {
+            if (!field.value.trim()) {
+                field.classList.add('is-invalid');
+                isValid = false;
+            } else {
+                field.classList.remove('is-invalid');
+            }
+        });
+        
+        if (!isValid) {
+            document.getElementById('loading').classList.remove('show');
+            alert('Por favor, preencha todos os campos obrigatórios.');
+            return;
+        }
+        
+        // Enviar formulário
+        const formData = new FormData(form);
+        
+        fetch(form.action || window.location.href, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        })
+        .then(response => {
+            if (response.ok) {
+                // Sucesso - redirecionar
+                window.location.href = '{% url "quality_control:spot_analysis_list" %}';
+            } else {
+                throw new Error('Erro ao salvar análise');
+            }
+        })
+        .catch(error => {
+            document.getElementById('loading').classList.remove('show');
+            alert('Erro ao salvar análise: ' + error.message);
+        });
+    });
+    
+    // Auto-focus no primeiro campo
+    document.getElementById('date').focus();
+    
+    // Animação de entrada
+    const form = document.querySelector('.analysis-form');
+    form.style.opacity = '0';
+    form.style.transform = 'translateY(20px)';
+    
+    setTimeout(() => {
+        form.style.transition = 'all 0.5s ease';
+        form.style.opacity = '1';
+        form.style.transform = 'translateY(0)';
+    }, 100);
+    
+    console.log('📊 Formulário dinâmico de análise carregado com sucesso!');
+});
+</script>
+{% endblock %}

@@ -15,7 +15,7 @@ from datetime import datetime, timedelta
 import json
 
 from core.models import Plant, ProductionLine, Shift
-from .models import Product, Property, Specification, SpotAnalysis, CompositeSample, ChemicalAnalysis
+from .models import Product, Property, Specification, SpotAnalysis, CompositeSample, ChemicalAnalysis, AnalysisType, AnalysisTypeProperty
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -60,15 +60,43 @@ class SpotAnalysisListView(ListView):
 @method_decorator(login_required, name='dispatch')
 class SpotAnalysisCreateView(CreateView):
     model = SpotAnalysis
-    template_name = 'quality_control/spot_analysis_create.html'
-    fields = ['date', 'product', 'production_line', 'shift', 'property', 'sequence', 'value', 'unit', 'test_method']
+    template_name = 'quality_control/spot_analysis_create_dynamic.html'
+    fields = ['analysis_type', 'date', 'product', 'production_line', 'shift', 'property', 'sequence', 'value', 'unit', 'test_method']
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['products'] = Product.objects.all()
-        context['lines'] = ProductionLine.objects.all()
+        
+        # Obter tipo de análise da URL
+        analysis_type_param = self.request.GET.get('type', 'pontual')
+        
+        try:
+            if analysis_type_param == 'pontual':
+                analysis_type = AnalysisType.objects.get(code='PONTUAL')
+                context['analysis_type_name'] = 'Análise Pontual'
+                context['analysis_type_description'] = 'Análises realizadas diretamente no fluxo de produção'
+                context['analysis_type_icon'] = 'lightning'
+            elif analysis_type_param == 'composta':
+                analysis_type = AnalysisType.objects.get(code='COMPOSTA')
+                context['analysis_type_name'] = 'Análise Composta'
+                context['analysis_type_description'] = 'Análises que representam 12 horas de produção'
+                context['analysis_type_icon'] = 'clock-history'
+            else:
+                analysis_type = AnalysisType.objects.first()
+                context['analysis_type_name'] = analysis_type.name
+                context['analysis_type_description'] = analysis_type.description
+                context['analysis_type_icon'] = 'clipboard-data'
+        except AnalysisType.DoesNotExist:
+            # Criar tipos padrão se não existirem
+            analysis_type = self.create_default_analysis_types()
+            context['analysis_type_name'] = 'Análise Pontual'
+            context['analysis_type_description'] = 'Análises realizadas diretamente no fluxo de produção'
+            context['analysis_type_icon'] = 'lightning'
+        
+        context['analysis_type'] = analysis_type
+        context['products'] = Product.objects.filter(is_active=True)
+        context['lines'] = ProductionLine.objects.filter(is_active=True)
         context['shifts'] = Shift.objects.all()
-        context['properties'] = Property.objects.all()
+        context['properties'] = Property.objects.filter(is_active=True)
         
         # Turno atual
         current_hour = timezone.now().hour
@@ -80,14 +108,49 @@ class SpotAnalysisCreateView(CreateView):
         
         return context
     
+    def create_default_analysis_types(self):
+        """Criar tipos de análise padrão se não existirem"""
+        pontual, created = AnalysisType.objects.get_or_create(
+            code='PONTUAL',
+            defaults={
+                'name': 'Análise Pontual',
+                'description': 'Análises realizadas diretamente no fluxo de produção',
+                'frequency_per_shift': 3
+            }
+        )
+        
+        composta, created = AnalysisType.objects.get_or_create(
+            code='COMPOSTA',
+            defaults={
+                'name': 'Análise Composta',
+                'description': 'Análises que representam 12 horas de produção',
+                'frequency_per_shift': 1
+            }
+        )
+        
+        return pontual
+    
     def form_valid(self, form):
         form.instance.operator = self.request.user
         form.instance.created_by = self.request.user
-        messages.success(self.request, 'Análise pontual criada com sucesso!')
+        messages.success(self.request, 'Análise criada com sucesso!')
         return super().form_valid(form)
     
     def get_success_url(self):
         return '/qc/spot-analysis/'
+
+
+@csrf_exempt
+@login_required
+def analysis_type_selection_view(request):
+    """Tela de seleção do tipo de análise"""
+    analysis_types = AnalysisType.objects.filter(is_active=True)
+    
+    context = {
+        'analysis_types': analysis_types,
+    }
+    
+    return render(request, 'quality_control/analysis_type_selection.html', context)
 
 
 @csrf_exempt

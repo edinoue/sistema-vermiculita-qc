@@ -1,0 +1,291 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Selecionar Tipo de Análise - Sistema de Controle de Qualidade{% endblock %}
+
+{% block extra_css %}
+<style>
+    .selection-container {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        padding: 2rem 0;
+    }
+    
+    .selection-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        overflow: hidden;
+        max-width: 800px;
+        width: 100%;
+    }
+    
+    .selection-header {
+        background: linear-gradient(135deg, #2c5530, #4a7c59);
+        color: white;
+        padding: 2rem;
+        text-align: center;
+    }
+    
+    .selection-body {
+        padding: 2rem;
+    }
+    
+    .analysis-types {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+    
+    .analysis-type-card {
+        background: white;
+        border: 2px solid #e9ecef;
+        border-radius: 15px;
+        padding: 2rem;
+        text-align: center;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        text-decoration: none;
+        color: inherit;
+    }
+    
+    .analysis-type-card:hover {
+        border-color: #2c5530;
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(44, 85, 48, 0.15);
+        text-decoration: none;
+        color: inherit;
+    }
+    
+    .analysis-type-card.selected {
+        border-color: #2c5530;
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    }
+    
+    .type-icon {
+        font-size: 3rem;
+        color: #2c5530;
+        margin-bottom: 1rem;
+    }
+    
+    .type-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #2c5530;
+        margin-bottom: 0.5rem;
+    }
+    
+    .type-description {
+        color: #6c757d;
+        margin-bottom: 1rem;
+        line-height: 1.5;
+    }
+    
+    .type-frequency {
+        background: #2c5530;
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        display: inline-block;
+    }
+    
+    .continue-btn {
+        background: linear-gradient(135deg, #2c5530, #4a7c59);
+        border: none;
+        color: white;
+        border-radius: 10px;
+        padding: 12px 30px;
+        font-weight: 600;
+        font-size: 16px;
+        transition: all 0.3s ease;
+        opacity: 0.5;
+        pointer-events: none;
+    }
+    
+    .continue-btn.active {
+        opacity: 1;
+        pointer-events: auto;
+    }
+    
+    .continue-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(44, 85, 48, 0.3);
+    }
+    
+    .back-btn {
+        background: #6c757d;
+        border: none;
+        color: white;
+        border-radius: 10px;
+        padding: 12px 30px;
+        font-weight: 600;
+        font-size: 16px;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .back-btn:hover {
+        background: #5a6268;
+        color: white;
+        text-decoration: none;
+    }
+    
+    .selection-info {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        border-left: 4px solid #2c5530;
+    }
+    
+    .info-title {
+        font-weight: 600;
+        color: #2c5530;
+        margin-bottom: 0.5rem;
+    }
+    
+    .info-text {
+        color: #6c757d;
+        margin-bottom: 0;
+    }
+    
+    @media (max-width: 768px) {
+        .selection-container {
+            padding: 1rem;
+        }
+        
+        .selection-card {
+            margin: 1rem;
+        }
+        
+        .selection-header {
+            padding: 1.5rem;
+        }
+        
+        .selection-body {
+            padding: 1.5rem;
+        }
+        
+        .analysis-types {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+        
+        .analysis-type-card {
+            padding: 1.5rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="selection-container">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-12">
+                <div class="selection-card">
+                    <div class="selection-header">
+                        <h2 class="mb-2">
+                            <i class="bi bi-clipboard-data"></i> Nova Análise
+                        </h2>
+                        <p class="mb-0">Selecione o tipo de análise que deseja registrar</p>
+                    </div>
+                    
+                    <div class="selection-body">
+                        <!-- Informações -->
+                        <div class="selection-info">
+                            <div class="info-title">
+                                <i class="bi bi-info-circle"></i> Tipos de Análise Disponíveis
+                            </div>
+                            <div class="info-text">
+                                Escolha entre análise pontual (realizada durante o turno) ou análise composta (representa 12h de produção).
+                            </div>
+                        </div>
+                        
+                        <!-- Tipos de Análise -->
+                        <div class="analysis-types">
+                            <a href="{% url 'quality_control:spot_analysis_create' %}?type=pontual" class="analysis-type-card" data-type="pontual">
+                                <div class="type-icon">
+                                    <i class="bi bi-lightning"></i>
+                                </div>
+                                <div class="type-title">Análise Pontual</div>
+                                <div class="type-description">
+                                    Análises realizadas diretamente no fluxo de produção, 
+                                    feitas 3 vezes por turno para monitoramento contínuo.
+                                </div>
+                                <div class="type-frequency">3x por turno</div>
+                            </a>
+                            
+                            <a href="{% url 'quality_control:spot_analysis_create' %}?type=composta" class="analysis-type-card" data-type="composta">
+                                <div class="type-icon">
+                                    <i class="bi bi-clock-history"></i>
+                                </div>
+                                <div class="type-title">Análise Composta</div>
+                                <div class="type-description">
+                                    Análises que representam 12 horas de produção para cada produto 
+                                    produzido em cada módulo de produção.
+                                </div>
+                                <div class="type-frequency">1x por turno</div>
+                            </a>
+                        </div>
+                        
+                        <!-- Botões de Ação -->
+                        <div class="d-flex gap-3 justify-content-between">
+                            <a href="{% url 'quality_control:dashboard' %}" class="back-btn">
+                                <i class="bi bi-arrow-left"></i> Voltar ao Dashboard
+                            </a>
+                            
+                            <div class="d-flex gap-2">
+                                <a href="{% url 'quality_control:spot_analysis_list' %}" class="btn btn-outline-secondary">
+                                    <i class="bi bi-list"></i> Ver Análises
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Animação de entrada
+    const cards = document.querySelectorAll('.analysis-type-card');
+    cards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        
+        setTimeout(() => {
+            card.style.transition = 'all 0.5s ease';
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, index * 200);
+    });
+    
+    // Efeito hover nos cards
+    cards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-5px)';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+        });
+    });
+    
+    console.log('🔬 Seleção de tipo de análise carregada com sucesso!');
+});
+</script>
+{% endblock %}
