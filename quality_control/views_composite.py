@@ -71,22 +71,36 @@ def composite_sample_create(request):
             
             # Processar resultados das propriedades
             # Obter propriedades para amostra composta
-            analysis_type = AnalysisType.objects.get(code='COMPOSTA')
-            properties = Property.objects.filter(
-                is_active=True,
-                analysistypeproperty__analysis_type=analysis_type
-            ).order_by('display_order')
+            try:
+                analysis_type = AnalysisType.objects.get(code='COMPOSTA')
+                properties = Property.objects.filter(
+                    is_active=True,
+                    analysistypeproperty__analysis_type=analysis_type
+                ).order_by('display_order')
+            except AnalysisType.DoesNotExist:
+                # Se não houver configuração específica, usar todas as propriedades ativas
+                properties = Property.objects.filter(is_active=True).order_by('display_order')
+            
+            # Debug: imprimir propriedades encontradas
+            print(f"DEBUG: Propriedades encontradas: {properties.count()}")
+            
             for property in properties:
                 value_key = f'property_{property.id}_value'
                 method_key = f'property_{property.id}_method'
                 
+                print(f"DEBUG: Verificando {value_key}: {request.POST.get(value_key, 'NÃO ENCONTRADO')}")
+                
                 if value_key in request.POST and request.POST[value_key]:
-                    CompositeSampleResult.objects.create(
-                        composite_sample=sample,
-                        property=property,
-                        value=request.POST[value_key],
-                        test_method=request.POST.get(method_key, property.test_method)
-                    )
+                    try:
+                        CompositeSampleResult.objects.create(
+                            composite_sample=sample,
+                            property=property,
+                            value=request.POST[value_key],
+                            test_method=request.POST.get(method_key, property.test_method or '')
+                        )
+                        print(f"DEBUG: Resultado criado para {property.identifier}")
+                    except Exception as e:
+                        print(f"DEBUG: Erro ao criar resultado para {property.identifier}: {e}")
             
             messages.success(request, 'Amostra composta criada com sucesso!')
             return redirect('quality_control:composite_sample_detail', sample_id=sample.id)
@@ -98,7 +112,17 @@ def composite_sample_create(request):
     products = Product.objects.filter(is_active=True).order_by('display_order')
     lines = ProductionLine.objects.filter(is_active=True).order_by('name')
     shifts = Shift.objects.all()
-    properties = Property.objects.filter(is_active=True).order_by('display_order')
+    
+    # Obter propriedades para amostra composta
+    try:
+        analysis_type = AnalysisType.objects.get(code='COMPOSTA')
+        properties = Property.objects.filter(
+            is_active=True,
+            analysistypeproperty__analysis_type=analysis_type
+        ).order_by('display_order')
+    except AnalysisType.DoesNotExist:
+        # Se não houver configuração específica, usar todas as propriedades ativas
+        properties = Property.objects.filter(is_active=True).order_by('display_order')
     
     context = {
         'products': products,
