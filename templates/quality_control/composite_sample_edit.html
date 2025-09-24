@@ -1,0 +1,181 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Editar Amostra Composta - Brasil Minérios QC{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="bi bi-pencil"></i> Editar Amostra Composta</h2>
+                <a href="{% url 'quality_control:composite_sample_detail' sample.id %}" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Voltar
+                </a>
+            </div>
+
+            <form method="POST" id="compositeForm">
+                {% csrf_token %}
+                
+                <!-- Informações Básicas -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="bi bi-info-circle"></i> Informações Básicas</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="product" class="form-label required-field">Produto</label>
+                                    <select class="form-select" id="product" name="product" required>
+                                        <option value="">Selecione o produto</option>
+                                        {% for product in products %}
+                                            <option value="{{ product.id }}" {% if sample.product.id == product.id %}selected{% endif %}>
+                                                {{ product.name }} ({{ product.code }})
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="production_line" class="form-label required-field">Linha de Produção</label>
+                                    <select class="form-select" id="production_line" name="production_line" required>
+                                        <option value="">Selecione a linha</option>
+                                        {% for line in lines %}
+                                            <option value="{{ line.id }}" {% if sample.production_line.id == line.id %}selected{% endif %}>
+                                                {{ line.name }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="shift" class="form-label required-field">Turno</label>
+                                    <select class="form-select" id="shift" name="shift" required>
+                                        <option value="">Selecione o turno</option>
+                                        {% for shift in shifts %}
+                                            <option value="{{ shift.id }}" {% if sample.shift.id == shift.id %}selected{% endif %}>
+                                                {{ shift.get_name_display }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="date" class="form-label required-field">Data da Coleta</label>
+                                    <input type="date" class="form-control" id="date" name="date" value="{{ sample.date|date:'Y-m-d' }}" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="collection_time" class="form-label required-field">Horário da Coleta</label>
+                                    <input type="datetime-local" class="form-control" id="collection_time" name="collection_time" value="{{ sample.collection_time|date:'Y-m-d\TH:i' }}" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="mb-3">
+                                    <label for="observations" class="form-label">Observações</label>
+                                    <textarea class="form-control" id="observations" name="observations" rows="3" placeholder="Observações sobre a amostra composta...">{{ sample.observations }}</textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Resultados das Propriedades -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="bi bi-graph-up"></i> Resultados das Propriedades</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if properties %}
+                            <div class="row">
+                                {% for property in properties %}
+                                    <div class="col-md-6 mb-4">
+                                        <div class="card">
+                                            <div class="card-header">
+                                                <h6 class="mb-0">{{ property.name }} <span class="text-muted">({{ property.unit }})</span></h6>
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <label for="property_{{ property.id }}_value" class="form-label">Valor</label>
+                                                        <input type="number" step="any" class="form-control" 
+                                                               id="property_{{ property.id }}_value" 
+                                                               name="property_{{ property.id }}_value" 
+                                                               value="{% for result in results %}{% if result.property.id == property.id %}{{ result.value }}{% endif %}{% endfor %}"
+                                                               placeholder="Ex: 12.34">
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <label for="property_{{ property.id }}_method" class="form-label">Método</label>
+                                                        <input type="text" class="form-control" 
+                                                               id="property_{{ property.id }}_method" 
+                                                               name="property_{{ property.id }}_method" 
+                                                               value="{% for result in results %}{% if result.property.id == property.id %}{{ result.test_method }}{% endif %}{% endfor %}"
+                                                               placeholder="Ex: NBR 1234">
+                                                    </div>
+                                                </div>
+                                                {% if property.description %}
+                                                    <small class="text-muted mt-2 d-block">{{ property.description }}</small>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="text-center py-5">
+                                <i class="bi bi-graph-up fs-1 text-muted"></i>
+                                <h4 class="text-muted mt-3">Nenhuma propriedade configurada</h4>
+                                <p class="text-muted">Configure as propriedades no painel administrativo.</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Botões de Ação -->
+                <div class="d-flex justify-content-between mt-4">
+                    <a href="{% url 'quality_control:composite_sample_detail' sample.id %}" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Cancelar
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-circle"></i> Salvar Alterações
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Validação do formulário
+    document.getElementById('compositeForm').addEventListener('submit', function(e) {
+        const requiredFields = ['product', 'production_line', 'shift', 'date', 'collection_time'];
+        let hasErrors = false;
+        
+        requiredFields.forEach(function(fieldName) {
+            const field = document.getElementById(fieldName);
+            if (!field.value.trim()) {
+                field.classList.add('is-invalid');
+                hasErrors = true;
+            } else {
+                field.classList.remove('is-invalid');
+            }
+        });
+        
+        if (hasErrors) {
+            e.preventDefault();
+            alert('Por favor, preencha todos os campos obrigatórios.');
+        }
+    });
+});
+</script>
+{% endblock %}

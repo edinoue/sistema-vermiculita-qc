@@ -372,8 +372,13 @@
                             </span>
                         </td>
                         <td>
-                            <div class="fw-bold">{{ analysis.operator.get_full_name|default:analysis.operator.username }}</div>
-                            <small class="text-muted">{{ analysis.operator.username }}</small>
+                            {% if analysis.operator %}
+                                <div class="fw-bold">{{ analysis.operator.get_full_name|default:analysis.operator.username }}</div>
+                                <small class="text-muted">{{ analysis.operator.username }}</small>
+                            {% else %}
+                                <div class="fw-bold text-muted">N/A</div>
+                                <small class="text-muted">Não informado</small>
+                            {% endif %}
                         </td>
                     </tr>
                     {% endfor %}

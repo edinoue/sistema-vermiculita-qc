@@ -1,0 +1,161 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Amostras Compostas - Brasil Minérios QC{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="bi bi-collection"></i> Amostras Compostas</h2>
+                <a href="{% url 'quality_control:composite_sample_create' %}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> Nova Amostra Composta
+                </a>
+            </div>
+
+            <!-- Filtros -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-funnel"></i> Filtros</h5>
+                </div>
+                <div class="card-body">
+                    <form method="GET" class="row g-3">
+                        <div class="col-md-3">
+                            <label for="product" class="form-label">Produto</label>
+                            <select name="product" id="product" class="form-select">
+                                <option value="">Todos os produtos</option>
+                                {% for product in products %}
+                                    <option value="{{ product.id }}" {% if request.GET.product == product.id|stringformat:"s" %}selected{% endif %}>
+                                        {{ product.name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="line" class="form-label">Linha de Produção</label>
+                            <select name="line" id="line" class="form-select">
+                                <option value="">Todas as linhas</option>
+                                {% for line in lines %}
+                                    <option value="{{ line.id }}" {% if request.GET.line == line.id|stringformat:"s" %}selected{% endif %}>
+                                        {{ line.name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label for="date_from" class="form-label">Data Inicial</label>
+                            <input type="date" name="date_from" id="date_from" class="form-control" value="{{ request.GET.date_from }}">
+                        </div>
+                        <div class="col-md-2">
+                            <label for="date_to" class="form-label">Data Final</label>
+                            <input type="date" name="date_to" id="date_to" class="form-control" value="{{ request.GET.date_to }}">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">&nbsp;</label>
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-outline-primary">
+                                    <i class="bi bi-search"></i> Filtrar
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Estatísticas -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card bg-primary text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h4 class="mb-0">{{ total_samples }}</h4>
+                                    <p class="mb-0">Total de Amostras</p>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="bi bi-collection fs-1"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lista de Amostras -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-list-ul"></i> Lista de Amostras Compostas</h5>
+                </div>
+                <div class="card-body">
+                    {% if samples %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Data</th>
+                                        <th>Horário</th>
+                                        <th>Produto</th>
+                                        <th>Linha</th>
+                                        <th>Turno</th>
+                                        <th>Status</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for sample in samples %}
+                                        <tr>
+                                            <td>{{ sample.date|date:"d/m/Y" }}</td>
+                                            <td>{{ sample.collection_time|time:"H:i" }}</td>
+                                            <td>
+                                                <span class="badge bg-info">{{ sample.product.code }}</span>
+                                                {{ sample.product.name }}
+                                            </td>
+                                            <td>{{ sample.production_line.name }}</td>
+                                            <td>
+                                                <span class="badge bg-secondary">{{ sample.shift.get_name_display }}</span>
+                                            </td>
+                                            <td>
+                                                {% if sample.status == 'PENDENTE' %}
+                                                    <span class="badge bg-warning">Pendente</span>
+                                                {% elif sample.status == 'APROVADA' %}
+                                                    <span class="badge bg-success">Aprovada</span>
+                                                {% elif sample.status == 'REJEITADA' %}
+                                                    <span class="badge bg-danger">Rejeitada</span>
+                                                {% else %}
+                                                    <span class="badge bg-secondary">{{ sample.status }}</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <div class="btn-group" role="group">
+                                                    <a href="{% url 'quality_control:composite_sample_detail' sample.id %}" 
+                                                       class="btn btn-sm btn-outline-primary" title="Ver detalhes">
+                                                        <i class="bi bi-eye"></i>
+                                                    </a>
+                                                    <a href="{% url 'quality_control:composite_sample_edit' sample.id %}" 
+                                                       class="btn btn-sm btn-outline-warning" title="Editar">
+                                                        <i class="bi bi-pencil"></i>
+                                                    </a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="bi bi-collection fs-1 text-muted"></i>
+                            <h4 class="text-muted mt-3">Nenhuma amostra composta encontrada</h4>
+                            <p class="text-muted">Comece criando uma nova amostra composta.</p>
+                            <a href="{% url 'quality_control:composite_sample_create' %}" class="btn btn-primary">
+                                <i class="bi bi-plus-circle"></i> Nova Amostra Composta
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

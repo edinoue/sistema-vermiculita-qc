@@ -53,6 +53,8 @@ class SpotAnalysisListView(ListView):
         context['products'] = Product.objects.all()
         context['lines'] = ProductionLine.objects.all()
         context['total_analyses'] = self.get_queryset().count()
+        context['user'] = self.request.user
+        context['username'] = self.request.user.username if self.request.user.is_authenticated else None
         return context
 
 
