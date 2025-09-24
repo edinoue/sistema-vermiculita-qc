@@ -1,128 +1,169 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Nova Análise Pontual - Brasil Minérios{% endblock %}
+{% block title %}Nova Análise Pontual - Sistema de Controle de Qualidade{% endblock %}
 
 {% block extra_css %}
 <style>
-    .form-container {
-        max-width: 800px;
-        margin: 0 auto;
+    .analysis-form {
         background: white;
-        border-radius: 12px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        border-radius: 15px;
         padding: 2rem;
-    }
-    
-    .form-section {
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         margin-bottom: 2rem;
-        padding-bottom: 1.5rem;
-        border-bottom: 1px solid #e9ecef;
     }
     
-    .form-section:last-child {
-        border-bottom: none;
-        margin-bottom: 0;
+    .form-header {
+        background: linear-gradient(135deg, #2c5530, #4a7c59);
+        color: white;
+        padding: 1.5rem;
+        border-radius: 15px 15px 0 0;
+        margin: -2rem -2rem 2rem -2rem;
+        text-align: center;
     }
     
-    .section-title {
-        color: #495057;
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-label {
         font-weight: 600;
-        margin-bottom: 1rem;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
+        color: #2c5530;
+        margin-bottom: 0.5rem;
     }
     
     .form-control, .form-select {
-        border-radius: 8px;
+        border-radius: 10px;
         border: 2px solid #e9ecef;
-        padding: 0.75rem;
+        padding: 12px 15px;
+        font-size: 16px;
         transition: all 0.3s ease;
     }
     
     .form-control:focus, .form-select:focus {
-        border-color: #007bff;
-        box-shadow: 0 0 0 0.2rem rgba(0,123,255,0.25);
+        border-color: #2c5530;
+        box-shadow: 0 0 0 0.2rem rgba(44, 85, 48, 0.25);
     }
     
     .btn-primary {
-        background: linear-gradient(135deg, #007bff, #0056b3);
+        background: linear-gradient(135deg, #2c5530, #4a7c59);
         border: none;
-        border-radius: 8px;
-        padding: 0.75rem 2rem;
+        border-radius: 10px;
+        padding: 12px 30px;
         font-weight: 600;
+        font-size: 16px;
         transition: all 0.3s ease;
     }
     
     .btn-primary:hover {
         transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0,123,255,0.3);
+        box-shadow: 0 5px 15px rgba(44, 85, 48, 0.3);
     }
     
     .btn-secondary {
-        border-radius: 8px;
-        padding: 0.75rem 2rem;
+        border-radius: 10px;
+        padding: 12px 30px;
         font-weight: 600;
+        font-size: 16px;
     }
     
-    .current-info {
-        background: linear-gradient(135deg, #e3f2fd, #bbdefb);
-        border-radius: 8px;
+    .current-shift {
+        background: linear-gradient(135deg, #17a2b8, #138496);
+        color: white;
         padding: 1rem;
+        border-radius: 10px;
         margin-bottom: 1.5rem;
+        text-align: center;
     }
     
-    .info-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 0.5rem;
-    }
-    
-    .info-item:last-child {
-        margin-bottom: 0;
-    }
-    
-    .info-label {
+    .shift-info {
+        font-size: 1.1rem;
         font-weight: 600;
-        color: #1976d2;
     }
     
-    .info-value {
-        color: #0d47a1;
-        font-weight: 500;
+    .shift-time {
+        font-size: 0.9rem;
+        opacity: 0.9;
     }
     
-    .properties-container {
-        display: none;
-        margin-top: 1rem;
+    .form-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1rem;
     }
     
-    .property-input {
+    .required-field::after {
+        content: " *";
+        color: #dc3545;
+        font-weight: bold;
+    }
+    
+    .help-text {
+        font-size: 0.875rem;
+        color: #6c757d;
+        margin-top: 0.25rem;
+    }
+    
+    .property-inputs {
         background: #f8f9fa;
-        border-radius: 8px;
-        padding: 1rem;
-        margin-bottom: 1rem;
-        border: 1px solid #dee2e6;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-top: 1rem;
+        border: 2px dashed #dee2e6;
+    }
+    
+    .property-inputs.hidden {
+        display: none;
+    }
+    
+    .property-inputs.visible {
+        display: block;
+        animation: fadeIn 0.3s ease;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
     }
     
     .loading {
         display: none;
         text-align: center;
-        padding: 1rem;
-        color: #6c757d;
+        padding: 2rem;
+    }
+    
+    .loading.show {
+        display: block;
+    }
+    
+    .spinner {
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #2c5530;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 1rem;
+    }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
     }
     
     @media (max-width: 768px) {
-        .form-container {
+        .analysis-form {
+            padding: 1rem;
             margin: 1rem;
+        }
+        
+        .form-header {
+            margin: -1rem -1rem 1.5rem -1rem;
             padding: 1rem;
         }
         
-        .btn-primary, .btn-secondary {
-            width: 100%;
-            margin-bottom: 0.5rem;
+        .form-row {
+            grid-template-columns: 1fr;
         }
     }
 </style>
@@ -132,137 +173,144 @@
 <div class="container-fluid">
     <div class="row">
         <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h1 class="h3">
-                    <i class="fas fa-plus-circle"></i>
-                    Nova Análise Pontual
-                </h1>
-                <a href="{% url 'quality_control:spot_analysis_list' %}" class="btn btn-outline-secondary">
-                    <i class="fas fa-arrow-left"></i> Voltar
-                </a>
-            </div>
-            
-            <div class="form-container">
-                <!-- Informações Atuais -->
-                <div class="current-info">
-                    <h5 class="mb-3">
-                        <i class="fas fa-info-circle"></i>
-                        Informações Atuais
-                    </h5>
-                    <div class="info-item">
-                        <span class="info-label">Data:</span>
-                        <span class="info-value" id="current-date">{{ today|date:"d/m/Y" }}</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">Turno:</span>
-                        <span class="info-value" id="current-shift">{{ current_shift.name }} ({{ current_shift.start_time }} - {{ current_shift.end_time }})</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">Operador:</span>
-                        <span class="info-value">{{ user.get_full_name|default:user.username }}</span>
-                    </div>
+            <div class="analysis-form">
+                <div class="form-header">
+                    <h3 class="mb-2">
+                        <i class="bi bi-clipboard-data"></i> Nova Análise Pontual
+                    </h3>
+                    <p class="mb-0">Registre uma nova análise de qualidade</p>
                 </div>
                 
-                <form method="post" id="analysis-form">
+                <!-- Turno Atual -->
+                {% if current_shift %}
+                <div class="current-shift">
+                    <div class="shift-info">
+                        <i class="bi bi-clock"></i> Turno Atual: {{ current_shift.name }}
+                    </div>
+                    <div class="shift-time">
+                        {{ current_shift.start_time|time:"H:i" }} - {{ current_shift.end_time|time:"H:i" }}
+                    </div>
+                </div>
+                {% endif %}
+                
+                <form method="post" id="analysisForm">
                     {% csrf_token %}
                     
-                    <!-- Seção 1: Identificação -->
-                    <div class="form-section">
-                        <h5 class="section-title">
-                            <i class="fas fa-id-card"></i>
-                            Identificação da Análise
-                        </h5>
-                        
-                        <div class="row">
-                            <div class="col-md-6">
-                                <label for="product" class="form-label">Produto *</label>
-                                <select name="product" id="product" class="form-select" required>
-                                    <option value="">Selecione o produto</option>
-                                    {% for product in products %}
-                                    <option value="{{ product.id }}">{{ product.name }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="line" class="form-label">Linha de Produção *</label>
-                                <select name="line" id="line" class="form-select" required>
-                                    <option value="">Selecione a linha</option>
-                                    {% for line in lines %}
-                                    <option value="{{ line.id }}">{{ line.name }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
+                    <!-- Informações Básicas -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="product" class="form-label required-field">Produto</label>
+                            <select class="form-select" id="product" name="product" required>
+                                <option value="">Selecione um produto</option>
+                                {% for product in products %}
+                                <option value="{{ product.id }}">{{ product.code }} - {{ product.name }}</option>
+                                {% endfor %}
+                            </select>
+                            <div class="help-text">Selecione o produto a ser analisado</div>
                         </div>
                         
-                        <div class="row mt-3">
-                            <div class="col-md-4">
-                                <label for="shift" class="form-label">Turno *</label>
-                                <select name="shift" id="shift" class="form-select" required>
-                                    {% for shift in shifts %}
-                                    <option value="{{ shift.id }}" {% if shift.id == current_shift.id %}selected{% endif %}>
-                                        {{ shift.name }} ({{ shift.start_time }} - {{ shift.end_time }})
-                                    </option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <div class="col-md-4">
-                                <label for="analysis_datetime" class="form-label">Data e Hora *</label>
-                                <input type="datetime-local" name="analysis_datetime" id="analysis_datetime" 
-                                       class="form-control" value="{{ today|date:'Y-m-d' }}T{{ 'now'|date:'H:i' }}" required>
-                            </div>
-                            <div class="col-md-4">
-                                <label for="sample_id" class="form-label">ID da Amostra *</label>
-                                <input type="text" name="sample_id" id="sample_id" class="form-control" 
-                                       placeholder="Ex: VER-001-A" required>
-                            </div>
+                        <div class="form-group">
+                            <label for="production_line" class="form-label required-field">Linha de Produção</label>
+                            <select class="form-select" id="production_line" name="production_line" required>
+                                <option value="">Selecione uma linha</option>
+                                {% for line in lines %}
+                                <option value="{{ line.id }}">{{ line.name }} ({{ line.code }})</option>
+                                {% endfor %}
+                            </select>
+                            <div class="help-text">Linha onde a análise foi realizada</div>
                         </div>
                     </div>
                     
-                    <!-- Seção 2: Propriedades -->
-                    <div class="form-section">
-                        <h5 class="section-title">
-                            <i class="fas fa-flask"></i>
-                            Propriedades Analisadas
-                        </h5>
-                        
-                        <div class="loading" id="properties-loading">
-                            <i class="fas fa-spinner fa-spin"></i>
-                            Carregando propriedades...
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="shift" class="form-label required-field">Turno</label>
+                            <select class="form-select" id="shift" name="shift" required>
+                                <option value="">Selecione um turno</option>
+                                {% for shift in shifts %}
+                                <option value="{{ shift.id }}" {% if current_shift and shift.id == current_shift.id %}selected{% endif %}>
+                                    {{ shift.name }} ({{ shift.start_time|time:"H:i" }} - {{ shift.end_time|time:"H:i" }})
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <div class="help-text">Turno de trabalho</div>
                         </div>
                         
-                        <div class="properties-container" id="properties-container">
-                            <p class="text-muted">Selecione um produto para ver as propriedades disponíveis.</p>
+                        <div class="form-group">
+                            <label for="analysis_datetime" class="form-label required-field">Data e Hora da Análise</label>
+                            <input type="datetime-local" class="form-control" id="analysis_datetime" name="analysis_datetime" required>
+                            <div class="help-text">Data e hora em que a análise foi realizada</div>
                         </div>
                     </div>
                     
-                    <!-- Seção 3: Observações -->
-                    <div class="form-section">
-                        <h5 class="section-title">
-                            <i class="fas fa-comment"></i>
-                            Observações
-                        </h5>
-                        
-                        <div class="row">
-                            <div class="col-12">
-                                <label for="observations" class="form-label">Observações Gerais</label>
-                                <textarea name="observations" id="observations" class="form-control" rows="4" 
-                                          placeholder="Descreva qualquer observação relevante sobre a análise..."></textarea>
-                            </div>
+                    <!-- Propriedade e Valor -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="property" class="form-label required-field">Propriedade</label>
+                            <select class="form-select" id="property" name="property" required>
+                                <option value="">Selecione uma propriedade</option>
+                                {% for property in properties %}
+                                <option value="{{ property.id }}">{{ property.identifier }} - {{ property.name }} ({{ property.unit }})</option>
+                                {% endfor %}
+                            </select>
+                            <div class="help-text">Propriedade a ser analisada</div>
                         </div>
+                        
+                        <div class="form-group">
+                            <label for="sequence" class="form-label required-field">Sequência</label>
+                            <select class="form-select" id="sequence" name="sequence" required>
+                                <option value="">Selecione a sequência</option>
+                                <option value="1">1ª Análise</option>
+                                <option value="2">2ª Análise</option>
+                                <option value="3">3ª Análise</option>
+                            </select>
+                            <div class="help-text">Sequência da análise no turno</div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="value" class="form-label required-field">Valor</label>
+                            <input type="number" class="form-control" id="value" name="value" step="0.0001" required>
+                            <div class="help-text">Valor obtido na análise</div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="unit" class="form-label required-field">Unidade</label>
+                            <input type="text" class="form-control" id="unit" name="unit" required>
+                            <div class="help-text">Unidade de medida</div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="test_method" class="form-label">Método de Ensaio</label>
+                            <input type="text" class="form-control" id="test_method" name="test_method">
+                            <div class="help-text">Método utilizado para a análise (opcional)</div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="observations" class="form-label">Observações</label>
+                        <textarea class="form-control" id="observations" name="observations" rows="3" placeholder="Observações sobre a análise..."></textarea>
+                        <div class="help-text">Observações adicionais (opcional)</div>
                     </div>
                     
                     <!-- Botões -->
-                    <div class="text-center">
-                        <button type="submit" class="btn btn-primary btn-lg me-3">
-                            <i class="fas fa-save"></i>
-                            Salvar Análise
-                        </button>
-                        <a href="{% url 'quality_control:spot_analysis_list' %}" class="btn btn-secondary btn-lg">
-                            <i class="fas fa-times"></i>
-                            Cancelar
+                    <div class="d-flex gap-3 justify-content-end">
+                        <a href="{% url 'quality_control:spot_analysis_list' %}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> Cancelar
                         </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle"></i> Salvar Análise
+                        </button>
                     </div>
                 </form>
+                
+                <!-- Loading -->
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p>Salvando análise...</p>
+                </div>
             </div>
         </div>
     </div>
@@ -272,99 +320,37 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const productSelect = document.getElementById('product');
-    const propertiesContainer = document.getElementById('properties-container');
-    const propertiesLoading = document.getElementById('properties-loading');
+    // Auto-preencher data/hora atual
+    const now = new Date();
+    const datetimeInput = document.getElementById('analysis_datetime');
+    datetimeInput.value = now.toISOString().slice(0, 16);
     
-    // Carregar propriedades quando produto for selecionado
-    productSelect.addEventListener('change', function() {
-        const productId = this.value;
-        
-        if (!productId) {
-            propertiesContainer.style.display = 'none';
-            propertiesContainer.innerHTML = '<p class="text-muted">Selecione um produto para ver as propriedades disponíveis.</p>';
-            return;
+    // Auto-preencher unidade baseada na propriedade selecionada
+    const propertySelect = document.getElementById('property');
+    const unitInput = document.getElementById('unit');
+    
+    propertySelect.addEventListener('change', function() {
+        const selectedOption = this.options[this.selectedIndex];
+        if (selectedOption.value) {
+            // Extrair unidade do texto da opção (formato: "ID - Nome (unidade)")
+            const text = selectedOption.text;
+            const unitMatch = text.match(/\(([^)]+)\)$/);
+            if (unitMatch) {
+                unitInput.value = unitMatch[1];
+            }
         }
-        
-        // Mostrar loading
-        propertiesLoading.style.display = 'block';
-        propertiesContainer.style.display = 'none';
-        
-        // Fazer requisição para obter propriedades
-        fetch(`/qc/api/product-properties/?product_id=${productId}`)
-            .then(response => response.json())
-            .then(data => {
-                propertiesLoading.style.display = 'none';
-                
-                if (data.success && data.properties.length > 0) {
-                    let html = '';
-                    
-                    data.properties.forEach(property => {
-                        html += `
-                            <div class="property-input">
-                                <div class="row align-items-center">
-                                    <div class="col-md-4">
-                                        <label class="form-label fw-bold">${property.name}</label>
-                                        <small class="text-muted d-block">${property.unit || ''}</small>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <input type="number" 
-                                               name="property_${property.id}_value" 
-                                               class="form-control" 
-                                               placeholder="Valor"
-                                               step="0.0001">
-                                    </div>
-                                    <div class="col-md-3">
-                                        <input type="text" 
-                                               name="property_${property.id}_unit" 
-                                               class="form-control" 
-                                               value="${property.unit || ''}"
-                                               placeholder="Unidade">
-                                    </div>
-                                    <div class="col-md-2">
-                                        <small class="text-muted">
-                                            ${property.min_value !== null ? `Min: ${property.min_value}` : ''}
-                                            ${property.max_value !== null ? `Max: ${property.max_value}` : ''}
-                                        </small>
-                                    </div>
-                                </div>
-                            </div>
-                        `;
-                    });
-                    
-                    propertiesContainer.innerHTML = html;
-                } else {
-                    propertiesContainer.innerHTML = '<p class="text-warning">Nenhuma propriedade encontrada para este produto.</p>';
-                }
-                
-                propertiesContainer.style.display = 'block';
-            })
-            .catch(error => {
-                console.error('Erro ao carregar propriedades:', error);
-                propertiesLoading.style.display = 'none';
-                propertiesContainer.innerHTML = '<p class="text-danger">Erro ao carregar propriedades. Tente novamente.</p>';
-                propertiesContainer.style.display = 'block';
-            });
     });
     
-    // Gerar ID da amostra automaticamente
-    function generateSampleId() {
-        const product = productSelect.options[productSelect.selectedIndex];
-        const date = new Date();
-        const dateStr = date.toISOString().slice(0, 10).replace(/-/g, '');
-        const timeStr = date.toTimeString().slice(0, 5).replace(':', '');
-        
-        if (product && product.value) {
-            const productCode = product.text.split(' ')[0] || 'PROD';
-            document.getElementById('sample_id').value = `${productCode}-${dateStr}-${timeStr}`;
-        }
-    }
-    
-    productSelect.addEventListener('change', generateSampleId);
-    
     // Validação do formulário
-    document.getElementById('analysis-form').addEventListener('submit', function(e) {
-        const requiredFields = this.querySelectorAll('[required]');
+    const form = document.getElementById('analysisForm');
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // Mostrar loading
+        document.getElementById('loading').classList.add('show');
+        
+        // Validar campos obrigatórios
+        const requiredFields = form.querySelectorAll('[required]');
         let isValid = true;
         
         requiredFields.forEach(field => {
@@ -377,21 +363,50 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         
         if (!isValid) {
-            e.preventDefault();
+            document.getElementById('loading').classList.remove('show');
             alert('Por favor, preencha todos os campos obrigatórios.');
+            return;
         }
+        
+        // Enviar formulário
+        const formData = new FormData(form);
+        
+        fetch(form.action || window.location.href, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        })
+        .then(response => {
+            if (response.ok) {
+                // Sucesso - redirecionar
+                window.location.href = '{% url "quality_control:spot_analysis_list" %}';
+            } else {
+                throw new Error('Erro ao salvar análise');
+            }
+        })
+        .catch(error => {
+            document.getElementById('loading').classList.remove('show');
+            alert('Erro ao salvar análise: ' + error.message);
+        });
     });
     
+    // Auto-focus no primeiro campo
+    document.getElementById('product').focus();
+    
     // Animação de entrada
-    const formContainer = document.querySelector('.form-container');
-    formContainer.style.opacity = '0';
-    formContainer.style.transform = 'translateY(20px)';
+    const form = document.querySelector('.analysis-form');
+    form.style.opacity = '0';
+    form.style.transform = 'translateY(20px)';
     
     setTimeout(() => {
-        formContainer.style.transition = 'all 0.5s ease';
-        formContainer.style.opacity = '1';
-        formContainer.style.transform = 'translateY(0)';
+        form.style.transition = 'all 0.5s ease';
+        form.style.opacity = '1';
+        form.style.transform = 'translateY(0)';
     }, 100);
+    
+    console.log('📊 Formulário de análise carregado com sucesso!');
 });
 </script>
 {% endblock %}

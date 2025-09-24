@@ -1,5 +1,6 @@
-# Arquivo: quality_control/views.py
-# Substitua COMPLETAMENTE o conteúdo do arquivo quality_control/views.py
+"""
+Views do app quality_control
+"""
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse, HttpResponse
@@ -16,6 +17,7 @@ import json
 from core.models import Plant, ProductionLine, Shift
 from .models import Product, Property, Specification, SpotAnalysis, CompositeSample, ChemicalAnalysis
 
+
 @method_decorator(csrf_exempt, name='dispatch')
 @method_decorator(login_required, name='dispatch')
 class SpotAnalysisListView(ListView):
@@ -26,7 +28,7 @@ class SpotAnalysisListView(ListView):
     
     def get_queryset(self):
         queryset = SpotAnalysis.objects.select_related(
-            'product', 'line', 'shift', 'operator'
+            'product', 'production_line', 'shift', 'operator'
         ).order_by('-analysis_datetime')
         
         # Filtros
@@ -38,7 +40,7 @@ class SpotAnalysisListView(ListView):
         if product_id:
             queryset = queryset.filter(product_id=product_id)
         if line_id:
-            queryset = queryset.filter(line_id=line_id)
+            queryset = queryset.filter(production_line_id=line_id)
         if date_from:
             queryset = queryset.filter(analysis_datetime__date__gte=date_from)
         if date_to:
@@ -53,18 +55,20 @@ class SpotAnalysisListView(ListView):
         context['total_analyses'] = self.get_queryset().count()
         return context
 
+
 @method_decorator(csrf_exempt, name='dispatch')
 @method_decorator(login_required, name='dispatch')
 class SpotAnalysisCreateView(CreateView):
     model = SpotAnalysis
     template_name = 'quality_control/spot_analysis_create.html'
-    fields = ['product', 'line', 'shift', 'analysis_datetime', 'sample_id', 'observations']
+    fields = ['product', 'production_line', 'shift', 'analysis_datetime', 'property', 'sequence', 'value', 'unit', 'test_method', 'observations']
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['products'] = Product.objects.all()
         context['lines'] = ProductionLine.objects.all()
         context['shifts'] = Shift.objects.all()
+        context['properties'] = Property.objects.all()
         
         # Turno atual
         current_hour = timezone.now().hour
@@ -84,6 +88,7 @@ class SpotAnalysisCreateView(CreateView):
     
     def get_success_url(self):
         return '/qc/spot-analysis/'
+
 
 @csrf_exempt
 @login_required
@@ -108,13 +113,13 @@ def dashboard_view(request):
     seven_days_ago = timezone.now() - timedelta(days=7)
     analyses_by_line = SpotAnalysis.objects.filter(
         analysis_datetime__gte=seven_days_ago
-    ).values('line__name').annotate(
+    ).values('production_line__name').annotate(
         count=Count('id')
     ).order_by('-count')
     
     # Análises recentes
     recent_analyses = SpotAnalysis.objects.select_related(
-        'product', 'line', 'shift', 'operator'
+        'product', 'production_line', 'shift', 'operator'
     ).order_by('-analysis_datetime')[:10]
     
     context = {
@@ -129,6 +134,7 @@ def dashboard_view(request):
     }
     
     return render(request, 'quality_control/dashboard.html', context)
+
 
 @csrf_exempt
 @login_required
@@ -157,6 +163,7 @@ def reports_list_view(request):
     
     return render(request, 'quality_control/reports_list.html', context)
 
+
 @csrf_exempt
 def get_product_properties(request):
     """API para obter propriedades de um produto"""
@@ -174,10 +181,10 @@ def get_product_properties(request):
                 'id': spec.property.id,
                 'name': spec.property.name,
                 'unit': spec.property.unit,
-                'type': spec.property.property_type,
-                'min_value': float(spec.min_value) if spec.min_value else None,
-                'max_value': float(spec.max_value) if spec.max_value else None,
-                'target_value': float(spec.target_value) if spec.target_value else None,
+                'type': spec.property.data_type,
+                'min_value': float(spec.lsl) if spec.lsl else None,
+                'max_value': float(spec.usl) if spec.usl else None,
+                'target_value': float(spec.target) if spec.target else None,
             })
         
         return JsonResponse({
@@ -189,6 +196,7 @@ def get_product_properties(request):
         return JsonResponse({'error': 'Product not found'}, status=404)
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
+
 
 @csrf_exempt
 def current_shift_api(request):
@@ -222,6 +230,7 @@ def current_shift_api(request):
                 'description': shift_description,
             }
         })
+
 
 @csrf_exempt
 def dashboard_data_api(request):

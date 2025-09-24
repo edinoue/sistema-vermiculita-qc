@@ -136,14 +136,13 @@
                             </a>
                             <ul class="dropdown-menu">
                                 <li><a class="dropdown-item" href="{% url 'quality_control:spot_analysis_create' %}">Nova Análise Pontual</a></li>
-                                <li><a class="dropdown-item" href="{% url 'quality_control:spot_analysis' %}">Listar Análises</a></li>
+                                <li><a class="dropdown-item" href="{% url 'quality_control:spot_analysis_list' %}">Listar Análises</a></li>
                                 <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="{% url 'quality_control:composite_sample_create' %}">Nova Amostra Composta</a></li>
-                                <li><a class="dropdown-item" href="{% url 'quality_control:composite_sample' %}">Listar Amostras</a></li>
+                                <li><a class="dropdown-item" href="{% url 'quality_control:reports_list' %}">Relatórios</a></li>
                             </ul>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'core:mobile_home' %}">
+                            <a class="nav-link" href="/mobile/">
                                 <i class="bi bi-phone"></i> Mobile
                             </a>
                         </li>

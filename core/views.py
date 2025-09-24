@@ -60,13 +60,12 @@ class LoginView(View):
             return render(request, self.template_name)
 
 
-class LogoutView(View):
+def logout_view(request):
     """
     View de logout
     """
-    def get(self, request):
-        logout(request)
-        return redirect('core:home')
+    logout(request)
+    return redirect('core:home')
 
 
 class DashboardView(LoginRequiredMixin, TemplateView):
@@ -83,8 +82,8 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         context.update({
             'today': today,
             'total_lines': ProductionLine.objects.filter(is_active=True).count(),
-            'today_spot_analyses': SpotAnalysis.objects.filter(date=today).count(),
-            'today_composite_samples': CompositeSample.objects.filter(date=today).count(),
+            'today_spot_analyses': SpotAnalysis.objects.filter(analysis_datetime__date=today).count(),
+            'today_composite_samples': CompositeSample.objects.filter(collection_time__date=today).count(),
         })
         
         return context
@@ -150,15 +149,15 @@ class QRCodeView(TemplateView):
         # Buscar análises pontuais do turno atual
         spot_analyses = SpotAnalysis.objects.filter(
             production_line=production_line,
-            date=today,
+            analysis_datetime__date=today,
             shift=current_shift
-        ).order_by('-sample_time')
+        ).order_by('-analysis_datetime')
         
         # Buscar amostra composta do turno atual
         try:
             composite_sample = CompositeSample.objects.get(
                 production_line=production_line,
-                date=today,
+                collection_time__date=today,
                 shift=current_shift
             )
         except CompositeSample.DoesNotExist:
@@ -173,3 +172,30 @@ class QRCodeView(TemplateView):
         })
         
         return context
+
+
+# Views auxiliares para compatibilidade
+def mobile_home(request):
+    """View mobile para compatibilidade"""
+    return MobileHomeView.as_view()(request)
+
+
+def login_sem_csrf(request):
+    """View de login sem CSRF para compatibilidade"""
+    return LoginView.as_view()(request)
+
+
+def dashboard_simples(request):
+    """Dashboard simples para compatibilidade"""
+    if not request.user.is_authenticated:
+        return redirect('core:login')
+    return redirect('quality_control:dashboard')
+
+
+def sistema_status(request):
+    """Status do sistema"""
+    return JsonResponse({
+        'status': 'operational',
+        'version': '1.0.0',
+        'timestamp': timezone.now().isoformat()
+    })

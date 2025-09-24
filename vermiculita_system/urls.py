@@ -1,5 +1,6 @@
-# Arquivo: vermiculita_system/urls.py
-# Substitua COMPLETAMENTE o conteúdo do arquivo vermiculita_system/urls.py
+"""
+URLs principais do sistema
+"""
 
 from django.contrib import admin
 from django.urls import path, include

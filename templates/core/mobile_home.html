@@ -1,174 +1,362 @@
 {% extends 'base.html' %}
+{% load static %}
 
-{% block title %}Mobile - Controle de Qualidade{% endblock %}
+{% block title %}Mobile - Sistema de Controle de Qualidade{% endblock %}
+
+{% block extra_css %}
+<style>
+    .mobile-container {
+        padding: 1rem;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        min-height: 100vh;
+    }
+    
+    .mobile-header {
+        background: linear-gradient(135deg, #2c5530, #4a7c59);
+        color: white;
+        padding: 1.5rem;
+        border-radius: 15px;
+        margin-bottom: 1.5rem;
+        text-align: center;
+    }
+    
+    .mobile-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        border: none;
+    }
+    
+    .quick-action {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        text-align: center;
+        margin-bottom: 1rem;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        text-decoration: none;
+        color: inherit;
+        display: block;
+        transition: all 0.3s ease;
+    }
+    
+    .quick-action:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 15px rgba(0,0,0,0.15);
+        text-decoration: none;
+        color: inherit;
+    }
+    
+    .action-icon {
+        font-size: 2.5rem;
+        color: #2c5530;
+        margin-bottom: 1rem;
+    }
+    
+    .action-title {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: #2c5530;
+    }
+    
+    .action-description {
+        color: #6c757d;
+        font-size: 0.9rem;
+    }
+    
+    .status-badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+    
+    .status-active {
+        background-color: #d4edda;
+        color: #155724;
+    }
+    
+    .shift-info {
+        background: linear-gradient(135deg, #17a2b8, #138496);
+        color: white;
+        padding: 1rem;
+        border-radius: 10px;
+        margin-bottom: 1rem;
+    }
+    
+    .shift-time {
+        font-size: 1.2rem;
+        font-weight: bold;
+    }
+    
+    .shift-description {
+        font-size: 0.9rem;
+        opacity: 0.9;
+    }
+    
+    .production-lines {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .line-card {
+        background: white;
+        border-radius: 10px;
+        padding: 1rem;
+        text-align: center;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        border-left: 4px solid #2c5530;
+    }
+    
+    .line-name {
+        font-weight: 600;
+        color: #2c5530;
+        margin-bottom: 0.5rem;
+    }
+    
+    .line-code {
+        font-size: 0.8rem;
+        color: #6c757d;
+    }
+    
+    .floating-action {
+        position: fixed;
+        bottom: 2rem;
+        right: 2rem;
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #2c5530, #4a7c59);
+        color: white;
+        border: none;
+        box-shadow: 0 4px 15px rgba(44, 85, 48, 0.3);
+        font-size: 1.5rem;
+        z-index: 1000;
+        transition: all 0.3s ease;
+    }
+    
+    .floating-action:hover {
+        transform: scale(1.1);
+        box-shadow: 0 6px 20px rgba(44, 85, 48, 0.4);
+    }
+    
+    @media (max-width: 576px) {
+        .mobile-container {
+            padding: 0.5rem;
+        }
+        
+        .mobile-header {
+            padding: 1rem;
+        }
+        
+        .mobile-card {
+            padding: 1rem;
+        }
+        
+        .production-lines {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="mobile-optimized">
-    <!-- Header com informações do turno atual -->
-    <div class="card mb-4">
-        <div class="card-header">
-            <h5 class="mb-0">
-                <i class="bi bi-clock"></i> Turno Atual
-            </h5>
-        </div>
-        <div class="card-body text-center">
-            {% if current_shift %}
-                <h3 class="text-primary">{{ current_shift.get_name_display }}</h3>
-                <p class="mb-1">{{ current_shift.start_time|time:"H:i" }} - {{ current_shift.end_time|time:"H:i" }}</p>
-            {% else %}
-                <h3 class="text-muted">Turno não definido</h3>
-            {% endif %}
-            <small class="text-muted">{{ current_time|date:"d/m/Y H:i" }}</small>
-        </div>
+<div class="mobile-container">
+    <!-- Header Mobile -->
+    <div class="mobile-header">
+        <h2 class="mb-2">
+            <i class="bi bi-phone"></i> Interface Mobile
+        </h2>
+        <p class="mb-0">Sistema de Controle de Qualidade</p>
+        <small>Otimizado para dispositivos móveis</small>
     </div>
-
-    <!-- Ações Rápidas -->
-    <div class="row g-3 mb-4">
-        <div class="col-6">
-            <a href="{% url 'quality_control:spot_analysis_create' %}" class="btn btn-primary w-100 h-100 d-flex flex-column justify-content-center align-items-center" style="min-height: 120px;">
-                <i class="bi bi-plus-circle fs-1 mb-2"></i>
-                <span>Nova Análise Pontual</span>
-            </a>
-        </div>
-        <div class="col-6">
-            <a href="{% url 'quality_control:composite_sample_create' %}" class="btn btn-success w-100 h-100 d-flex flex-column justify-content-center align-items-center" style="min-height: 120px;">
-                <i class="bi bi-collection fs-1 mb-2"></i>
-                <span>Amostra Composta</span>
-            </a>
-        </div>
-    </div>
-
-    <!-- Linhas de Produção -->
-    <div class="card mb-4">
-        <div class="card-header">
-            <h5 class="mb-0">
-                <i class="bi bi-diagram-3"></i> Linhas de Produção
-            </h5>
-        </div>
-        <div class="card-body">
-            {% for line in production_lines %}
-                <div class="d-grid gap-2 mb-3">
-                    <a href="{% url 'core:qr_code' line.code %}" class="btn btn-outline-primary btn-lg">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <strong>{{ line.name }}</strong><br>
-                                <small class="text-muted">{{ line.code }}</small>
-                            </div>
-                            <i class="bi bi-qr-code fs-3"></i>
-                        </div>
-                    </a>
+    
+    <!-- Informações do Turno Atual -->
+    {% if current_shift %}
+    <div class="shift-info">
+        <div class="row align-items-center">
+            <div class="col-8">
+                <div class="shift-time">
+                    <i class="bi bi-clock"></i> {{ current_shift.name }}
                 </div>
-            {% empty %}
-                <p class="text-muted text-center">Nenhuma linha de produção ativa encontrada.</p>
+                <div class="shift-description">
+                    {{ current_shift.start_time|time:"H:i" }} - {{ current_shift.end_time|time:"H:i" }}
+                </div>
+            </div>
+            <div class="col-4 text-end">
+                <div class="status-badge status-active">
+                    <i class="bi bi-check-circle"></i> Ativo
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Ações Rápidas -->
+    <div class="mobile-card">
+        <h5 class="mb-3">
+            <i class="bi bi-lightning"></i> Ações Rápidas
+        </h5>
+        
+        <div class="row">
+            <div class="col-6 mb-3">
+                <a href="{% url 'quality_control:spot_analysis_create' %}" class="quick-action">
+                    <div class="action-icon">
+                        <i class="bi bi-plus-circle"></i>
+                    </div>
+                    <div class="action-title">Nova Análise</div>
+                    <div class="action-description">Registrar análise pontual</div>
+                </a>
+            </div>
+            
+            <div class="col-6 mb-3">
+                <a href="{% url 'quality_control:spot_analysis_list' %}" class="quick-action">
+                    <div class="action-icon">
+                        <i class="bi bi-list-ul"></i>
+                    </div>
+                    <div class="action-title">Ver Análises</div>
+                    <div class="action-description">Consultar histórico</div>
+                </a>
+            </div>
+            
+            <div class="col-6 mb-3">
+                <a href="{% url 'quality_control:dashboard' %}" class="quick-action">
+                    <div class="action-icon">
+                        <i class="bi bi-speedometer2"></i>
+                    </div>
+                    <div class="action-title">Dashboard</div>
+                    <div class="action-description">Visão geral</div>
+                </a>
+            </div>
+            
+            <div class="col-6 mb-3">
+                <a href="{% url 'quality_control:reports_list' %}" class="quick-action">
+                    <div class="action-icon">
+                        <i class="bi bi-file-earmark-text"></i>
+                    </div>
+                    <div class="action-title">Relatórios</div>
+                    <div class="action-description">Gerar laudos</div>
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Linhas de Produção -->
+    {% if production_lines %}
+    <div class="mobile-card">
+        <h5 class="mb-3">
+            <i class="bi bi-gear"></i> Linhas de Produção
+        </h5>
+        
+        <div class="production-lines">
+            {% for line in production_lines %}
+            <div class="line-card">
+                <div class="line-name">{{ line.name }}</div>
+                <div class="line-code">{{ line.code }}</div>
+                {% if line.qr_code_url %}
+                <a href="{{ line.qr_code_url }}" class="btn btn-sm btn-outline-primary mt-2">
+                    <i class="bi bi-qr-code"></i> QR Code
+                </a>
+                {% endif %}
+            </div>
             {% endfor %}
         </div>
     </div>
-
-    <!-- Acesso Rápido -->
-    <div class="card">
-        <div class="card-header">
-            <h5 class="mb-0">
-                <i class="bi bi-lightning"></i> Acesso Rápido
-            </h5>
-        </div>
-        <div class="card-body">
-            <div class="row g-2">
-                <div class="col-6">
-                    <a href="{% url 'quality_control:spot_analysis' %}" class="btn btn-outline-secondary w-100">
-                        <i class="bi bi-list-ul"></i><br>
-                        <small>Ver Análises</small>
-                    </a>
-                </div>
-                <div class="col-6">
-                    <a href="{% url 'quality_control:composite_sample' %}" class="btn btn-outline-secondary w-100">
-                        <i class="bi bi-archive"></i><br>
-                        <small>Ver Amostras</small>
-                    </a>
-                </div>
-                <div class="col-6">
-                    <a href="{% url 'core:dashboard' %}" class="btn btn-outline-info w-100">
-                        <i class="bi bi-graph-up"></i><br>
-                        <small>Dashboard</small>
-                    </a>
-                </div>
-                <div class="col-6">
-                    <a href="/admin/" class="btn btn-outline-warning w-100">
-                        <i class="bi bi-gear"></i><br>
-                        <small>Admin</small>
-                    </a>
+    {% endif %}
+    
+    <!-- Informações do Sistema -->
+    <div class="mobile-card">
+        <h5 class="mb-3">
+            <i class="bi bi-info-circle"></i> Informações do Sistema
+        </h5>
+        
+        <div class="row text-center">
+            <div class="col-4">
+                <div class="text-muted small">Usuário</div>
+                <div class="fw-bold">{{ user.username }}</div>
+            </div>
+            <div class="col-4">
+                <div class="text-muted small">Data/Hora</div>
+                <div class="fw-bold">{{ current_time|date:"d/m H:i" }}</div>
+            </div>
+            <div class="col-4">
+                <div class="text-muted small">Status</div>
+                <div class="fw-bold text-success">
+                    <i class="bi bi-check-circle"></i> Online
                 </div>
             </div>
         </div>
     </div>
+    
+    <!-- Botão de Ação Flutuante -->
+    <button class="floating-action" onclick="window.location.href='{% url 'quality_control:spot_analysis_create' %}'" title="Nova Análise">
+        <i class="bi bi-plus"></i>
+    </button>
 </div>
-
-<!-- Instruções de Uso -->
-<div class="modal fade" id="instructionsModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Como Usar</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <h6>Análises Pontuais:</h6>
-                <ul>
-                    <li>Registre até 3 medições por turno</li>
-                    <li>Selecione linha, produto e propriedade</li>
-                    <li>Informe o valor e unidade</li>
-                    <li>Descreva ações tomadas se necessário</li>
-                </ul>
-                
-                <h6>Amostras Compostas:</h6>
-                <ul>
-                    <li>Colete ao final do turno</li>
-                    <li>Registre quantidade produzida</li>
-                    <li>Adicione observações importantes</li>
-                </ul>
-                
-                <h6>QR Codes:</h6>
-                <ul>
-                    <li>Cada linha tem um QR Code fixo</li>
-                    <li>Mostra dados do turno atual</li>
-                    <li>Atualiza automaticamente</li>
-                </ul>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Botão de Ajuda Flutuante -->
-<button type="button" class="btn btn-info position-fixed bottom-0 end-0 m-3 rounded-circle" data-bs-toggle="modal" data-bs-target="#instructionsModal" style="width: 60px; height: 60px; z-index: 1000;">
-    <i class="bi bi-question-lg fs-4"></i>
-</button>
 {% endblock %}
 
 {% block extra_js %}
 <script>
+document.addEventListener('DOMContentLoaded', function() {
     // Atualizar horário a cada minuto
-    setInterval(function() {
-        location.reload();
-    }, 60000);
+    function updateTime() {
+        const now = new Date();
+        const timeElements = document.querySelectorAll('.fw-bold');
+        timeElements.forEach(element => {
+            if (element.textContent.includes(':')) {
+                element.textContent = now.toLocaleTimeString('pt-BR', {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            }
+        });
+    }
+    
+    setInterval(updateTime, 60000); // Atualizar a cada minuto
+    
+    // Animação de entrada dos cards
+    const cards = document.querySelectorAll('.mobile-card, .quick-action, .line-card');
+    cards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        
+        setTimeout(() => {
+            card.style.transition = 'all 0.5s ease';
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, index * 100);
+    });
     
     // Detectar orientação do dispositivo
     function handleOrientationChange() {
-        if (window.orientation !== undefined) {
-            // Ajustar layout baseado na orientação
-            const cards = document.querySelectorAll('.card');
-            if (Math.abs(window.orientation) === 90) {
-                // Paisagem
-                cards.forEach(card => card.style.marginBottom = '0.5rem');
-            } else {
-                // Retrato
-                cards.forEach(card => card.style.marginBottom = '1rem');
-            }
+        if (window.orientation === 0 || window.orientation === 180) {
+            // Portrait
+            document.body.classList.add('portrait');
+        } else {
+            // Landscape
+            document.body.classList.remove('portrait');
         }
     }
     
     window.addEventListener('orientationchange', handleOrientationChange);
-    document.addEventListener('DOMContentLoaded', handleOrientationChange);
+    handleOrientationChange();
+    
+    // Vibrar ao tocar em ações (se suportado)
+    const actionButtons = document.querySelectorAll('.quick-action, .floating-action');
+    actionButtons.forEach(button => {
+        button.addEventListener('touchstart', function() {
+            if (navigator.vibrate) {
+                navigator.vibrate(50);
+            }
+        });
+    });
+    
+    console.log('📱 Interface mobile carregada com sucesso!');
+});
 </script>
 {% endblock %}
