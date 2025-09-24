@@ -1,9 +1,9 @@
 # Generated manually
 
-from django.db import migrations, models
+from django.db import migrations
 
 
-def set_default_analysis_type(apps, schema_editor):
+def update_existing_records(apps, schema_editor):
     SpotAnalysis = apps.get_model('quality_control', 'SpotAnalysis')
     AnalysisType = apps.get_model('quality_control', 'AnalysisType')
     
@@ -31,7 +31,7 @@ def set_default_analysis_type(apps, schema_editor):
         )
 
 
-def reverse_set_default_analysis_type(apps, schema_editor):
+def reverse_update_existing_records(apps, schema_editor):
     # Não há necessidade de reverter esta operação
     pass
 
@@ -39,14 +39,9 @@ def reverse_set_default_analysis_type(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('quality_control', '0003_populate_analysis_types'),
+        ('quality_control', '0003_populate_default_data'),
     ]
 
     operations = [
-        migrations.RunPython(set_default_analysis_type, reverse_set_default_analysis_type),
-        migrations.AlterField(
-            model_name='spotanalysis',
-            name='analysis_type',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='quality_control.analysistype', verbose_name='Tipo de Análise'),
-        ),
+        migrations.RunPython(update_existing_records, reverse_update_existing_records),
     ]
