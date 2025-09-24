@@ -3,7 +3,7 @@
 from django.db import migrations
 
 
-def update_existing_records(apps, schema_editor):
+def update_existing_analyses(apps, schema_editor):
     SpotAnalysis = apps.get_model('quality_control', 'SpotAnalysis')
     AnalysisType = apps.get_model('quality_control', 'AnalysisType')
     
@@ -31,7 +31,7 @@ def update_existing_records(apps, schema_editor):
         )
 
 
-def reverse_update_existing_records(apps, schema_editor):
+def reverse_update_existing_analyses(apps, schema_editor):
     # Não há necessidade de reverter esta operação
     pass
 
@@ -39,9 +39,9 @@ def reverse_update_existing_records(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('quality_control', '0003_populate_default_data'),
+        ('quality_control', '0003_populate_analysis_types'),
     ]
 
     operations = [
-        migrations.RunPython(update_existing_records, reverse_update_existing_records),
+        migrations.RunPython(update_existing_analyses, reverse_update_existing_analyses),
     ]

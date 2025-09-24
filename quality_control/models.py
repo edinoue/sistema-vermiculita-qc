@@ -12,7 +12,7 @@ import uuid
 from core.models import AuditModel, Plant, ProductionLine, Shift
 
 
-class AnalysisType(AuditModel):
+class AnalysisType(models.Model):
     """
     Tipos de análise (Pontual, Composta, etc.)
     """
@@ -21,6 +21,8 @@ class AnalysisType(AuditModel):
     description = models.TextField('Descrição', blank=True)
     frequency_per_shift = models.PositiveIntegerField('Frequência por Turno', default=1)
     is_active = models.BooleanField('Ativo', default=True)
+    created_at = models.DateTimeField('Criado em', auto_now_add=True)
+    updated_at = models.DateTimeField('Atualizado em', auto_now=True)
     
     class Meta:
         verbose_name = 'Tipo de Análise'
@@ -83,7 +85,7 @@ class Property(AuditModel):
         return f"{self.identifier} - {self.name}"
 
 
-class AnalysisTypeProperty(AuditModel):
+class AnalysisTypeProperty(models.Model):
     """
     Configuração de quais propriedades aparecem em cada tipo de análise
     """
@@ -92,6 +94,8 @@ class AnalysisTypeProperty(AuditModel):
     is_required = models.BooleanField('Obrigatório', default=False)
     display_order = models.PositiveIntegerField('Ordem de Exibição', default=0)
     is_active = models.BooleanField('Ativo', default=True)
+    created_at = models.DateTimeField('Criado em', auto_now_add=True)
+    updated_at = models.DateTimeField('Atualizado em', auto_now=True)
     
     class Meta:
         verbose_name = 'Propriedade do Tipo de Análise'

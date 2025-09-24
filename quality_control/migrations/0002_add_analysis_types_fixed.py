@@ -15,13 +15,13 @@ class Migration(migrations.Migration):
             name='AnalysisType',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created_at', models.DateTimeField(auto_now_add=True, verbose_name='Criado em')),
-                ('updated_at', models.DateTimeField(auto_now=True, verbose_name='Atualizado em')),
                 ('name', models.CharField(max_length=100, unique=True, verbose_name='Nome')),
                 ('code', models.CharField(max_length=20, unique=True, verbose_name='Código')),
                 ('description', models.TextField(blank=True, verbose_name='Descrição')),
                 ('frequency_per_shift', models.PositiveIntegerField(default=1, verbose_name='Frequência por Turno')),
                 ('is_active', models.BooleanField(default=True, verbose_name='Ativo')),
+                ('created_at', models.DateTimeField(auto_now_add=True, verbose_name='Criado em')),
+                ('updated_at', models.DateTimeField(auto_now=True, verbose_name='Atualizado em')),
             ],
             options={
                 'verbose_name': 'Tipo de Análise',
@@ -33,13 +33,13 @@ class Migration(migrations.Migration):
             name='AnalysisTypeProperty',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created_at', models.DateTimeField(auto_now_add=True, verbose_name='Criado em')),
-                ('updated_at', models.DateTimeField(auto_now=True, verbose_name='Atualizado em')),
                 ('analysis_type', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='quality_control.analysistype', verbose_name='Tipo de Análise')),
                 ('property', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='quality_control.property', verbose_name='Propriedade')),
                 ('is_required', models.BooleanField(default=False, verbose_name='Obrigatório')),
                 ('display_order', models.PositiveIntegerField(default=0, verbose_name='Ordem de Exibição')),
                 ('is_active', models.BooleanField(default=True, verbose_name='Ativo')),
+                ('created_at', models.DateTimeField(auto_now_add=True, verbose_name='Criado em')),
+                ('updated_at', models.DateTimeField(auto_now=True, verbose_name='Atualizado em')),
             ],
             options={
                 'verbose_name': 'Propriedade do Tipo de Análise',

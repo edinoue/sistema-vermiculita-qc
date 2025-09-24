@@ -7,7 +7,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('quality_control', '0004_update_existing_records'),
+        ('quality_control', '0004_update_existing_analyses'),
     ]
 
     operations = [

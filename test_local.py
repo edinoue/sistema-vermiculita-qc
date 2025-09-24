@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Script para deploy seguro
+Script para testar localmente
 """
 
 import os
@@ -13,27 +13,32 @@ django.setup()
 
 from django.core.management import execute_from_command_line
 
-def safe_migrate():
-    """Aplicar migrações de forma segura"""
-    print("=== Aplicando migrações ===")
+def test_local():
+    """Testar localmente"""
+    print("=== Testando sistema localmente ===")
     
     try:
         # Aplicar migrações
+        print("Aplicando migrações...")
         execute_from_command_line(['manage.py', 'migrate'])
         print("Migrações aplicadas com sucesso!")
         
         # Configurar dados iniciais
+        print("Configurando dados iniciais...")
         from setup_initial_data import setup_initial_data
         setup_initial_data()
         
-        print("\n=== Deploy concluído com sucesso! ===")
+        # Verificar sistema
+        print("Verificando sistema...")
+        from verify_system import verify_system
+        verify_system()
+        
+        print("\n=== Teste local concluído com sucesso! ===")
         
     except Exception as e:
-        print(f"Erro durante o deploy: {e}")
+        print(f"Erro durante o teste: {e}")
         import traceback
         traceback.print_exc()
-        # Não sair com erro para permitir que o sistema continue funcionando
-        print("Continuando mesmo com erro...")
 
 if __name__ == '__main__':
-    safe_migrate()
+    test_local()

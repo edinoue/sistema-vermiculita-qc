@@ -3,7 +3,7 @@
 from django.db import migrations
 
 
-def populate_default_data(apps, schema_editor):
+def populate_analysis_types(apps, schema_editor):
     AnalysisType = apps.get_model('quality_control', 'AnalysisType')
     
     # Criar tipos de análise padrão
@@ -28,7 +28,7 @@ def populate_default_data(apps, schema_editor):
     )
 
 
-def reverse_populate_default_data(apps, schema_editor):
+def reverse_populate_analysis_types(apps, schema_editor):
     AnalysisType = apps.get_model('quality_control', 'AnalysisType')
     AnalysisType.objects.filter(code__in=['PONTUAL', 'COMPOSTA']).delete()
 
@@ -36,9 +36,9 @@ def reverse_populate_default_data(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('quality_control', '0002_add_analysis_types_simple'),
+        ('quality_control', '0002_add_analysis_types_fixed'),
     ]
 
     operations = [
-        migrations.RunPython(populate_default_data, reverse_populate_default_data),
+        migrations.RunPython(populate_analysis_types, reverse_populate_analysis_types),
     ]
