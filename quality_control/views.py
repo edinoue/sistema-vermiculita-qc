@@ -29,7 +29,7 @@ class SpotAnalysisListView(ListView):
     def get_queryset(self):
         queryset = SpotAnalysis.objects.select_related(
             'product', 'production_line', 'shift', 'operator'
-        ).order_by('-analysis_datetime')
+        ).order_by('-sample_time')
         
         # Filtros
         product_id = self.request.GET.get('product')
@@ -42,9 +42,9 @@ class SpotAnalysisListView(ListView):
         if line_id:
             queryset = queryset.filter(production_line_id=line_id)
         if date_from:
-            queryset = queryset.filter(analysis_datetime__date__gte=date_from)
+            queryset = queryset.filter(sample_time__date__gte=date_from)
         if date_to:
-            queryset = queryset.filter(analysis_datetime__date__lte=date_to)
+            queryset = queryset.filter(sample_time__date__lte=date_to)
             
         return queryset
     
@@ -61,7 +61,7 @@ class SpotAnalysisListView(ListView):
 class SpotAnalysisCreateView(CreateView):
     model = SpotAnalysis
     template_name = 'quality_control/spot_analysis_create.html'
-    fields = ['product', 'production_line', 'shift', 'analysis_datetime', 'property', 'sequence', 'value', 'unit', 'test_method', 'observations']
+    fields = ['product', 'production_line', 'shift', 'property', 'sequence', 'value', 'unit', 'test_method', 'observations']
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -98,13 +98,13 @@ def dashboard_view(request):
     # Estatísticas gerais
     total_analyses = SpotAnalysis.objects.count()
     today_analyses = SpotAnalysis.objects.filter(
-        analysis_datetime__date=timezone.now().date()
+        sample_time__date=timezone.now().date()
     ).count()
     
     # Análises por produto (últimos 30 dias)
     thirty_days_ago = timezone.now() - timedelta(days=30)
     analyses_by_product = SpotAnalysis.objects.filter(
-        analysis_datetime__gte=thirty_days_ago
+        sample_time__gte=thirty_days_ago
     ).values('product__name').annotate(
         count=Count('id')
     ).order_by('-count')[:5]
@@ -112,7 +112,7 @@ def dashboard_view(request):
     # Análises por linha (últimos 7 dias)
     seven_days_ago = timezone.now() - timedelta(days=7)
     analyses_by_line = SpotAnalysis.objects.filter(
-        analysis_datetime__gte=seven_days_ago
+        sample_time__gte=seven_days_ago
     ).values('production_line__name').annotate(
         count=Count('id')
     ).order_by('-count')
@@ -120,7 +120,7 @@ def dashboard_view(request):
     # Análises recentes
     recent_analyses = SpotAnalysis.objects.select_related(
         'product', 'production_line', 'shift', 'operator'
-    ).order_by('-analysis_datetime')[:10]
+    ).order_by('-sample_time')[:10]
     
     context = {
         'total_analyses': total_analyses,
@@ -143,7 +143,7 @@ def reports_list_view(request):
     
     # Análises por período
     analyses_by_month = SpotAnalysis.objects.extra(
-        select={'month': "DATE_FORMAT(analysis_datetime, '%%Y-%%m')"}
+        select={'month': "DATE_FORMAT(sample_time, '%%Y-%%m')"}
     ).values('month').annotate(
         count=Count('id')
     ).order_by('-month')[:12]
@@ -243,7 +243,7 @@ def dashboard_data_api(request):
     daily_analyses = []
     for i in range(30):
         date = (timezone.now() - timedelta(days=i)).date()
-        count = SpotAnalysis.objects.filter(analysis_datetime__date=date).count()
+        count = SpotAnalysis.objects.filter(sample_time__date=date).count()
         daily_analyses.append({
             'date': date.strftime('%Y-%m-%d'),
             'count': count
@@ -251,7 +251,7 @@ def dashboard_data_api(request):
     
     # Análises por produto
     product_analyses = SpotAnalysis.objects.filter(
-        analysis_datetime__gte=thirty_days_ago
+        sample_time__gte=thirty_days_ago
     ).values('product__name').annotate(
         count=Count('id')
     ).order_by('-count')[:10]
@@ -262,6 +262,6 @@ def dashboard_data_api(request):
         'product_analyses': list(product_analyses),
         'total_analyses': SpotAnalysis.objects.count(),
         'today_analyses': SpotAnalysis.objects.filter(
-            analysis_datetime__date=timezone.now().date()
+            sample_time__date=timezone.now().date()
         ).count(),
     })

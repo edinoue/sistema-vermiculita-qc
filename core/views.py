@@ -82,7 +82,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         context.update({
             'today': today,
             'total_lines': ProductionLine.objects.filter(is_active=True).count(),
-            'today_spot_analyses': SpotAnalysis.objects.filter(analysis_datetime__date=today).count(),
+            'today_spot_analyses': SpotAnalysis.objects.filter(sample_time__date=today).count(),
             'today_composite_samples': CompositeSample.objects.filter(collection_time__date=today).count(),
         })
         
@@ -149,9 +149,9 @@ class QRCodeView(TemplateView):
         # Buscar análises pontuais do turno atual
         spot_analyses = SpotAnalysis.objects.filter(
             production_line=production_line,
-            analysis_datetime__date=today,
+            sample_time__date=today,
             shift=current_shift
-        ).order_by('-analysis_datetime')
+        ).order_by('-sample_time')
         
         # Buscar amostra composta do turno atual
         try:

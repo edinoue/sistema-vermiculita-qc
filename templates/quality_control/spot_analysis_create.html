@@ -236,8 +236,8 @@
                         </div>
                         
                         <div class="form-group">
-                            <label for="analysis_datetime" class="form-label required-field">Data e Hora da Análise</label>
-                            <input type="datetime-local" class="form-control" id="analysis_datetime" name="analysis_datetime" required>
+                            <label for="sample_time" class="form-label required-field">Data e Hora da Análise</label>
+                            <input type="datetime-local" class="form-control" id="sample_time" name="sample_time" required>
                             <div class="help-text">Data e hora em que a análise foi realizada</div>
                         </div>
                     </div>
@@ -322,7 +322,7 @@
 document.addEventListener('DOMContentLoaded', function() {
     // Auto-preencher data/hora atual
     const now = new Date();
-    const datetimeInput = document.getElementById('analysis_datetime');
+    const datetimeInput = document.getElementById('sample_time');
     datetimeInput.value = now.toISOString().slice(0, 16);
     
     // Auto-preencher unidade baseada na propriedade selecionada

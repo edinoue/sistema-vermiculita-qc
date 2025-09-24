@@ -338,8 +338,8 @@
                     {% for analysis in analyses %}
                     <tr>
                         <td>
-                            <div class="fw-bold">{{ analysis.analysis_datetime|date:"d/m/Y" }}</div>
-                            <small class="text-muted">{{ analysis.analysis_datetime|time:"H:i" }}</small>
+                            <div class="fw-bold">{{ analysis.sample_time|date:"d/m/Y" }}</div>
+                            <small class="text-muted">{{ analysis.sample_time|time:"H:i" }}</small>
                         </td>
                         <td>
                             <div class="fw-bold">{{ analysis.product.name }}</div>
