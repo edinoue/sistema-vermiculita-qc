@@ -1,3 +1,5 @@
+# Arquivo: vermiculita_system/settings.py
+
 import os
 import dj_database_url
 from pathlib import Path
@@ -149,3 +151,9 @@ LOGGING = {
         },
     },
 }
+
+# Login URLs
+LOGIN_URL = '/login-simples/'
+LOGIN_REDIRECT_URL = '/dashboard-simples/'
+LOGOUT_REDIRECT_URL = '/'
+
