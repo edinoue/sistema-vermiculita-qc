@@ -39,11 +39,11 @@ def spot_analysis_create_improved(request):
             
             # Processar propriedades
             # Obter propriedades para análise pontual
-    analysis_type = AnalysisType.objects.get(code='PONTUAL')
-    properties = Property.objects.filter(
-        is_active=True,
-        analysistypeproperty__analysis_type=analysis_type
-    ).order_by('display_order')
+            analysis_type = AnalysisType.objects.get(code='PONTUAL')
+            properties = Property.objects.filter(
+                is_active=True,
+                analysistypeproperty__analysis_type=analysis_type
+            ).order_by('display_order')
             created_analyses = []
             
             for property in properties:

@@ -12,6 +12,7 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'vermiculita_system.settings')
 django.setup()
 
 from quality_control.models import AnalysisType, Property, AnalysisTypeProperty
+from core.models import Plant, ProductionLine, Shift
 
 def setup_initial_data():
     """Configurar dados iniciais"""
