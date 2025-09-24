@@ -287,6 +287,24 @@
                 Parâmetros
             </div>
         </div>
+        
+        <div class="stat-card" style="border-left-color: #dc3545;">
+            <div class="stat-number" id="total-rejections">-</div>
+            <div class="stat-label">Reprovações</div>
+            <div class="stat-change negative">
+                <i class="fas fa-times-circle"></i>
+                <span id="today-rejections">-</span> hoje
+            </div>
+        </div>
+        
+        <div class="stat-card" style="border-left-color: #ffc107;">
+            <div class="stat-number" id="total-alerts">-</div>
+            <div class="stat-label">Alertas</div>
+            <div class="stat-change" style="color: #856404;">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span id="today-alerts">-</span> hoje
+            </div>
+        </div>
     </div>
     
     <!-- Ações Rápidas -->
@@ -325,49 +343,64 @@
     </div>
     
     <div class="row">
-        <!-- Gráfico de Análises por Produto -->
+        <!-- Gráfico de Reprovações Total -->
         <div class="col-lg-6">
             <div class="chart-container">
                 <div class="chart-title">
                     <i class="fas fa-chart-pie"></i>
-                    Análises por Produto (Últimos 30 dias)
+                    Total de Reprovações por Status
                 </div>
                 <div style="height: 250px; display: flex; align-items: center; justify-content: center;">
-                    <canvas id="productChart" height="250" style="max-height: 250px; max-width: 100%;"></canvas>
+                    <canvas id="rejectionStatusChart" height="250" style="max-height: 250px; max-width: 100%;"></canvas>
                 </div>
             </div>
         </div>
         
-        <!-- Gráfico de Análises por Linha -->
+        <!-- Gráfico de Reprovações por Linha -->
         <div class="col-lg-6">
             <div class="chart-container">
                 <div class="chart-title">
                     <i class="fas fa-chart-bar"></i>
-                    Análises por Linha (Últimos 7 dias)
+                    Reprovações por Linha de Produção
                 </div>
                 <div style="height: 250px; display: flex; align-items: center; justify-content: center;">
-                    <canvas id="lineChart" height="250" style="max-height: 250px; max-width: 100%;"></canvas>
+                    <canvas id="rejectionLineChart" height="250" style="max-height: 250px; max-width: 100%;"></canvas>
                 </div>
             </div>
         </div>
     </div>
     
     <div class="row mt-4">
-        <!-- Gráfico de Análises por Dia -->
-        <div class="col-lg-8">
+        <!-- Gráfico de Motivos de Reprovação -->
+        <div class="col-lg-6">
             <div class="chart-container">
                 <div class="chart-title">
-                    <i class="fas fa-chart-line"></i>
-                    Análises por Dia (Últimos 30 dias)
+                    <i class="fas fa-chart-doughnut"></i>
+                    Motivos de Reprovação
                 </div>
-                <div style="height: 200px; display: flex; align-items: center; justify-content: center;">
-                    <canvas id="dailyChart" height="200" style="max-height: 200px; max-width: 100%;"></canvas>
+                <div style="height: 250px; display: flex; align-items: center; justify-content: center;">
+                    <canvas id="rejectionReasonChart" height="250" style="max-height: 250px; max-width: 100%;"></canvas>
                 </div>
             </div>
         </div>
         
+        <!-- Gráfico de Média por Propriedades -->
+        <div class="col-lg-6">
+            <div class="chart-container">
+                <div class="chart-title">
+                    <i class="fas fa-chart-line"></i>
+                    Média de Propriedades (Últimos 30 dias)
+                </div>
+                <div style="height: 250px; display: flex; align-items: center; justify-content: center;">
+                    <canvas id="propertyAverageChart" height="250" style="max-height: 250px; max-width: 100%;"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
         <!-- Análises Recentes -->
-        <div class="col-lg-4">
+        <div class="col-12">
             <div class="recent-analyses">
                 <div class="chart-title">
                     <i class="fas fa-clock"></i>
@@ -421,113 +454,91 @@ document.addEventListener('DOMContentLoaded', function() {
     
     setInterval(updateTime, 1000);
     
-    // Dados dos gráficos
-    const productData = {
-        labels: [
-            {% for item in analyses_by_product %}
-            '{{ item.product__name }}'{% if not forloop.last %},{% endif %}
-            {% endfor %}
-        ],
-        datasets: [{
-            data: [
-                {% for item in analyses_by_product %}
-                {{ item.count }}{% if not forloop.last %},{% endif %}
-                {% endfor %}
-            ],
-            backgroundColor: [
-                '#007bff', '#28a745', '#ffc107', '#dc3545', '#17a2b8', '#6f42c1', '#fd7e14'
-            ],
-            borderWidth: 2,
-            borderColor: '#fff'
-        }]
-    };
-    
-    const lineData = {
-        labels: [
-            {% for item in analyses_by_line %}
-            '{{ item.production_line__name }}'{% if not forloop.last %},{% endif %}
-            {% endfor %}
-        ],
-        datasets: [{
-            label: 'Análises',
-            data: [
-                {% for item in analyses_by_line %}
-                {{ item.count }}{% if not forloop.last %},{% endif %}
-                {% endfor %}
-            ],
-            backgroundColor: 'rgba(0, 123, 255, 0.8)',
-            borderColor: '#007bff',
-            borderWidth: 1,
-            borderRadius: 4
-        }]
-    };
-    
-    // Carregar dados reais da API
-    let dailyData = {
-        labels: [],
-        datasets: [{
-            label: 'Análises Pontuais',
-            data: [],
-            backgroundColor: 'rgba(0, 123, 255, 0.1)',
-            borderColor: '#007bff',
-            borderWidth: 2,
-            fill: true,
-            tension: 0.4
-        }, {
-            label: 'Amostras Compostas',
-            data: [],
-            backgroundColor: 'rgba(40, 167, 69, 0.1)',
-            borderColor: '#28a745',
-            borderWidth: 2,
-            fill: true,
-            tension: 0.4
-        }]
-    };
-    
     // Carregar dados da API
     fetch('/qc/dashboard-data/')
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                // Atualizar dados do gráfico diário
-                dailyData.labels = data.daily_data.labels;
-                dailyData.datasets[0].data = data.daily_data.spot_analyses;
-                dailyData.datasets[1].data = data.daily_data.composite_analyses;
+                // Atualizar cards de reprovações e alertas
+                document.getElementById('total-rejections').textContent = data.totals.total_rejections;
+                document.getElementById('today-rejections').textContent = data.totals.today_rejections;
+                document.getElementById('total-alerts').textContent = data.totals.total_alerts;
+                document.getElementById('today-alerts').textContent = data.totals.today_alerts;
                 
-                // Atualizar gráfico diário
-                if (window.dailyChart) {
-                    window.dailyChart.destroy();
-                }
-                createDailyChart();
+                // Criar todos os gráficos
+                createRejectionStatusChart(data.rejection_status);
+                createRejectionLineChart(data.rejection_by_line);
+                createRejectionReasonChart(data.rejection_reasons);
+                createPropertyAverageChart(data.property_averages);
             }
         })
         .catch(error => {
             console.error('Erro ao carregar dados:', error);
-            // Usar dados simulados em caso de erro
-            generateSimulatedData();
+            // Mostrar mensagem de erro
+            document.getElementById('total-rejections').textContent = '0';
+            document.getElementById('today-rejections').textContent = '0';
+            document.getElementById('total-alerts').textContent = '0';
+            document.getElementById('today-alerts').textContent = '0';
         });
     
-    function generateSimulatedData() {
-        // Gerar dados simulados se a API falhar
-        for (let i = 29; i >= 0; i--) {
-            const date = new Date();
-            date.setDate(date.getDate() - i);
-            dailyData.labels.push(date.toLocaleDateString('pt-BR', { month: 'short', day: 'numeric' }));
-            dailyData.datasets[0].data.push(Math.floor(Math.random() * 10) + 1);
-            dailyData.datasets[1].data.push(Math.floor(Math.random() * 3) + 1);
-        }
-        createDailyChart();
-    }
-    
-    function createDailyChart() {
-        const dailyCtx = document.getElementById('dailyChart').getContext('2d');
-        window.dailyChart = new Chart(dailyCtx, {
-            type: 'line',
-            data: dailyData,
+    function createRejectionStatusChart(data) {
+        const ctx = document.getElementById('rejectionStatusChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: data.map(item => item.status === 'REJECTED' ? 'Reprovações' : 'Alertas'),
+                datasets: [{
+                    data: data.map(item => item.count),
+                    backgroundColor: ['#dc3545', '#ffc107'],
+                    borderWidth: 2,
+                    borderColor: '#fff'
+                }]
+            },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                aspectRatio: 2.5,
+                aspectRatio: 1.5,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 15,
+                            usePointStyle: true
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = total > 0 ? ((context.parsed / total) * 100).toFixed(1) : 0;
+                                return context.label + ': ' + context.parsed + ' (' + percentage + '%)';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+    
+    function createRejectionLineChart(data) {
+        const ctx = document.getElementById('rejectionLineChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: data.map(item => item.production_line__name),
+                datasets: [{
+                    label: 'Reprovações',
+                    data: data.map(item => item.count),
+                    backgroundColor: 'rgba(220, 53, 69, 0.8)',
+                    borderColor: '#dc3545',
+                    borderWidth: 1,
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                aspectRatio: 1.5,
                 scales: {
                     y: {
                         beginAtZero: true,
@@ -537,7 +548,94 @@ document.addEventListener('DOMContentLoaded', function() {
                     },
                     x: {
                         ticks: {
-                            maxTicksLimit: 10
+                            maxRotation: 45
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return 'Reprovações: ' + context.parsed.y;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+    
+    function createRejectionReasonChart(data) {
+        const ctx = document.getElementById('rejectionReasonChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: data.map(item => item.property__name),
+                datasets: [{
+                    data: data.map(item => item.count),
+                    backgroundColor: [
+                        '#dc3545', '#fd7e14', '#ffc107', '#20c997', '#6f42c1'
+                    ],
+                    borderWidth: 2,
+                    borderColor: '#fff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                aspectRatio: 1.5,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 15,
+                            usePointStyle: true
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = total > 0 ? ((context.parsed / total) * 100).toFixed(1) : 0;
+                                return context.label + ': ' + context.parsed + ' (' + percentage + '%)';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+    
+    function createPropertyAverageChart(data) {
+        const ctx = document.getElementById('propertyAverageChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: data.map(item => item.property__name),
+                datasets: [{
+                    label: 'Média',
+                    data: data.map(item => parseFloat(item.avg_value).toFixed(2)),
+                    backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                    borderColor: '#007bff',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                aspectRatio: 1.5,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    },
+                    x: {
+                        ticks: {
+                            maxRotation: 45
                         }
                     }
                 },
@@ -550,86 +648,16 @@ document.addEventListener('DOMContentLoaded', function() {
                         }
                     },
                     tooltip: {
-                        mode: 'index',
-                        intersect: false
+                        callbacks: {
+                            label: function(context) {
+                                return 'Média: ' + context.parsed.y;
+                            }
+                        }
                     }
-                },
-                interaction: {
-                    mode: 'index',
-                    intersect: false
                 }
             }
         });
     }
-    
-    // Gráfico de Pizza - Produtos
-    const productCtx = document.getElementById('productChart').getContext('2d');
-    new Chart(productCtx, {
-        type: 'doughnut',
-        data: productData,
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            aspectRatio: 1.5,
-            plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels: {
-                        padding: 15,
-                        usePointStyle: true
-                    }
-                },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                            const percentage = ((context.parsed / total) * 100).toFixed(1);
-                            return context.label + ': ' + context.parsed + ' (' + percentage + '%)';
-                        }
-                    }
-                }
-            }
-        }
-    });
-    
-    // Gráfico de Barras - Linhas de Produção
-    const lineCtx = document.getElementById('lineChart').getContext('2d');
-    new Chart(lineCtx, {
-        type: 'bar',
-        data: lineData,
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            aspectRatio: 1.5,
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        stepSize: 1
-                    }
-                },
-                x: {
-                    ticks: {
-                        maxRotation: 45
-                    }
-                }
-            },
-            plugins: {
-                legend: {
-                    display: false
-                },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            return 'Análises: ' + context.parsed.y;
-                        }
-                    }
-                }
-            }
-        }
-    });
-    
-    // Gráfico diário será criado pela função createDailyChart()
     
     // Animação dos cards
     const cards = document.querySelectorAll('.stat-card, .action-card, .chart-container, .recent-analyses');

@@ -9,7 +9,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.db.models import Count, Avg, Q
+from django.db.models import Count, Avg, Avg, Q
 from django.utils import timezone
 from datetime import datetime, timedelta
 import json
@@ -384,61 +384,54 @@ def dashboard_data_api(request):
     # Dados dos últimos 30 dias
     thirty_days_ago = timezone.now() - timedelta(days=30)
     
-    # Análises pontuais por dia
-    daily_spot_analyses = []
-    daily_composite_analyses = []
-    labels = []
-    
-    for i in range(30):
-        date = (timezone.now() - timedelta(days=i)).date()
-        spot_count = SpotAnalysis.objects.filter(sample_time__date=date).count()
-        composite_count = CompositeSample.objects.filter(date=date).count()
-        
-        daily_spot_analyses.append(spot_count)
-        daily_composite_analyses.append(composite_count)
-        labels.append(date.strftime('%d/%m'))
-    
-    # Análises por produto (últimos 30 dias)
-    spot_by_product = SpotAnalysis.objects.filter(
-        sample_time__gte=thirty_days_ago
-    ).values('product__name').annotate(
-        count=Count('id')
-    ).order_by('-count')[:10]
-    
-    composite_by_product = CompositeSample.objects.filter(
-        date__gte=thirty_days_ago.date()
-    ).values('product__name').annotate(
-        count=Count('id')
-    ).order_by('-count')[:10]
-    
-    # Análises por linha (últimos 7 dias)
-    seven_days_ago = timezone.now() - timedelta(days=7)
-    analyses_by_line = SpotAnalysis.objects.filter(
-        sample_time__gte=seven_days_ago
-    ).values('production_line__name').annotate(
+    # 1. Reprovações por Status
+    rejection_status_data = SpotAnalysis.objects.filter(
+        status__in=['REJECTED', 'ALERT']
+    ).values('status').annotate(
         count=Count('id')
     ).order_by('-count')
     
+    # 2. Reprovações por Linha de Produção
+    rejection_by_line = SpotAnalysis.objects.filter(
+        status__in=['REJECTED', 'ALERT']
+    ).values('production_line__name').annotate(
+        count=Count('id')
+    ).order_by('-count')[:5]
+    
+    # 3. Motivos de Reprovação (por propriedade)
+    rejection_reasons = SpotAnalysis.objects.filter(
+        status='REJECTED'
+    ).values('property__name').annotate(
+        count=Count('id')
+    ).order_by('-count')[:5]
+    
+    # 4. Média de Propriedades (últimos 30 dias)
+    property_averages = SpotAnalysis.objects.filter(
+        sample_time__gte=thirty_days_ago,
+        status='APPROVED'
+    ).values('property__name').annotate(
+        avg_value=Avg('value')
+    ).order_by('-avg_value')[:5]
+    
     return JsonResponse({
         'success': True,
-        'daily_data': {
-            'labels': labels[::-1],  # Ordem cronológica
-            'spot_analyses': daily_spot_analyses[::-1],
-            'composite_analyses': daily_composite_analyses[::-1]
-        },
-        'product_data': {
-            'spot': list(spot_by_product),
-            'composite': list(composite_by_product)
-        },
-        'line_data': list(analyses_by_line),
+        'rejection_status': list(rejection_status_data),
+        'rejection_by_line': list(rejection_by_line),
+        'rejection_reasons': list(rejection_reasons),
+        'property_averages': list(property_averages),
         'totals': {
             'spot_analyses': SpotAnalysis.objects.count(),
             'composite_samples': CompositeSample.objects.count(),
-            'today_spot': SpotAnalysis.objects.filter(
-                sample_time__date=timezone.now().date()
+            'total_rejections': SpotAnalysis.objects.filter(status='REJECTED').count(),
+            'total_alerts': SpotAnalysis.objects.filter(status='ALERT').count(),
+            'total_approved': SpotAnalysis.objects.filter(status='APPROVED').count(),
+            'today_rejections': SpotAnalysis.objects.filter(
+                sample_time__date=timezone.now().date(),
+                status='REJECTED'
             ).count(),
-            'today_composite': CompositeSample.objects.filter(
-                date=timezone.now().date()
+            'today_alerts': SpotAnalysis.objects.filter(
+                sample_time__date=timezone.now().date(),
+                status='ALERT'
             ).count()
         }
     })
