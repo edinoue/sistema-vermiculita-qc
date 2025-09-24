@@ -61,7 +61,7 @@ class SpotAnalysisListView(ListView):
 class SpotAnalysisCreateView(CreateView):
     model = SpotAnalysis
     template_name = 'quality_control/spot_analysis_create.html'
-    fields = ['product', 'production_line', 'shift', 'property', 'sequence', 'value', 'unit', 'test_method', 'observations']
+    fields = ['date', 'product', 'production_line', 'shift', 'property', 'sequence', 'value', 'unit', 'test_method']
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

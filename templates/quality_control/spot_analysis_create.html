@@ -199,6 +199,12 @@
                     <!-- Informações Básicas -->
                     <div class="form-row">
                         <div class="form-group">
+                            <label for="date" class="form-label required-field">Data da Análise</label>
+                            <input type="date" class="form-control" id="date" name="date" required>
+                            <div class="help-text">Data em que a análise foi realizada</div>
+                        </div>
+                        
+                        <div class="form-group">
                             <label for="product" class="form-label required-field">Produto</label>
                             <select class="form-select" id="product" name="product" required>
                                 <option value="">Selecione um produto</option>
@@ -289,11 +295,6 @@
                         </div>
                     </div>
                     
-                    <div class="form-group">
-                        <label for="observations" class="form-label">Observações</label>
-                        <textarea class="form-control" id="observations" name="observations" rows="3" placeholder="Observações sobre a análise..."></textarea>
-                        <div class="help-text">Observações adicionais (opcional)</div>
-                    </div>
                     
                     <!-- Botões -->
                     <div class="d-flex gap-3 justify-content-end">
@@ -322,7 +323,13 @@
 document.addEventListener('DOMContentLoaded', function() {
     // Auto-preencher data/hora atual
     const now = new Date();
+    const dateInput = document.getElementById('date');
     const datetimeInput = document.getElementById('sample_time');
+    
+    // Preencher data atual
+    dateInput.value = now.toISOString().slice(0, 10);
+    
+    // Preencher data/hora atual para sample_time
     datetimeInput.value = now.toISOString().slice(0, 16);
     
     // Auto-preencher unidade baseada na propriedade selecionada
