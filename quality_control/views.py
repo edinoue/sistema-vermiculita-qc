@@ -56,7 +56,6 @@ class SpotAnalysisListView(ListView):
         return context
 
 
-@method_decorator(csrf_exempt, name='dispatch')
 @method_decorator(login_required, name='dispatch')
 class SpotAnalysisCreateView(CreateView):
     model = SpotAnalysis

@@ -3,7 +3,7 @@ URLs do app quality_control
 """
 
 from django.urls import path
-from . import views
+from . import views, views_simple
 
 app_name = 'quality_control'
 
@@ -18,6 +18,7 @@ urlpatterns = [
     # Análises
     path('spot-analysis/', views.SpotAnalysisListView.as_view(), name='spot_analysis_list'),
     path('spot-analysis/create/', views.SpotAnalysisCreateView.as_view(), name='spot_analysis_create'),
+    path('spot-analysis/create-simple/', views_simple.spot_analysis_create_simple, name='spot_analysis_create_simple'),
     
     # Relatórios
     path('reports/', views.reports_list_view, name='reports_list'),

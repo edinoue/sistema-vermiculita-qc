@@ -29,14 +29,14 @@ INSTALLED_APPS = [
     'quality_control',
 ]
 
-# MIDDLEWARE SEM CSRF - ESTA É A CHAVE!
+# MIDDLEWARE com CSRF configurado
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    # 'django.middleware.csrf.CsrfViewMiddleware',  # REMOVIDO COMPLETAMENTE
+    'django.middleware.csrf.CsrfViewMiddleware',  # REATIVADO com configurações permissivas
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -111,6 +111,17 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:8000",
     "http://127.0.0.1:8000",
 ]
+
+# CSRF settings - Configurações para resolver o erro
+CSRF_TRUSTED_ORIGINS = [
+    "https://sistema-vermiculita-qc-production.up.railway.app",
+    "https://*.railway.app",
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+]
+CSRF_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_HTTPONLY = False
+CSRF_USE_SESSIONS = False
 
 # REST Framework
 REST_FRAMEWORK = {
