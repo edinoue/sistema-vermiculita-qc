@@ -12,7 +12,7 @@ from django.utils import timezone
 from datetime import datetime, time
 
 from core.models import ProductionLine, Shift
-from .models import Product, Property, CompositeSample, CompositeSampleResult
+from .models import Product, Property, CompositeSample, CompositeSampleResult, AnalysisType
 
 @login_required
 def composite_sample_list(request):

@@ -126,11 +126,11 @@ def spot_analysis_edit_improved(request, analysis_id):
             
             # Atualizar propriedades
             # Obter propriedades para análise pontual
-    analysis_type = AnalysisType.objects.get(code='PONTUAL')
-    properties = Property.objects.filter(
-        is_active=True,
-        analysistypeproperty__analysis_type=analysis_type
-    ).order_by('display_order')
+            analysis_type = AnalysisType.objects.get(code='PONTUAL')
+            properties = Property.objects.filter(
+                is_active=True,
+                analysistypeproperty__analysis_type=analysis_type
+            ).order_by('display_order')
             for property in properties:
                 value_key = f'property_{property.id}_value'
                 method_key = f'property_{property.id}_method'
