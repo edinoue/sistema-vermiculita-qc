@@ -161,18 +161,13 @@
                     
                     <div class="col-md-6">
                         <div class="mb-3">
-                            <label for="collection_date" class="form-label required-field">Data da Coleta</label>
-                            <input type="date" class="form-control" id="collection_date" name="collection_date" required>
+                            <label for="date" class="form-label required-field">Data da Coleta</label>
+                            <input type="date" class="form-control" id="date" name="date" required>
                         </div>
                         
                         <div class="mb-3">
-                            <label for="start_time" class="form-label required-field">Horário de Início</label>
-                            <input type="datetime-local" class="form-control" id="start_time" name="start_time" required>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="end_time" class="form-label required-field">Horário de Fim</label>
-                            <input type="datetime-local" class="form-control" id="end_time" name="end_time" required>
+                            <label for="collection_time" class="form-label required-field">Horário da Coleta</label>
+                            <input type="datetime-local" class="form-control" id="collection_time" name="collection_time" required>
                         </div>
                     </div>
                 </div>
@@ -262,18 +257,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const currentTime = now.toISOString().slice(0, 16);
     
     // Definir data de hoje
-    document.getElementById('collection_date').value = today;
+    document.getElementById('date').value = today;
     
     // Definir horário atual
-    document.getElementById('start_time').value = currentTime;
-    
-    // Calcular horário de fim (12 horas depois)
-    const endTime = new Date(now.getTime() + 12 * 60 * 60 * 1000);
-    document.getElementById('end_time').value = endTime.toISOString().slice(0, 16);
+    document.getElementById('collection_time').value = currentTime;
     
     // Validação do formulário
     document.getElementById('compositeForm').addEventListener('submit', function(e) {
-        const requiredFields = ['product', 'production_line', 'shift', 'collection_date', 'start_time', 'end_time'];
+        const requiredFields = ['product', 'production_line', 'shift', 'date', 'collection_time'];
         let hasErrors = false;
         
         requiredFields.forEach(fieldName => {

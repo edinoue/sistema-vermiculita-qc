@@ -42,7 +42,12 @@ def spot_analysis_create_fixed(request):
             )
             
             # Processar resultados das propriedades
-            properties = Property.objects.filter(is_active=True).order_by('display_order')
+            # Obter propriedades para análise pontual
+    analysis_type = AnalysisType.objects.get(code='PONTUAL')
+    properties = Property.objects.filter(
+        is_active=True,
+        analysistypeproperty__analysis_type=analysis_type
+    ).order_by('display_order')
             for property in properties:
                 value_key = f'property_{property.id}_value'
                 method_key = f'property_{property.id}_method'
@@ -74,7 +79,12 @@ def spot_analysis_create_fixed(request):
     products = Product.objects.filter(is_active=True).order_by('display_order')
     lines = ProductionLine.objects.filter(is_active=True).order_by('name')
     shifts = Shift.objects.all()
-    properties = Property.objects.filter(is_active=True).order_by('display_order')
+    # Obter propriedades para análise pontual
+    analysis_type = AnalysisType.objects.get(code='PONTUAL')
+    properties = Property.objects.filter(
+        is_active=True,
+        analysistypeproperty__analysis_type=analysis_type
+    ).order_by('display_order')
     
     context = {
         'products': products,

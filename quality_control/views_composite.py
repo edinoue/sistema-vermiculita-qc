@@ -19,7 +19,7 @@ def composite_sample_list(request):
     """Lista de amostras compostas"""
     samples = CompositeSample.objects.select_related(
         'product', 'production_line', 'shift'
-    ).order_by('-collection_date', '-start_time')
+    ).order_by('-date', '-collection_time')
     
     # Filtros
     product_id = request.GET.get('product')
@@ -32,9 +32,9 @@ def composite_sample_list(request):
     if line_id:
         samples = samples.filter(production_line_id=line_id)
     if date_from:
-        samples = samples.filter(collection_date__gte=date_from)
+        samples = samples.filter(date__gte=date_from)
     if date_to:
-        samples = samples.filter(collection_date__lte=date_to)
+        samples = samples.filter(date__lte=date_to)
     
     context = {
         'samples': samples,
@@ -54,9 +54,8 @@ def composite_sample_create(request):
             product_id = request.POST.get('product')
             production_line_id = request.POST.get('production_line')
             shift_id = request.POST.get('shift')
-            collection_date = request.POST.get('collection_date')
-            start_time = request.POST.get('start_time')
-            end_time = request.POST.get('end_time')
+            date = request.POST.get('date')
+            collection_time = request.POST.get('collection_time')
             observations = request.POST.get('observations', '')
             
             # Criar amostra composta
@@ -64,15 +63,19 @@ def composite_sample_create(request):
                 product_id=product_id,
                 production_line_id=production_line_id,
                 shift_id=shift_id,
-                collection_date=collection_date,
-                start_time=start_time,
-                end_time=end_time,
+                date=date,
+                collection_time=collection_time,
                 observations=observations,
-                status='PENDENTE'
+                status='APPROVED'
             )
             
             # Processar resultados das propriedades
-            properties = Property.objects.filter(is_active=True).order_by('display_order')
+            # Obter propriedades para amostra composta
+            analysis_type = AnalysisType.objects.get(code='COMPOSTA')
+            properties = Property.objects.filter(
+                is_active=True,
+                analysistypeproperty__analysis_type=analysis_type
+            ).order_by('display_order')
             for property in properties:
                 value_key = f'property_{property.id}_value'
                 method_key = f'property_{property.id}_method'
