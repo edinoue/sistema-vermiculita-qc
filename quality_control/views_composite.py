@@ -82,11 +82,10 @@ def composite_sample_create(request):
                 
                 if value_key in request.POST and request.POST[value_key]:
                     CompositeSampleResult.objects.create(
-                        sample=sample,
+                        composite_sample=sample,
                         property=property,
                         value=request.POST[value_key],
-                        test_method=request.POST.get(method_key, property.test_method),
-                        status='PENDENTE'
+                        test_method=request.POST.get(method_key, property.test_method)
                     )
             
             messages.success(request, 'Amostra composta criada com sucesso!')
@@ -114,7 +113,7 @@ def composite_sample_create(request):
 def composite_sample_detail(request, sample_id):
     """Detalhes da amostra composta"""
     sample = get_object_or_404(CompositeSample, id=sample_id)
-    results = CompositeSampleResult.objects.filter(sample=sample).select_related('property')
+    results = CompositeSampleResult.objects.filter(composite_sample=sample).select_related('property')
     
     context = {
         'sample': sample,
@@ -134,14 +133,13 @@ def composite_sample_edit(request, sample_id):
             sample.product_id = request.POST.get('product')
             sample.production_line_id = request.POST.get('production_line')
             sample.shift_id = request.POST.get('shift')
-            sample.collection_date = request.POST.get('collection_date')
-            sample.start_time = request.POST.get('start_time')
-            sample.end_time = request.POST.get('end_time')
+            sample.date = request.POST.get('date')
+            sample.collection_time = request.POST.get('collection_time')
             sample.observations = request.POST.get('observations', '')
             sample.save()
             
             # Atualizar resultados
-            results = CompositeSampleResult.objects.filter(sample=sample)
+            results = CompositeSampleResult.objects.filter(composite_sample=sample)
             for result in results:
                 value_key = f'property_{result.property.id}_value'
                 method_key = f'property_{result.property.id}_method'
@@ -162,7 +160,7 @@ def composite_sample_edit(request, sample_id):
     lines = ProductionLine.objects.filter(is_active=True).order_by('name')
     shifts = Shift.objects.all()
     properties = Property.objects.filter(is_active=True).order_by('display_order')
-    results = CompositeSampleResult.objects.filter(sample=sample).select_related('property')
+    results = CompositeSampleResult.objects.filter(composite_sample=sample).select_related('property')
     
     context = {
         'sample': sample,
