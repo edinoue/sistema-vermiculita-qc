@@ -1,0 +1,237 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Importação de Dados - Sistema de Controle de Qualidade{% endblock %}
+
+{% block extra_css %}
+<style>
+    .import-card {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+    }
+    
+    .import-header {
+        background: linear-gradient(135deg, #2c5530, #4a7c59);
+        color: white;
+        padding: 1.5rem;
+        border-radius: 15px 15px 0 0;
+        margin: -2rem -2rem 2rem -2rem;
+        text-align: center;
+    }
+    
+    .template-card {
+        border: 2px solid #e9ecef;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        transition: all 0.3s ease;
+    }
+    
+    .template-card:hover {
+        border-color: #2c5530;
+        box-shadow: 0 4px 8px rgba(44, 85, 48, 0.1);
+    }
+    
+    .status-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+    
+    .status-pending { background: #fff3cd; color: #856404; }
+    .status-processing { background: #d1ecf1; color: #0c5460; }
+    .status-completed { background: #d4edda; color: #155724; }
+    .status-failed { background: #f8d7da; color: #721c24; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="import-card">
+        <div class="import-header">
+            <h2 class="mb-0">
+                <i class="bi bi-upload"></i> Importação de Dados Históricos
+            </h2>
+            <p class="mb-0">Importe dados históricos de análises e amostras</p>
+        </div>
+        
+        <!-- Templates Disponíveis -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <h4 class="mb-3">
+                    <i class="bi bi-file-earmark-excel"></i> Templates Disponíveis
+                </h4>
+            </div>
+        </div>
+        
+        <div class="row">
+            {% for template in templates %}
+            <div class="col-md-6 mb-3">
+                <div class="template-card">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h5 class="mb-0">{{ template.name }}</h5>
+                        <span class="badge bg-primary">{{ template.get_template_type_display }}</span>
+                    </div>
+                    <p class="text-muted mb-3">{{ template.description }}</p>
+                    <div class="d-flex gap-2">
+                        <a href="{% url 'quality_control:download_template' template.id %}" class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-download"></i> Download
+                        </a>
+                        <button class="btn btn-primary btn-sm" onclick="selectTemplate({{ template.id }}, '{{ template.name }}')">
+                            <i class="bi bi-upload"></i> Usar
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12">
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i> Nenhum template disponível. 
+                    <a href="{% url 'quality_control:create_template' %}" class="alert-link">Criar template</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Formulário de Upload -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <h4 class="mb-3">
+                    <i class="bi bi-cloud-upload"></i> Upload de Dados
+                </h4>
+            </div>
+        </div>
+        
+        <form method="post" action="{% url 'quality_control:upload_data' %}" enctype="multipart/form-data" id="uploadForm">
+            {% csrf_token %}
+            <input type="hidden" name="template_id" id="selectedTemplate">
+            
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="mb-3">
+                        <label for="excel_file" class="form-label">Arquivo Excel</label>
+                        <input type="file" class="form-control" id="excel_file" name="excel_file" accept=".xlsx,.xls" required>
+                        <div class="form-text">Selecione o arquivo Excel preenchido com os dados</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label class="form-label">Template Selecionado</label>
+                        <div id="selectedTemplateName" class="form-control-plaintext text-muted">
+                            Nenhum template selecionado
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="d-flex gap-3">
+                <button type="submit" class="btn btn-primary" id="uploadBtn" disabled>
+                    <i class="bi bi-upload"></i> Importar Dados
+                </button>
+                <a href="{% url 'quality_control:create_template' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-plus"></i> Criar Template
+                </a>
+            </div>
+        </form>
+        
+        <!-- Importações Recentes -->
+        {% if recent_imports %}
+        <div class="row mt-5">
+            <div class="col-12">
+                <h4 class="mb-3">
+                    <i class="bi bi-clock-history"></i> Importações Recentes
+                </h4>
+            </div>
+        </div>
+        
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>Arquivo</th>
+                        <th>Template</th>
+                        <th>Status</th>
+                        <th>Progresso</th>
+                        <th>Data</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for import_session in recent_imports %}
+                    <tr>
+                        <td>
+                            <div class="fw-bold">{{ import_session.original_filename }}</div>
+                            <small class="text-muted">{{ import_session.started_at|date:"d/m/Y H:i" }}</small>
+                        </td>
+                        <td>{{ import_session.template.name }}</td>
+                        <td>
+                            <span class="status-badge status-{{ import_session.status|lower }}">
+                                {{ import_session.get_status_display }}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="progress" style="height: 20px;">
+                                <div class="progress-bar" role="progressbar" 
+                                     style="width: {{ import_session.progress_percentage }}%">
+                                    {{ import_session.progress_percentage|floatformat:1 }}%
+                                </div>
+                            </div>
+                            <small class="text-muted">
+                                {{ import_session.successful_rows }}/{{ import_session.total_rows }} linhas
+                            </small>
+                        </td>
+                        <td>{{ import_session.started_at|date:"d/m/Y H:i" }}</td>
+                        <td>
+                            <a href="{% url 'quality_control:import_status' import_session.id %}" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-eye"></i> Ver
+                            </a>
+                            {% if import_session.failed_rows > 0 %}
+                            <a href="{% url 'quality_control:download_errors' import_session.id %}" class="btn btn-sm btn-outline-danger">
+                                <i class="bi bi-download"></i> Erros
+                            </a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+function selectTemplate(templateId, templateName) {
+    document.getElementById('selectedTemplate').value = templateId;
+    document.getElementById('selectedTemplateName').textContent = templateName;
+    document.getElementById('uploadBtn').disabled = false;
+}
+
+// Validação do formulário
+document.getElementById('uploadForm').addEventListener('submit', function(e) {
+    const fileInput = document.getElementById('excel_file');
+    const templateInput = document.getElementById('selectedTemplate');
+    
+    if (!fileInput.files.length) {
+        e.preventDefault();
+        alert('Por favor, selecione um arquivo Excel.');
+        return;
+    }
+    
+    if (!templateInput.value) {
+        e.preventDefault();
+        alert('Por favor, selecione um template.');
+        return;
+    }
+    
+    // Mostrar loading
+    const btn = document.getElementById('uploadBtn');
+    btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Processando...';
+    btn.disabled = true;
+});
+</script>
+{% endblock %}

@@ -1,0 +1,292 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Nova Análise - Brasil Minérios QC{% endblock %}
+
+{% block extra_css %}
+<style>
+    .analysis-form {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+    }
+    
+    .form-header {
+        background: linear-gradient(135deg, #2c5530, #4a7c59);
+        color: white;
+        padding: 1.5rem;
+        border-radius: 15px 15px 0 0;
+        margin: -2rem -2rem 2rem -2rem;
+        text-align: center;
+    }
+    
+    .form-section {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        border-left: 4px solid #2c5530;
+    }
+    
+    .section-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #2c5530;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+    }
+    
+    .properties-table {
+        background: white;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .properties-table th {
+        background: #2c5530;
+        color: white;
+        border: none;
+        padding: 1rem;
+        font-weight: 600;
+    }
+    
+    .properties-table td {
+        padding: 1rem;
+        border-bottom: 1px solid #e9ecef;
+        vertical-align: middle;
+    }
+    
+    .properties-table tr:last-child td {
+        border-bottom: none;
+    }
+    
+    .form-control, .form-select {
+        border-radius: 8px;
+        border: 2px solid #e9ecef;
+        padding: 0.75rem;
+        transition: all 0.3s ease;
+    }
+    
+    .form-control:focus, .form-select:focus {
+        border-color: #2c5530;
+        box-shadow: 0 0 0 0.2rem rgba(44, 85, 48, 0.25);
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, #2c5530, #4a7c59);
+        border: none;
+        border-radius: 8px;
+        padding: 0.75rem 2rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(44, 85, 48, 0.3);
+    }
+    
+    .btn-secondary {
+        border-radius: 8px;
+        padding: 0.75rem 2rem;
+        font-weight: 600;
+    }
+    
+    .required-field::after {
+        content: " *";
+        color: #dc3545;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="analysis-form">
+        <div class="form-header">
+            <h2 class="mb-0">
+                <i class="bi bi-lightning"></i> Nova Análise Pontual
+            </h2>
+            <p class="mb-0">Análise realizada diretamente no fluxo de produção</p>
+        </div>
+        
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+        
+        <form method="post" id="analysisForm">
+            {% csrf_token %}
+            
+            <!-- Informações Básicas -->
+            <div class="form-section">
+                <h4 class="section-title">
+                    <i class="bi bi-info-circle"></i> Informações da Análise
+                </h4>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="date" class="form-label required-field">Data da Análise</label>
+                            <input type="date" class="form-control" id="date" name="date" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="product" class="form-label required-field">Produto</label>
+                            <select class="form-select" id="product" name="product" required>
+                                <option value="">Selecione um produto</option>
+                                {% for product in products %}
+                                <option value="{{ product.id }}">{{ product.code }} - {{ product.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="production_line" class="form-label required-field">Linha de Produção</label>
+                            <select class="form-select" id="production_line" name="production_line" required>
+                                <option value="">Selecione uma linha</option>
+                                {% for line in lines %}
+                                <option value="{{ line.id }}">{{ line.name }} ({{ line.code }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="shift" class="form-label required-field">Turno</label>
+                            <select class="form-select" id="shift" name="shift" required>
+                                <option value="">Selecione um turno</option>
+                                {% for shift in shifts %}
+                                <option value="{{ shift.id }}">{{ shift.get_name_display }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="sample_time" class="form-label required-field">Data e Hora da Amostra</label>
+                            <input type="datetime-local" class="form-control" id="sample_time" name="sample_time" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="sequence" class="form-label required-field">Sequência</label>
+                            <input type="number" class="form-control" id="sequence" name="sequence" min="1" max="3" value="1" required>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Propriedades da Análise -->
+            <div class="form-section">
+                <h4 class="section-title">
+                    <i class="bi bi-clipboard-data"></i> Propriedades da Análise
+                </h4>
+                
+                <div class="properties-table">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Propriedade</th>
+                                <th>Unidade</th>
+                                <th>Valor</th>
+                                <th>Método de Teste</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for property in properties %}
+                            <tr>
+                                <td>
+                                    <label for="property_{{ property.id }}" class="form-label mb-0 fw-bold">
+                                        {{ property.name }}
+                                    </label>
+                                    <input type="hidden" name="property_{{ property.id }}" value="{{ property.id }}">
+                                </td>
+                                <td>
+                                    <span class="text-muted">{{ property.unit }}</span>
+                                </td>
+                                <td>
+                                    <input type="number" 
+                                           step="any" 
+                                           class="form-control form-control-sm" 
+                                           name="property_{{ property.id }}_value" 
+                                           id="property_{{ property.id }}_value"
+                                           placeholder="0.00">
+                                </td>
+                                <td>
+                                    <input type="text" 
+                                           class="form-control form-control-sm" 
+                                           name="property_{{ property.id }}_method" 
+                                           id="property_{{ property.id }}_method"
+                                           value="{{ property.test_method|default_if_none:'' }}"
+                                           placeholder="Método de teste">
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center text-muted py-4">
+                                    <i class="bi bi-exclamation-circle"></i>
+                                    Nenhuma propriedade configurada. 
+                                    <a href="/admin/quality_control/property/" target="_blank">Configure as propriedades no admin</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Botões -->
+            <div class="d-flex gap-3 justify-content-end mt-4">
+                <a href="{% url 'quality_control:analysis_type_selection' %}" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Voltar
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-circle"></i> Salvar Análise
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const now = new Date();
+    const today = now.toISOString().slice(0, 10);
+    const currentTime = now.toISOString().slice(0, 16);
+    
+    // Definir data de hoje
+    document.getElementById('date').value = today;
+    
+    // Definir horário atual
+    document.getElementById('sample_time').value = currentTime;
+    
+    // Validação do formulário
+    document.getElementById('analysisForm').addEventListener('submit', function(e) {
+        const requiredFields = ['date', 'product', 'production_line', 'shift', 'sample_time', 'sequence'];
+        let hasErrors = false;
+        
+        requiredFields.forEach(fieldName => {
+            const field = document.getElementById(fieldName);
+            if (!field.value) {
+                field.classList.add('is-invalid');
+                hasErrors = true;
+            } else {
+                field.classList.remove('is-invalid');
+            }
+        });
+        
+        if (hasErrors) {
+            e.preventDefault();
+            alert('Por favor, preencha todos os campos obrigatórios.');
+        }
+    });
+});
+</script>
+{% endblock %}

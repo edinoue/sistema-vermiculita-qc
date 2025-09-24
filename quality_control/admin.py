@@ -35,18 +35,20 @@ class AnalysisTypePropertyAdmin(admin.ModelAdmin):
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ['code', 'name', 'is_active', 'created_at']
+    list_display = ['code', 'name', 'display_order', 'is_active', 'created_at']
     list_filter = ['is_active', 'created_at']
     search_fields = ['code', 'name']
-    ordering = ['code']
+    ordering = ['display_order', 'code']
+    fields = ['code', 'name', 'description', 'display_order', 'is_active']
 
 
 @admin.register(Property)
 class PropertyAdmin(admin.ModelAdmin):
-    list_display = ['identifier', 'name', 'category', 'unit', 'data_type', 'is_active']
+    list_display = ['identifier', 'name', 'category', 'unit', 'display_order', 'data_type', 'is_active']
     list_filter = ['category', 'data_type', 'is_active', 'created_at']
     search_fields = ['identifier', 'name']
-    ordering = ['category', 'identifier']
+    ordering = ['display_order', 'category', 'identifier']
+    fields = ['identifier', 'name', 'unit', 'category', 'test_method', 'data_type', 'display_order', 'description', 'is_active']
 
 
 @admin.register(ProductPropertyMap)

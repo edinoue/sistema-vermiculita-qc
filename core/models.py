@@ -87,8 +87,8 @@ class Shift(models.Model):
     Modelo para representar turnos de trabalho
     """
     SHIFT_CHOICES = [
-        ('A', 'Turno A (06:00-18:00)'),
-        ('B', 'Turno B (18:00-06:00)'),
+        ('A', 'Turno A (07:00-19:00)'),
+        ('B', 'Turno B (19:00-07:00)'),
     ]
     
     name = models.CharField('Nome', max_length=1, choices=SHIFT_CHOICES, unique=True)

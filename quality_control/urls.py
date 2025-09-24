@@ -3,7 +3,7 @@ URLs do app quality_control
 """
 
 from django.urls import path
-from . import views, views_simple
+from . import views, views_simple, views_import, views_composite, views_spot_fixed
 
 app_name = 'quality_control'
 
@@ -19,9 +19,24 @@ urlpatterns = [
     path('spot-analysis/', views.SpotAnalysisListView.as_view(), name='spot_analysis_list'),
     path('spot-analysis/create/', views.SpotAnalysisCreateView.as_view(), name='spot_analysis_create'),
     path('spot-analysis/create-simple/', views_simple.spot_analysis_create_simple, name='spot_analysis_create_simple'),
+    path('spot-analysis/create-fixed/', views_spot_fixed.spot_analysis_create_fixed, name='spot_analysis_create_fixed'),
+    
+    # Amostras Compostas
+    path('composite-sample/', views_composite.composite_sample_list, name='composite_sample_list'),
+    path('composite-sample/create/', views_composite.composite_sample_create, name='composite_sample_create'),
+    path('composite-sample/<int:sample_id>/', views_composite.composite_sample_detail, name='composite_sample_detail'),
+    path('composite-sample/<int:sample_id>/edit/', views_composite.composite_sample_edit, name='composite_sample_edit'),
     
     # Relatórios
     path('reports/', views.reports_list_view, name='reports_list'),
+    
+    # Importação de dados
+    path('import/', views_import.import_dashboard, name='import_dashboard'),
+    path('import/template/<int:template_id>/download/', views_import.download_template, name='download_template'),
+    path('import/upload/', views_import.upload_data, name='upload_data'),
+    path('import/status/<int:session_id>/', views_import.import_status, name='import_status'),
+    path('import/errors/<int:session_id>/download/', views_import.download_errors, name='download_errors'),
+    path('import/template/create/', views_import.create_template, name='create_template'),
     
     # APIs
     path('api/product-properties/', views.get_product_properties, name='product_properties_api'),

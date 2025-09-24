@@ -40,12 +40,13 @@ class Product(AuditModel):
     name = models.CharField('Nome', max_length=100, unique=True)
     code = models.CharField('Código', max_length=20, unique=True)
     description = models.TextField('Descrição', blank=True)
+    display_order = models.PositiveIntegerField('Ordem de Exibição', default=0, help_text='Ordem em que o produto aparece nas listas')
     is_active = models.BooleanField('Ativo', default=True)
     
     class Meta:
         verbose_name = 'Produto'
         verbose_name_plural = 'Produtos'
-        ordering = ['name']
+        ordering = ['display_order', 'name']
     
     def __str__(self):
         return f"{self.code} - {self.name}"
@@ -73,13 +74,14 @@ class Property(AuditModel):
     category = models.CharField('Categoria', max_length=20, choices=CATEGORY_CHOICES)
     test_method = models.CharField('Método de Ensaio', max_length=100, blank=True)
     data_type = models.CharField('Tipo de Dado', max_length=20, choices=DATA_TYPE_CHOICES, default='DECIMAL')
+    display_order = models.PositiveIntegerField('Ordem de Exibição', default=0, help_text='Ordem em que a propriedade aparece nos formulários')
     description = models.TextField('Descrição', blank=True)
     is_active = models.BooleanField('Ativo', default=True)
     
     class Meta:
         verbose_name = 'Propriedade'
         verbose_name_plural = 'Propriedades'
-        ordering = ['category', 'name']
+        ordering = ['display_order', 'category', 'name']
     
     def __str__(self):
         return f"{self.identifier} - {self.name}"
