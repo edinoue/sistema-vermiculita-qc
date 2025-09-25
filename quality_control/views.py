@@ -384,16 +384,16 @@ def dashboard_data_api(request):
     # Dados dos últimos 30 dias
     thirty_days_ago = timezone.now() - timedelta(days=30)
     
-    # 1. Status das Análises (Pontuais + Compostas)
+    # 1. Status das Amostras (Pontuais + Compostas) - CONTAR POR AMOSTRA, NÃO POR ANÁLISE
     spot_status_data = SpotAnalysis.objects.filter(
         sample_time__gte=thirty_days_ago
     ).values('status').annotate(
         count=Count('id')
     ).order_by('-count')
     
-    # Status das amostras compostas
-    composite_status_data = CompositeSampleResult.objects.filter(
-        composite_sample__date__gte=thirty_days_ago.date()
+    # Status das amostras compostas (contar amostras, não resultados individuais)
+    composite_status_data = CompositeSample.objects.filter(
+        date__gte=thirty_days_ago.date()
     ).values('status').annotate(
         count=Count('id')
     ).order_by('-count')
@@ -408,7 +408,7 @@ def dashboard_data_api(request):
         status = item['status']
         all_status_data[status] = all_status_data.get(status, 0) + item['count']
     
-    # 2. Reprovações por Linha de Produção (Pontuais + Compostas)
+    # 2. Reprovações por Linha de Produção (Pontuais + Compostas) - CONTAR POR AMOSTRA
     spot_rejections_by_line = SpotAnalysis.objects.filter(
         sample_time__gte=thirty_days_ago,
         status='REJECTED'
@@ -416,10 +416,11 @@ def dashboard_data_api(request):
         count=Count('id')
     ).order_by('-count')[:5]
     
-    composite_rejections_by_line = CompositeSampleResult.objects.filter(
-        composite_sample__date__gte=thirty_days_ago.date(),
+    # Contar amostras compostas reprovadas, não resultados individuais
+    composite_rejections_by_line = CompositeSample.objects.filter(
+        date__gte=thirty_days_ago.date(),
         status='REJECTED'
-    ).values('composite_sample__production_line__name').annotate(
+    ).values('production_line__name').annotate(
         count=Count('id')
     ).order_by('-count')[:5]
     
@@ -430,10 +431,10 @@ def dashboard_data_api(request):
         line_rejections[line_name] = line_rejections.get(line_name, 0) + item['count']
     
     for item in composite_rejections_by_line:
-        line_name = item['composite_sample__production_line__name']
+        line_name = item['production_line__name']
         line_rejections[line_name] = line_rejections.get(line_name, 0) + item['count']
     
-    # 3. Motivos de Reprovação (por propriedade)
+    # 3. Motivos de Reprovação (por propriedade) - MANTER CONTAGEM POR PROPRIEDADE
     spot_rejection_reasons = SpotAnalysis.objects.filter(
         sample_time__gte=thirty_days_ago,
         status='REJECTED'
@@ -441,6 +442,7 @@ def dashboard_data_api(request):
         count=Count('id')
     ).order_by('-count')[:5]
     
+    # Para amostras compostas, contar resultados reprovados por propriedade
     composite_rejection_reasons = CompositeSampleResult.objects.filter(
         composite_sample__date__gte=thirty_days_ago.date(),
         status='REJECTED'
@@ -458,7 +460,7 @@ def dashboard_data_api(request):
         prop_name = item['property__name']
         rejection_reasons[prop_name] = rejection_reasons.get(prop_name, 0) + item['count']
     
-    # 4. Média de Propriedades Aprovadas (últimos 30 dias)
+    # 4. Média de Propriedades Aprovadas (últimos 30 dias) - MANTER CONTAGEM POR PROPRIEDADE
     spot_averages = SpotAnalysis.objects.filter(
         sample_time__gte=thirty_days_ago,
         status='APPROVED'
@@ -466,6 +468,7 @@ def dashboard_data_api(request):
         avg_value=Avg('value')
     ).order_by('-avg_value')[:5]
     
+    # Para amostras compostas, calcular média por propriedade
     composite_averages = CompositeSampleResult.objects.filter(
         composite_sample__date__gte=thirty_days_ago.date(),
         status='APPROVED'
@@ -508,24 +511,25 @@ def dashboard_data_api(request):
         'totals': {
             'spot_analyses': SpotAnalysis.objects.count(),
             'composite_samples': CompositeSample.objects.count(),
+            # CONTAR AMOSTRAS REPROVADAS, NÃO ANÁLISES INDIVIDUAIS
             'total_rejections': SpotAnalysis.objects.filter(status='REJECTED').count() + 
-                              CompositeSampleResult.objects.filter(status='REJECTED').count(),
+                              CompositeSample.objects.filter(status='REJECTED').count(),
             'total_alerts': SpotAnalysis.objects.filter(status='ALERT').count() + 
-                          CompositeSampleResult.objects.filter(status='ALERT').count(),
+                          CompositeSample.objects.filter(status='ALERT').count(),
             'total_approved': SpotAnalysis.objects.filter(status='APPROVED').count() + 
-                            CompositeSampleResult.objects.filter(status='APPROVED').count(),
+                            CompositeSample.objects.filter(status='APPROVED').count(),
             'today_rejections': SpotAnalysis.objects.filter(
                 sample_time__date=timezone.now().date(),
                 status='REJECTED'
-            ).count() + CompositeSampleResult.objects.filter(
-                composite_sample__date=timezone.now().date(),
+            ).count() + CompositeSample.objects.filter(
+                date=timezone.now().date(),
                 status='REJECTED'
             ).count(),
             'today_alerts': SpotAnalysis.objects.filter(
                 sample_time__date=timezone.now().date(),
                 status='ALERT'
-            ).count() + CompositeSampleResult.objects.filter(
-                composite_sample__date=timezone.now().date(),
+            ).count() + CompositeSample.objects.filter(
+                date=timezone.now().date(),
                 status='ALERT'
             ).count()
         }
