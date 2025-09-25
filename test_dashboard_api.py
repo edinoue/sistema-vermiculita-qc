@@ -5,100 +5,50 @@ Script para testar a API do dashboard
 
 import os
 import sys
-import django
+import requests
 import json
 
-# Configurar Django
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'vermiculita_system.settings')
-django.setup()
+print("🔍 TESTANDO API DO DASHBOARD")
+print("=" * 50)
 
-from django.test import Client
-from django.contrib.auth.models import User
-
-def test_dashboard_api():
-    """Testar a API do dashboard"""
+try:
+    # Testar a API do dashboard
+    response = requests.get('http://localhost:8000/qc/dashboard-data/')
     
-    print("🔍 TESTANDO API DO DASHBOARD")
-    print("=" * 60)
-    
-    try:
-        # 1. Criar cliente de teste
-        client = Client()
+    if response.status_code == 200:
+        data = response.json()
+        print("✅ API respondeu com sucesso!")
         
-        # 2. Criar usuário de teste (se não existir)
-        user, created = User.objects.get_or_create(
-            username='testuser',
-            defaults={'email': 'test@example.com', 'is_staff': True}
-        )
-        if created:
-            user.set_password('testpass')
-            user.save()
-            print("   ✅ Usuário de teste criado")
-        else:
-            print("   ✅ Usuário de teste já existe")
-        
-        # 3. Fazer login
-        login_success = client.login(username='testuser', password='testpass')
-        if login_success:
-            print("   ✅ Login realizado com sucesso")
-        else:
-            print("   ❌ Falha no login")
-            return
-        
-        # 4. Testar API do dashboard
-        print("\n4. TESTANDO API DO DASHBOARD:")
-        response = client.get('/qc/dashboard-data/')
-        
-        if response.status_code == 200:
-            print("   ✅ API respondeu com sucesso")
+        if data.get('success'):
+            totals = data.get('totals', {})
             
-            try:
-                data = response.json()
-                print(f"   ✅ JSON válido: {data.get('success', False)}")
-                
-                if data.get('success'):
-                    totals = data.get('totals', {})
-                    print(f"\n   DADOS RETORNADOS:")
-                    print(f"   - Total análises pontuais: {totals.get('spot_analyses', 0)}")
-                    print(f"   - Total amostras compostas: {totals.get('composite_samples', 0)}")
-                    print(f"   - Total reprovações: {totals.get('total_rejections', 0)}")
-                    print(f"   - Total alertas: {totals.get('total_alerts', 0)}")
-                    print(f"   - Total aprovadas: {totals.get('total_approved', 0)}")
-                    print(f"   - Reprovações hoje: {totals.get('today_rejections', 0)}")
-                    print(f"   - Alertas hoje: {totals.get('today_alerts', 0)}")
-                    
-                    # Verificar se há dados de reprovação
-                    if totals.get('total_rejections', 0) == 0:
-                        print("\n   ⚠️  PROBLEMA: API retorna 0 reprovações")
-                        print("   - Verifique se há análises com status 'REJECTED'")
-                        print("   - Verifique se a API está contando corretamente")
-                    else:
-                        print(f"\n   ✅ API retorna {totals.get('total_rejections', 0)} reprovações")
-                        
-                else:
-                    print("   ❌ API retornou success=False")
-                    
-            except json.JSONDecodeError as e:
-                print(f"   ❌ Erro ao decodificar JSON: {e}")
-                print(f"   Resposta: {response.content[:200]}...")
+            print(f"\n📊 DADOS DO DASHBOARD:")
+            print(f"   Total análises pontuais: {totals.get('spot_analyses', 0)}")
+            print(f"   Total amostras compostas: {totals.get('composite_samples', 0)}")
+            print(f"   Total reprovações: {totals.get('total_rejections', 0)}")
+            print(f"   Total alertas: {totals.get('total_alerts', 0)}")
+            print(f"   Total aprovadas: {totals.get('total_approved', 0)}")
+            print(f"   Reprovações hoje: {totals.get('today_rejections', 0)}")
+            print(f"   Alertas hoje: {totals.get('today_alerts', 0)}")
+            
+            # Verificar se os dados estão corretos
+            if totals.get('total_rejections', 0) > 0:
+                print("\n✅ O dashboard deveria mostrar reprovações!")
+            else:
+                print("\n❌ O dashboard não tem reprovações para mostrar")
+                print("💡 Isso pode ser o problema - não há dados de reprovação")
+            
         else:
-            print(f"   ❌ API retornou status {response.status_code}")
-            print(f"   Resposta: {response.content[:200]}...")
+            print("❌ API retornou success=False")
+            print(f"Resposta: {data}")
+    else:
+        print(f"❌ Erro na API: {response.status_code}")
+        print(f"Resposta: {response.text}")
         
-        # 5. Testar URL alternativa
-        print("\n5. TESTANDO URL ALTERNATIVA:")
-        response_alt = client.get('/qc/dashboard-data/')
-        
-        if response_alt.status_code == 200:
-            print("   ✅ URL alternativa funciona")
-        else:
-            print(f"   ❌ URL alternativa falhou: {response_alt.status_code}")
-        
-    except Exception as e:
-        print(f"   ❌ ERRO: {e}")
-        import traceback
-        traceback.print_exc()
+except requests.exceptions.ConnectionError:
+    print("❌ Não foi possível conectar ao servidor")
+    print("💡 Certifique-se de que o servidor está rodando em http://localhost:8000")
+except Exception as e:
+    print(f"❌ Erro: {e}")
 
-if __name__ == '__main__':
-    test_dashboard_api()
-
+print("\n" + "="*50)
