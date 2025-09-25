@@ -117,6 +117,10 @@ def composite_sample_create(request):
                         print(f"DEBUG: Erro ao criar resultado para {property.identifier}: {e}")
                         messages.error(request, f'Erro ao salvar {property.name}: {str(e)}')
             
+            # Atualizar o status geral da amostra composta
+            sample.update_status()
+            print(f"DEBUG: Status geral da amostra atualizado para: {sample.status}")
+            
             messages.success(request, 'Amostra composta criada com sucesso!')
             return redirect('quality_control:composite_sample_detail', sample_id=sample.id)
             

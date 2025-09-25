@@ -259,6 +259,29 @@ class CompositeSample(AuditModel):
     
     def __str__(self):
         return f"{self.date} - {self.shift} - {self.production_line} - {self.product.code}"
+    
+    def calculate_overall_status(self):
+        """Calcula o status geral baseado nos resultados"""
+        results = CompositeSampleResult.objects.filter(composite_sample=self)
+        
+        if not results.exists():
+            return 'APPROVED'  # Se não há resultados, considerar aprovado
+        
+        # Se qualquer resultado for rejeitado, a amostra é rejeitada
+        if results.filter(status='REJECTED').exists():
+            return 'REJECTED'
+        
+        # Se qualquer resultado for alerta, a amostra é alerta (se implementado)
+        if results.filter(status='ALERT').exists():
+            return 'ALERT'
+        
+        # Se todos os resultados são aprovados, a amostra é aprovada
+        return 'APPROVED'
+    
+    def update_status(self):
+        """Atualiza o status da amostra baseado nos resultados"""
+        self.status = self.calculate_overall_status()
+        self.save(update_fields=['status'])
 
 
 class CompositeSampleResult(AuditModel):
@@ -292,6 +315,9 @@ class CompositeSampleResult(AuditModel):
         # Sempre recalcular o status baseado nas especificações
         self.status = self.calculate_status()
         super().save(*args, **kwargs)
+        
+        # Atualizar o status da amostra composta
+        self.composite_sample.update_status()
     
     def calculate_status(self):
         """Calcula o status baseado nas especificações"""
