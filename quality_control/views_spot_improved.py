@@ -134,6 +134,7 @@ def spot_analysis_edit_improved(request, analysis_id):
                 is_active=True,
                 analysistypeproperty__analysis_type=analysis_type
             ).order_by('display_order')
+            
             for property in properties:
                 value_key = f'property_{property.id}_value'
                 method_key = f'property_{property.id}_method'

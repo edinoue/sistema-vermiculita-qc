@@ -48,6 +48,7 @@ def spot_analysis_create_fixed(request):
                 is_active=True,
                 analysistypeproperty__analysis_type=analysis_type
             ).order_by('display_order')
+            
             for property in properties:
                 value_key = f'property_{property.id}_value'
                 method_key = f'property_{property.id}_method'
