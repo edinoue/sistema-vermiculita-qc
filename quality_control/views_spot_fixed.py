@@ -66,8 +66,8 @@ def spot_analysis_create_fixed(request):
                         property=property,
                         value=request.POST[value_key],
                         unit=property.unit,
-                        test_method=request.POST.get(method_key, property.test_method),
-                        status='PENDENTE'
+                        test_method=request.POST.get(method_key, property.test_method)
+                        # Status será calculado automaticamente pelo método save()
                     )
             
             messages.success(request, 'Análise pontual criada com sucesso!')

@@ -68,8 +68,8 @@ def spot_analysis_create_improved(request):
                             property=property,
                             value=value,
                             unit=property.unit,
-                            test_method=test_method,
-                            status='APPROVED'  # Status será calculado automaticamente
+                            test_method=test_method
+                            # Status será calculado automaticamente pelo método save()
                         )
                         
                         # O status será calculado automaticamente pelo método save() do modelo

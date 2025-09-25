@@ -203,8 +203,8 @@ class SpotAnalysis(AuditModel):
     
     def save(self, *args, **kwargs):
         """Calcula o status automaticamente baseado nas especificações"""
-        if not self.status:
-            self.status = self.calculate_status()
+        # Sempre recalcular o status baseado nas especificações
+        self.status = self.calculate_status()
         super().save(*args, **kwargs)
     
     def calculate_status(self):
@@ -289,8 +289,8 @@ class CompositeSampleResult(AuditModel):
     
     def save(self, *args, **kwargs):
         """Calcula o status automaticamente baseado nas especificações"""
-        if not self.status or self.status == 'APPROVED':
-            self.status = self.calculate_status()
+        # Sempre recalcular o status baseado nas especificações
+        self.status = self.calculate_status()
         super().save(*args, **kwargs)
     
     def calculate_status(self):
