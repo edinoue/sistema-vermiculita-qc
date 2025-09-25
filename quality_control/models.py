@@ -203,9 +203,16 @@ class SpotAnalysis(AuditModel):
     
     def save(self, *args, **kwargs):
         """Calcula o status automaticamente baseado nas especificações"""
-        # Sempre recalcular o status baseado nas especificações
-        self.status = self.calculate_status()
+        # Só recalcular o status se não foi definido manualmente
+        # Verificar se o status foi definido explicitamente
+        if not hasattr(self, '_status_manually_set'):
+            self.status = self.calculate_status()
         super().save(*args, **kwargs)
+    
+    def set_status_manually(self, status):
+        """Define o status manualmente, evitando recálculo automático"""
+        self.status = status
+        self._status_manually_set = True
     
     def calculate_status(self):
         """Calcula o status baseado nas especificações"""
