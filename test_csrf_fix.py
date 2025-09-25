@@ -73,3 +73,4 @@ def test_csrf_fix():
 
 if __name__ == '__main__':
     test_csrf_fix()
+

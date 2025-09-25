@@ -116,3 +116,4 @@ class ImportError(models.Model):
     
     def __str__(self):
         return f"Erro na linha {self.row_number}: {self.error_message[:50]}..."
+

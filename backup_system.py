@@ -229,3 +229,4 @@ if __name__ == '__main__':
         print("   - Use para restaurar dados após deploy")
     else:
         print("\n❌ BACKUP FALHOU")
+

@@ -37,3 +37,4 @@ ALTERNATIVAS DE CONSTRAINT:
 
 RECOMENDAÇÃO: Use SEM CONSTRAINT para máxima flexibilidade
 """)
+

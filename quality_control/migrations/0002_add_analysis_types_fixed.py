@@ -61,3 +61,4 @@ class Migration(migrations.Migration):
             unique_together={('analysis_type', 'date', 'shift', 'production_line', 'product', 'property', 'sequence')},
         ),
     ]
+

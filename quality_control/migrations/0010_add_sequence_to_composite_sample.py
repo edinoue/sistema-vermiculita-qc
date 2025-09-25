@@ -16,3 +16,4 @@ class Migration(migrations.Migration):
             field=models.PositiveIntegerField(default=1, help_text='Número sequencial da amostra no dia', verbose_name='Sequência'),
         ),
     ]
+

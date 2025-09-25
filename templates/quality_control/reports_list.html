@@ -1,133 +1,64 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Relatórios - Sistema de Controle de Qualidade{% endblock %}
+{% block title %}Relatórios - Brasil Minérios{% endblock %}
 
 {% block extra_css %}
 <style>
     .reports-header {
-        background: linear-gradient(135deg, #2c5530, #4a7c59);
+        background: linear-gradient(135deg, #28a745, #20c997);
         color: white;
-        padding: 2rem;
-        border-radius: 15px;
+        padding: 2rem 0;
         margin-bottom: 2rem;
-        text-align: center;
-    }
-    
-    .reports-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 2rem;
-        margin-bottom: 2rem;
+        border-radius: 0 0 20px 20px;
     }
     
     .report-card {
         background: white;
-        border-radius: 15px;
-        padding: 2rem;
+        border-radius: 12px;
+        padding: 1.5rem;
         box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        margin-bottom: 1.5rem;
         transition: all 0.3s ease;
-        border: none;
     }
     
     .report-card:hover {
-        transform: translateY(-5px);
+        transform: translateY(-3px);
         box-shadow: 0 8px 15px rgba(0,0,0,0.15);
     }
     
     .report-icon {
-        font-size: 3rem;
-        color: #2c5530;
-        margin-bottom: 1rem;
-    }
-    
-    .report-title {
-        font-size: 1.25rem;
-        font-weight: 600;
-        color: #2c5530;
-        margin-bottom: 0.5rem;
-    }
-    
-    .report-description {
-        color: #6c757d;
-        margin-bottom: 1.5rem;
-        line-height: 1.5;
-    }
-    
-    .report-actions {
+        width: 60px;
+        height: 60px;
+        border-radius: 12px;
         display: flex;
-        gap: 0.5rem;
-        flex-wrap: wrap;
-    }
-    
-    .btn-report {
-        background: #2c5530;
-        border: none;
-        color: white;
-        border-radius: 8px;
-        padding: 8px 16px;
-        font-weight: 600;
-        font-size: 0.9rem;
-        transition: all 0.3s ease;
-        text-decoration: none;
-        display: inline-flex;
         align-items: center;
-        gap: 0.5rem;
-    }
-    
-    .btn-report:hover {
-        background: #1e3a21;
+        justify-content: center;
+        font-size: 1.5rem;
         color: white;
-        transform: translateY(-1px);
+        margin-right: 1rem;
     }
     
-    .btn-report.secondary {
-        background: #6c757d;
+    .report-icon.monthly {
+        background: linear-gradient(135deg, #007bff, #0056b3);
     }
     
-    .btn-report.secondary:hover {
-        background: #5a6268;
+    .report-icon.products {
+        background: linear-gradient(135deg, #28a745, #20c997);
     }
     
-    .stats-section {
-        background: white;
-        border-radius: 15px;
-        padding: 2rem;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        margin-bottom: 2rem;
+    .report-icon.quality {
+        background: linear-gradient(135deg, #ffc107, #e0a800);
     }
     
-    .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 1.5rem;
-        margin-bottom: 2rem;
-    }
-    
-    .stat-item {
-        text-align: center;
-        padding: 1.5rem;
-        background: #f8f9fa;
-        border-radius: 10px;
-        border-left: 4px solid #2c5530;
-    }
-    
-    .stat-number {
-        font-size: 2rem;
-        font-weight: bold;
-        color: #2c5530;
-        margin-bottom: 0.5rem;
-    }
-    
-    .stat-label {
-        color: #6c757d;
-        font-size: 0.9rem;
+    .report-icon.export {
+        background: linear-gradient(135deg, #17a2b8, #138496);
     }
     
     .chart-container {
         background: white;
-        border-radius: 15px;
-        padding: 2rem;
+        border-radius: 12px;
+        padding: 1.5rem;
         box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         margin-bottom: 2rem;
     }
@@ -135,310 +66,290 @@
     .chart-title {
         font-size: 1.25rem;
         font-weight: 600;
-        color: #2c5530;
-        margin-bottom: 1.5rem;
+        color: #495057;
+        margin-bottom: 1rem;
         display: flex;
         align-items: center;
         gap: 0.5rem;
     }
     
-    .top-products {
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+    
+    .stat-card {
         background: white;
-        border-radius: 15px;
-        padding: 2rem;
+        border-radius: 12px;
+        padding: 1.5rem;
+        text-align: center;
         box-shadow: 0 4px 6px rgba(0,0,0,0.1);
     }
     
-    .product-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 1rem;
-        border-bottom: 1px solid #e9ecef;
-        transition: background-color 0.3s ease;
+    .stat-number {
+        font-size: 2rem;
+        font-weight: bold;
+        color: #28a745;
+        margin-bottom: 0.5rem;
     }
     
-    .product-item:hover {
-        background-color: #f8f9fa;
-    }
-    
-    .product-item:last-child {
-        border-bottom: none;
-    }
-    
-    .product-name {
-        font-weight: 600;
-        color: #2c5530;
-    }
-    
-    .product-count {
-        background: #2c5530;
-        color: white;
-        padding: 0.25rem 0.75rem;
-        border-radius: 20px;
-        font-size: 0.8rem;
-        font-weight: 600;
-    }
-    
-    .empty-state {
-        text-align: center;
-        padding: 3rem;
+    .stat-label {
         color: #6c757d;
+        font-weight: 500;
     }
     
-    .empty-state i {
-        font-size: 3rem;
-        margin-bottom: 1rem;
-        color: #dee2e6;
+    .export-section {
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
     }
     
-    .loading {
-        display: none;
-        text-align: center;
-        padding: 2rem;
+    .export-btn {
+        border-radius: 8px;
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        margin-right: 1rem;
+        margin-bottom: 0.5rem;
+        transition: all 0.3s ease;
     }
     
-    .loading.show {
-        display: block;
-    }
-    
-    .spinner {
-        border: 4px solid #f3f3f3;
-        border-top: 4px solid #2c5530;
-        border-radius: 50%;
-        width: 40px;
-        height: 40px;
-        animation: spin 1s linear infinite;
-        margin: 0 auto 1rem;
-    }
-    
-    @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
+    .export-btn:hover {
+        transform: translateY(-2px);
     }
     
     @media (max-width: 768px) {
         .reports-header {
-            padding: 1rem;
-        }
-        
-        .reports-grid {
-            grid-template-columns: 1fr;
-            gap: 1rem;
+            padding: 1rem 0;
         }
         
         .report-card {
-            padding: 1.5rem;
+            padding: 1rem;
         }
         
-        .stats-grid {
-            grid-template-columns: repeat(2, 1fr);
+        .report-icon {
+            width: 50px;
+            height: 50px;
+            font-size: 1.25rem;
         }
         
-        .report-actions {
-            flex-direction: column;
-        }
-        
-        .btn-report {
-            justify-content: center;
+        .export-btn {
+            width: 100%;
+            margin-right: 0;
         }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <!-- Header -->
+<!-- Header dos Relatórios -->
 <div class="reports-header">
-        <h2 class="mb-2">
-            <i class="bi bi-file-earmark-text"></i> Relatórios e Laudos
-        </h2>
-        <p class="mb-0">Geração de relatórios e laudos de qualidade</p>
+    <div class="container-fluid">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="h2 mb-2">
+                    <i class="fas fa-chart-bar"></i>
+                    Relatórios e Análises
+                </h1>
+                <p class="mb-0 opacity-75">
+                    Visualize dados, gere relatórios e exporte informações do sistema
+                </p>
+            </div>
+            <div class="col-md-4 text-md-end">
+                <a href="{% url 'quality_control:dashboard' %}" class="btn btn-light">
+                    <i class="fas fa-arrow-left"></i> Voltar ao Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
 </div>
 
+<div class="container-fluid">
     <!-- Estatísticas Gerais -->
-    <div class="stats-section">
-        <h5 class="mb-3">
-            <i class="bi bi-graph-up"></i> Estatísticas Gerais
-        </h5>
-        
     <div class="stats-grid">
-            <div class="stat-item">
+        <div class="stat-card">
             <div class="stat-number">{{ total_analyses }}</div>
             <div class="stat-label">Total de Análises</div>
         </div>
-            <div class="stat-item">
+        <div class="stat-card">
             <div class="stat-number">{{ analyses_by_month|length }}</div>
             <div class="stat-label">Meses com Dados</div>
         </div>
-            <div class="stat-item">
+        <div class="stat-card">
             <div class="stat-number">{{ top_products|length }}</div>
             <div class="stat-label">Produtos Analisados</div>
         </div>
+        <div class="stat-card">
+            <div class="stat-number">100%</div>
+            <div class="stat-label">Disponibilidade</div>
         </div>
     </div>
     
-    <!-- Relatórios Disponíveis -->
-    <div class="reports-grid">
-        <!-- Relatório de Análises por Período -->
-        <div class="report-card">
-            <div class="report-icon">
-                <i class="bi bi-calendar-range"></i>
-            </div>
-            <div class="report-title">Análises por Período</div>
-            <div class="report-description">
-                Relatório detalhado das análises realizadas em um período específico, 
-                com estatísticas e gráficos de tendência.
-            </div>
-            <div class="report-actions">
-                <button class="btn btn-report" onclick="generatePeriodReport()">
-                    <i class="bi bi-file-earmark-pdf"></i> Gerar PDF
-                </button>
-                <button class="btn btn-report secondary" onclick="exportPeriodData()">
-                    <i class="bi bi-download"></i> Exportar Excel
-                </button>
-            </div>
-        </div>
+    <!-- Seção de Exportação -->
+    <div class="export-section">
+        <h4 class="mb-3">
+            <i class="fas fa-download"></i>
+            Exportar Dados
+        </h4>
+        <p class="text-muted mb-3">
+            Exporte dados do sistema em diferentes formatos para análise externa.
+        </p>
         
-        <!-- Relatório por Produto -->
-        <div class="report-card">
-            <div class="report-icon">
-                <i class="bi bi-box"></i>
-            </div>
-            <div class="report-title">Análises por Produto</div>
-            <div class="report-description">
-                Relatório específico para um produto, incluindo análises pontuais, 
-                amostras compostas e laudos de qualidade.
-            </div>
-            <div class="report-actions">
-                <button class="btn btn-report" onclick="generateProductReport()">
-                    <i class="bi bi-file-earmark-pdf"></i> Gerar PDF
+        <div class="row">
+            <div class="col-md-6">
+                <button class="btn btn-success export-btn" onclick="exportData('excel')">
+                    <i class="fas fa-file-excel"></i>
+                    Exportar para Excel
                 </button>
-                <button class="btn btn-report secondary" onclick="exportProductData()">
-                    <i class="bi bi-download"></i> Exportar Excel
+                <button class="btn btn-danger export-btn" onclick="exportData('pdf')">
+                    <i class="fas fa-file-pdf"></i>
+                    Exportar para PDF
                 </button>
-        </div>
-    </div>
-    
-        <!-- Laudo de Qualidade -->
-            <div class="report-card">
-            <div class="report-icon">
-                <i class="bi bi-award"></i>
             </div>
-            <div class="report-title">Laudo de Qualidade</div>
-            <div class="report-description">
-                Geração de laudos oficiais de qualidade para clientes, 
-                com dados das análises e especificações do produto.
-                    </div>
-            <div class="report-actions">
-                <button class="btn btn-report" onclick="generateQualityReport()">
-                    <i class="bi bi-file-earmark-pdf"></i> Gerar Laudo
+            <div class="col-md-6">
+                <button class="btn btn-info export-btn" onclick="exportData('csv')">
+                    <i class="fas fa-file-csv"></i>
+                    Exportar para CSV
                 </button>
-                <button class="btn btn-report secondary" onclick="previewQualityReport()">
-                    <i class="bi bi-eye"></i> Visualizar
-                        </button>
-            </div>
-        </div>
-        
-        <!-- Relatório Estatístico -->
-            <div class="report-card">
-            <div class="report-icon">
-                <i class="bi bi-graph-up-arrow"></i>
-            </div>
-            <div class="report-title">Análise Estatística</div>
-            <div class="report-description">
-                Relatório com análises estatísticas avançadas, cartas de controle 
-                e indicadores de capabilidade (Cp/Cpk).
-                    </div>
-            <div class="report-actions">
-                <button class="btn btn-report" onclick="generateStatisticalReport()">
-                    <i class="bi bi-file-earmark-pdf"></i> Gerar PDF
+                <button class="btn btn-warning export-btn" onclick="exportData('json')">
+                    <i class="fas fa-file-code"></i>
+                    Exportar JSON
                 </button>
-                <button class="btn btn-report secondary" onclick="viewControlCharts()">
-                    <i class="bi bi-graph-up"></i> Cartas de Controle
-                        </button>
-            </div>
-        </div>
-        
-        <!-- Exportação de Dados -->
-            <div class="report-card">
-            <div class="report-icon">
-                <i class="bi bi-database"></i>
-            </div>
-            <div class="report-title">Exportação de Dados</div>
-            <div class="report-description">
-                Exportação completa dos dados do sistema em diferentes formatos 
-                para análise externa ou backup.
-                    </div>
-            <div class="report-actions">
-                <button class="btn btn-report" onclick="exportAllData()">
-                    <i class="bi bi-download"></i> Exportar Tudo
-                </button>
-                <button class="btn btn-report secondary" onclick="scheduleExport()">
-                    <i class="bi bi-clock"></i> Agendar
-                        </button>
-            </div>
-        </div>
-        
-        <!-- Relatório de Não Conformidades -->
-            <div class="report-card">
-            <div class="report-icon">
-                <i class="bi bi-exclamation-triangle"></i>
-            </div>
-            <div class="report-title">Não Conformidades</div>
-            <div class="report-description">
-                Relatório de análises que não atenderam às especificações, 
-                com ações corretivas e análise de causas.
-                    </div>
-            <div class="report-actions">
-                <button class="btn btn-report" onclick="generateNonConformityReport()">
-                    <i class="bi bi-file-earmark-pdf"></i> Gerar PDF
-                </button>
-                <button class="btn btn-report secondary" onclick="viewNonConformities()">
-                    <i class="bi bi-list-ul"></i> Visualizar
-                        </button>
             </div>
         </div>
     </div>
     
+    <!-- Tipos de Relatórios -->
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="report-card">
+                <div class="d-flex align-items-center">
+                    <div class="report-icon monthly">
+                        <i class="fas fa-calendar-alt"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                        <h5 class="mb-1">Relatório Mensal</h5>
+                        <p class="text-muted mb-2">Análise completa das atividades do mês</p>
+                        <button class="btn btn-primary btn-sm" onclick="generateReport('monthly')">
+                            <i class="fas fa-chart-line"></i>
+                            Gerar Relatório
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-6">
+            <div class="report-card">
+                <div class="d-flex align-items-center">
+                    <div class="report-icon products">
+                        <i class="fas fa-box"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                        <h5 class="mb-1">Relatório por Produto</h5>
+                        <p class="text-muted mb-2">Análises detalhadas por produto</p>
+                        <button class="btn btn-success btn-sm" onclick="generateReport('products')">
+                            <i class="fas fa-chart-pie"></i>
+                            Gerar Relatório
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-6">
+            <div class="report-card">
+                <div class="d-flex align-items-center">
+                    <div class="report-icon quality">
+                        <i class="fas fa-award"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                        <h5 class="mb-1">Relatório de Qualidade</h5>
+                        <p class="text-muted mb-2">Indicadores de qualidade e conformidade</p>
+                        <button class="btn btn-warning btn-sm" onclick="generateReport('quality')">
+                            <i class="fas fa-medal"></i>
+                            Gerar Relatório
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-6">
+            <div class="report-card">
+                <div class="d-flex align-items-center">
+                    <div class="report-icon export">
+                        <i class="fas fa-shipping-fast"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                        <h5 class="mb-1">Relatório de Expedição</h5>
+                        <p class="text-muted mb-2">Dados de carregamento e expedição</p>
+                        <button class="btn btn-info btn-sm" onclick="generateReport('shipping')">
+                            <i class="fas fa-truck"></i>
+                            Gerar Relatório
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
         <!-- Gráfico de Análises por Mês -->
+        <div class="col-lg-8">
             <div class="chart-container">
                 <div class="chart-title">
-            <i class="bi bi-bar-chart"></i>
-            Análises por Mês (Últimos 12 meses)
+                    <i class="fas fa-chart-line"></i>
+                    Análises por Mês
                 </div>
                 <canvas id="monthlyChart" height="300"></canvas>
+            </div>
         </div>
         
         <!-- Top Produtos -->
-    <div class="top-products">
+        <div class="col-lg-4">
+            <div class="chart-container">
                 <div class="chart-title">
-            <i class="bi bi-trophy"></i>
+                    <i class="fas fa-trophy"></i>
                     Produtos Mais Analisados
                 </div>
                 
-        {% if top_products %}
-        <div class="product-list">
                 {% for product in top_products %}
-            <div class="product-item">
-                <div class="product-name">{{ product.product__name }}</div>
-                <div class="product-count">{{ product.count }} análises</div>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <strong>{{ product.product__name }}</strong>
+                        <br>
+                        <small class="text-muted">{{ product.product__code }}</small>
+                    </div>
+                    <div class="text-end">
+                        <span class="badge bg-primary">{{ product.count }}</span>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center py-4">
+                    <i class="fas fa-inbox fa-2x text-muted mb-2"></i>
+                    <p class="text-muted">Nenhum dado disponível</p>
                 </div>
                 {% endfor %}
             </div>
-        {% else %}
-        <div class="empty-state">
-            <i class="bi bi-inbox"></i>
-            <h5>Nenhum dado disponível</h5>
-            <p>Não há análises suficientes para gerar estatísticas.</p>
         </div>
-        {% endif %}
+    </div>
 </div>
 
-    <!-- Loading -->
-    <div class="loading" id="loading">
-        <div class="spinner"></div>
-        <p>Gerando relatório...</p>
+<!-- Modal de Loading -->
+<div class="modal fade" id="loadingModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body text-center py-4">
+                <div class="spinner-border text-primary mb-3" role="status">
+                    <span class="visually-hidden">Carregando...</span>
+                </div>
+                <h5>Gerando Relatório</h5>
+                <p class="text-muted">Por favor, aguarde...</p>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}
@@ -461,17 +372,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 {{ item.count }}{% if not forloop.last %},{% endif %}
                 {% endfor %}
             ],
-            backgroundColor: 'rgba(44, 85, 48, 0.1)',
-            borderColor: '#2c5530',
-            borderWidth: 2,
+            backgroundColor: 'rgba(40, 167, 69, 0.1)',
+            borderColor: '#28a745',
+            borderWidth: 3,
             fill: true,
             tension: 0.4
         }]
     };
     
-    // Configuração do gráfico
-    const ctx = document.getElementById('monthlyChart').getContext('2d');
-    new Chart(ctx, {
+    // Gráfico de linha mensal
+    const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
+    new Chart(monthlyCtx, {
         type: 'line',
         data: monthlyData,
         options: {
@@ -479,15 +390,7 @@ document.addEventListener('DOMContentLoaded', function() {
             maintainAspectRatio: false,
             scales: {
                 y: {
-                    beginAtZero: true,
-                    grid: {
-                        color: 'rgba(0,0,0,0.1)'
-                    }
-                },
-                x: {
-                    grid: {
-                        color: 'rgba(0,0,0,0.1)'
-                    }
+                    beginAtZero: true
                 }
             },
             plugins: {
@@ -498,98 +401,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    // Funções dos botões de relatório
-    window.generatePeriodReport = function() {
-        showLoading();
-        // Simular geração de relatório
-        setTimeout(() => {
-            hideLoading();
-            alert('Relatório de período gerado com sucesso!');
-        }, 2000);
-    };
-    
-    window.exportPeriodData = function() {
-        showLoading();
-        setTimeout(() => {
-            hideLoading();
-            alert('Dados exportados para Excel!');
-        }, 1500);
-    };
-    
-    window.generateProductReport = function() {
-        showLoading();
-        setTimeout(() => {
-            hideLoading();
-            alert('Relatório por produto gerado!');
-        }, 2000);
-    };
-    
-    window.exportProductData = function() {
-        showLoading();
-        setTimeout(() => {
-            hideLoading();
-            alert('Dados do produto exportados!');
-        }, 1500);
-    };
-    
-    window.generateQualityReport = function() {
-        showLoading();
-        setTimeout(() => {
-            hideLoading();
-            alert('Laudo de qualidade gerado!');
-        }, 2500);
-    };
-    
-    window.previewQualityReport = function() {
-        alert('Visualização do laudo em desenvolvimento...');
-    };
-    
-    window.generateStatisticalReport = function() {
-        showLoading();
-        setTimeout(() => {
-            hideLoading();
-            alert('Relatório estatístico gerado!');
-        }, 3000);
-    };
-    
-    window.viewControlCharts = function() {
-        alert('Cartas de controle em desenvolvimento...');
-    };
-    
-    window.exportAllData = function() {
-        showLoading();
-        setTimeout(() => {
-            hideLoading();
-            alert('Todos os dados exportados!');
-        }, 4000);
-    };
-    
-    window.scheduleExport = function() {
-        alert('Agendamento de exportação em desenvolvimento...');
-    };
-    
-    window.generateNonConformityReport = function() {
-        showLoading();
-        setTimeout(() => {
-            hideLoading();
-            alert('Relatório de não conformidades gerado!');
-        }, 2000);
-    };
-    
-    window.viewNonConformities = function() {
-        alert('Visualização de não conformidades em desenvolvimento...');
-    };
-    
-    function showLoading() {
-        document.getElementById('loading').classList.add('show');
-    }
-    
-    function hideLoading() {
-        document.getElementById('loading').classList.remove('show');
-    }
-    
-    // Animação de entrada
-    const cards = document.querySelectorAll('.report-card, .stats-section, .chart-container, .top-products');
+    // Animação dos cards
+    const cards = document.querySelectorAll('.report-card, .chart-container, .stat-card');
     cards.forEach((card, index) => {
         card.style.opacity = '0';
         card.style.transform = 'translateY(20px)';
@@ -600,8 +413,131 @@ document.addEventListener('DOMContentLoaded', function() {
             card.style.transform = 'translateY(0)';
         }, index * 100);
     });
-    
-    console.log('📊 Página de relatórios carregada com sucesso!');
 });
+
+function generateReport(type) {
+    const modal = new bootstrap.Modal(document.getElementById('loadingModal'));
+    modal.show();
+    
+    // Simular geração de relatório
+    setTimeout(() => {
+        modal.hide();
+        
+        // Criar um blob com dados simulados
+        const reportData = `Relatório ${type.toUpperCase()}\n\nGerado em: ${new Date().toLocaleString('pt-BR')}\n\nDados do sistema Brasil Minérios\n\nTotal de análises: {{ total_analyses }}\nProdutos analisados: {{ top_products|length }}\n\nEste é um relatório de demonstração.`;
+        
+        const blob = new Blob([reportData], { type: 'text/plain' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `relatorio_${type}_${new Date().toISOString().slice(0, 10)}.txt`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+        
+        // Mostrar mensagem de sucesso
+        const toast = document.createElement('div');
+        toast.className = 'toast align-items-center text-white bg-success border-0 position-fixed top-0 end-0 m-3';
+        toast.style.zIndex = '9999';
+        toast.innerHTML = `
+            <div class="d-flex">
+                <div class="toast-body">
+                    <i class="fas fa-check-circle me-2"></i>
+                    Relatório ${type} gerado com sucesso!
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        `;
+        document.body.appendChild(toast);
+        
+        const bsToast = new bootstrap.Toast(toast);
+        bsToast.show();
+        
+        setTimeout(() => {
+            document.body.removeChild(toast);
+        }, 5000);
+        
+    }, 2000);
+}
+
+function exportData(format) {
+    const modal = new bootstrap.Modal(document.getElementById('loadingModal'));
+    modal.show();
+    
+    // Simular exportação
+    setTimeout(() => {
+        modal.hide();
+        
+        let mimeType, extension, data;
+        
+        switch(format) {
+            case 'excel':
+                mimeType = 'application/vnd.ms-excel';
+                extension = 'xls';
+                data = 'Dados exportados para Excel\nProduto,Análises\n{% for product in top_products %}{{ product.product__name }},{{ product.count }}\n{% endfor %}';
+                break;
+            case 'csv':
+                mimeType = 'text/csv';
+                extension = 'csv';
+                data = 'Produto,Análises\n{% for product in top_products %}{{ product.product__name }},{{ product.count }}\n{% endfor %}';
+                break;
+            case 'json':
+                mimeType = 'application/json';
+                extension = 'json';
+                data = JSON.stringify({
+                    total_analyses: {{ total_analyses }},
+                    export_date: new Date().toISOString(),
+                    products: [
+                        {% for product in top_products %}
+                        {
+                            name: '{{ product.product__name }}',
+                            code: '{{ product.product__code }}',
+                            count: {{ product.count }}
+                        }{% if not forloop.last %},{% endif %}
+                        {% endfor %}
+                    ]
+                }, null, 2);
+                break;
+            default:
+                mimeType = 'application/pdf';
+                extension = 'pdf';
+                data = 'Dados exportados para PDF (simulação)';
+        }
+        
+        const blob = new Blob([data], { type: mimeType });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `dados_brasil_minerios_${new Date().toISOString().slice(0, 10)}.${extension}`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+        
+        // Mostrar mensagem de sucesso
+        const toast = document.createElement('div');
+        toast.className = 'toast align-items-center text-white bg-success border-0 position-fixed top-0 end-0 m-3';
+        toast.style.zIndex = '9999';
+        toast.innerHTML = `
+            <div class="d-flex">
+                <div class="toast-body">
+                    <i class="fas fa-download me-2"></i>
+                    Dados exportados em ${format.toUpperCase()}!
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        `;
+        document.body.appendChild(toast);
+        
+        const bsToast = new bootstrap.Toast(toast);
+        bsToast.show();
+        
+        setTimeout(() => {
+            document.body.removeChild(toast);
+        }, 5000);
+        
+    }, 1500);
+}
 </script>
 {% endblock %}

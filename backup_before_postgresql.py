@@ -200,3 +200,4 @@ if __name__ == '__main__':
     else:
         print(f"\n❌ BACKUP FALHOU")
         print(f"   Verifique os erros acima antes de continuar")
+

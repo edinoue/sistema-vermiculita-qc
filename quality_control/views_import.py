@@ -264,3 +264,4 @@ def create_template(request):
             messages.error(request, f'Erro ao criar template: {str(e)}')
     
     return render(request, 'quality_control/create_template.html')
+

@@ -43,3 +43,4 @@ def fix_unique_constraint():
 
 if __name__ == '__main__':
     fix_unique_constraint()
+

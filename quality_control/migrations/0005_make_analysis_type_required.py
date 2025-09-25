@@ -17,3 +17,4 @@ class Migration(migrations.Migration):
             field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='quality_control.analysistype', verbose_name='Tipo de Análise'),
         ),
     ]
+

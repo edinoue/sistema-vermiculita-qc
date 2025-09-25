@@ -196,3 +196,4 @@ def reports_list_view(request):
         'total_analyses': SpotAnalysis.objects.count(),
     }
     return render(request, 'quality_control/reports_list.html', context)
+

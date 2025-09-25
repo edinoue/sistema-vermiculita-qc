@@ -29,3 +29,4 @@ class Migration(migrations.Migration):
             options={'ordering': ['display_order', 'category', 'name'], 'verbose_name': 'Propriedade', 'verbose_name_plural': 'Propriedades'},
         ),
     ]
+

@@ -45,3 +45,4 @@ class Migration(migrations.Migration):
     operations = [
         migrations.RunPython(update_existing_analyses, reverse_update_existing_analyses),
     ]
+

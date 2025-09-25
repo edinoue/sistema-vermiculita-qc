@@ -41,3 +41,4 @@ def apply_dashboard_fix():
 
 if __name__ == '__main__':
     apply_dashboard_fix()
+

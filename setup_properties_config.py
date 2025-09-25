@@ -85,3 +85,4 @@ def setup_properties_config():
 
 if __name__ == '__main__':
     setup_properties_config()
+

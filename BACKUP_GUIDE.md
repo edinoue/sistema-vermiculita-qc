@@ -118,3 +118,4 @@ python deploy_safe_with_backup.py
 - ✅ **Configurar automaticamente** dados iniciais
 
 **Seus dados estão seguros!** 🛡️
+
