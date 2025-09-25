@@ -35,6 +35,10 @@
                             {{ sample.collection_time|time:"H:i" }}
                         </div>
                         <div class="col-md-3">
+                            <strong>Sequência:</strong><br>
+                            <span class="badge bg-info">#{{ sample.sequence }}</span>
+                        </div>
+                        <div class="col-md-3">
                             <strong>Produto:</strong><br>
                             <span class="badge bg-info">{{ sample.product.code }}</span>
                             {{ sample.product.name }}

@@ -59,6 +59,15 @@ def composite_sample_create(request):
             collection_time = request.POST.get('collection_time')
             observations = request.POST.get('observations', '')
             
+            # Calcular sequência para o dia
+            existing_samples = CompositeSample.objects.filter(
+                date=date,
+                shift_id=shift_id,
+                production_line_id=production_line_id,
+                product_id=product_id
+            ).count()
+            sequence = existing_samples + 1
+            
             # Criar amostra composta
             sample = CompositeSample.objects.create(
                 product_id=product_id,
@@ -67,7 +76,8 @@ def composite_sample_create(request):
                 date=date,
                 collection_time=collection_time,
                 observations=observations,
-                status='APPROVED'
+                status='APPROVED',
+                sequence=sequence
             )
             
             # Processar resultados das propriedades

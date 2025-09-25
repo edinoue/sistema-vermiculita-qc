@@ -240,6 +240,9 @@ class CompositeSample(AuditModel):
     production_line = models.ForeignKey(ProductionLine, on_delete=models.PROTECT, verbose_name='Linha de Produção')
     product = models.ForeignKey(Product, on_delete=models.PROTECT, verbose_name='Produto')
     
+    # Identificação adicional para permitir múltiplas amostras no mesmo dia
+    sequence = models.PositiveIntegerField('Sequência', default=1, help_text='Número sequencial da amostra no dia')
+    
     # Dados da coleta
     collection_time = models.DateTimeField('Horário da Coleta')
     quantity_produced = models.DecimalField('Quantidade Produzida (kg)', max_digits=10, decimal_places=2, null=True, blank=True)
@@ -255,7 +258,7 @@ class CompositeSample(AuditModel):
         verbose_name = 'Amostra Composta'
         verbose_name_plural = 'Amostras Compostas'
         ordering = ['-date', '-collection_time']
-        unique_together = [['date', 'shift', 'production_line', 'product']]
+        # Removido unique_together para permitir múltiplas amostras no mesmo dia
     
     def __str__(self):
         return f"{self.date} - {self.shift} - {self.production_line} - {self.product.code}"
