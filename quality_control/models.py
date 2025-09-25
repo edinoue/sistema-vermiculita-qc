@@ -196,7 +196,7 @@ class SpotAnalysis(AuditModel):
         verbose_name = 'Análise Pontual'
         verbose_name_plural = 'Análises Pontuais'
         ordering = ['-date', '-sample_time']
-        unique_together = [['analysis_type', 'date', 'shift', 'production_line', 'product', 'property', 'sequence']]
+        # Removido unique_together para permitir múltiplas análises da mesma propriedade
     
     def __str__(self):
         return f"{self.date} - {self.shift} - {self.production_line} - {self.property.identifier} #{self.sequence}"
