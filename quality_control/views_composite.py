@@ -6,6 +6,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import JsonResponse
+from decimal import Decimal
 from django.views.generic import ListView, CreateView, DetailView
 from django.utils.decorators import method_decorator
 from django.utils import timezone
@@ -92,15 +93,29 @@ def composite_sample_create(request):
                 
                 if value_key in request.POST and request.POST[value_key]:
                     try:
-                        result = CompositeSampleResult.objects.create(
-                            composite_sample=sample,
-                            property=property,
-                            value=request.POST[value_key],
-                            test_method=request.POST.get(method_key, property.test_method or '')
-                        )
-                        print(f"DEBUG: Resultado criado para {property.identifier} com status: {result.status}")
+                        value_str = request.POST[value_key].strip()
+                        if value_str:
+                            # Converter valor para Decimal
+                            value = Decimal(value_str.replace(',', '.'))
+                            
+                            result = CompositeSampleResult.objects.create(
+                                composite_sample=sample,
+                                property=property,
+                                value=value,
+                                unit=property.unit,
+                                test_method=request.POST.get(method_key, property.test_method or 'Método padrão')
+                            )
+                            print(f"DEBUG: Resultado criado para {property.identifier}:")
+                            print(f"  - Valor: {result.value}")
+                            print(f"  - Unidade: {result.unit}")
+                            print(f"  - Status: {result.status}")
+                            print(f"  - ID: {result.id}")
+                    except (ValueError, Decimal.InvalidOperation) as e:
+                        print(f"DEBUG: Erro ao converter valor para {property.identifier}: {e}")
+                        messages.warning(request, f'Valor inválido para {property.name}: {value_str}')
                     except Exception as e:
                         print(f"DEBUG: Erro ao criar resultado para {property.identifier}: {e}")
+                        messages.error(request, f'Erro ao salvar {property.name}: {str(e)}')
             
             messages.success(request, 'Amostra composta criada com sucesso!')
             return redirect('quality_control:composite_sample_detail', sample_id=sample.id)
@@ -137,7 +152,13 @@ def composite_sample_create(request):
 def composite_sample_detail(request, sample_id):
     """Detalhes da amostra composta"""
     sample = get_object_or_404(CompositeSample, id=sample_id)
-    results = CompositeSampleResult.objects.filter(composite_sample=sample).select_related('property')
+    results = CompositeSampleResult.objects.filter(composite_sample=sample).select_related('property').order_by('property__display_order')
+    
+    # Debug: imprimir resultados encontrados
+    print(f"DEBUG: Detalhes da amostra {sample_id}:")
+    print(f"  - Total de resultados: {results.count()}")
+    for result in results:
+        print(f"  - {result.property.identifier}: {result.value} ({result.status})")
     
     context = {
         'sample': sample,
