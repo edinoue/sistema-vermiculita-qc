@@ -384,53 +384,148 @@ def dashboard_data_api(request):
     # Dados dos últimos 30 dias
     thirty_days_ago = timezone.now() - timedelta(days=30)
     
-    # 1. Reprovações por Status
-    rejection_status_data = SpotAnalysis.objects.filter(
-        status__in=['REJECTED', 'ALERT']
+    # 1. Status das Análises (Pontuais + Compostas)
+    spot_status_data = SpotAnalysis.objects.filter(
+        sample_time__gte=thirty_days_ago
     ).values('status').annotate(
         count=Count('id')
     ).order_by('-count')
     
-    # 2. Reprovações por Linha de Produção
-    rejection_by_line = SpotAnalysis.objects.filter(
-        status__in=['REJECTED', 'ALERT']
+    # Status das amostras compostas
+    composite_status_data = CompositeSampleResult.objects.filter(
+        composite_sample__date__gte=thirty_days_ago.date()
+    ).values('status').annotate(
+        count=Count('id')
+    ).order_by('-count')
+    
+    # Combinar dados de status
+    all_status_data = {}
+    for item in spot_status_data:
+        status = item['status']
+        all_status_data[status] = all_status_data.get(status, 0) + item['count']
+    
+    for item in composite_status_data:
+        status = item['status']
+        all_status_data[status] = all_status_data.get(status, 0) + item['count']
+    
+    # 2. Reprovações por Linha de Produção (Pontuais + Compostas)
+    spot_rejections_by_line = SpotAnalysis.objects.filter(
+        sample_time__gte=thirty_days_ago,
+        status='REJECTED'
     ).values('production_line__name').annotate(
         count=Count('id')
     ).order_by('-count')[:5]
     
-    # 3. Motivos de Reprovação (por propriedade)
-    rejection_reasons = SpotAnalysis.objects.filter(
+    composite_rejections_by_line = CompositeSampleResult.objects.filter(
+        composite_sample__date__gte=thirty_days_ago.date(),
         status='REJECTED'
-    ).values('property__name').annotate(
+    ).values('composite_sample__production_line__name').annotate(
         count=Count('id')
     ).order_by('-count')[:5]
     
-    # 4. Média de Propriedades (últimos 30 dias)
-    property_averages = SpotAnalysis.objects.filter(
+    # Combinar reprovações por linha
+    line_rejections = {}
+    for item in spot_rejections_by_line:
+        line_name = item['production_line__name']
+        line_rejections[line_name] = line_rejections.get(line_name, 0) + item['count']
+    
+    for item in composite_rejections_by_line:
+        line_name = item['composite_sample__production_line__name']
+        line_rejections[line_name] = line_rejections.get(line_name, 0) + item['count']
+    
+    # 3. Motivos de Reprovação (por propriedade)
+    spot_rejection_reasons = SpotAnalysis.objects.filter(
+        sample_time__gte=thirty_days_ago,
+        status='REJECTED'
+    ).values('property__name', 'property__identifier').annotate(
+        count=Count('id')
+    ).order_by('-count')[:5]
+    
+    composite_rejection_reasons = CompositeSampleResult.objects.filter(
+        composite_sample__date__gte=thirty_days_ago.date(),
+        status='REJECTED'
+    ).values('property__name', 'property__identifier').annotate(
+        count=Count('id')
+    ).order_by('-count')[:5]
+    
+    # Combinar motivos de reprovação
+    rejection_reasons = {}
+    for item in spot_rejection_reasons:
+        prop_name = item['property__name']
+        rejection_reasons[prop_name] = rejection_reasons.get(prop_name, 0) + item['count']
+    
+    for item in composite_rejection_reasons:
+        prop_name = item['property__name']
+        rejection_reasons[prop_name] = rejection_reasons.get(prop_name, 0) + item['count']
+    
+    # 4. Média de Propriedades Aprovadas (últimos 30 dias)
+    spot_averages = SpotAnalysis.objects.filter(
         sample_time__gte=thirty_days_ago,
         status='APPROVED'
-    ).values('property__name').annotate(
+    ).values('property__name', 'property__identifier').annotate(
         avg_value=Avg('value')
     ).order_by('-avg_value')[:5]
     
+    composite_averages = CompositeSampleResult.objects.filter(
+        composite_sample__date__gte=thirty_days_ago.date(),
+        status='APPROVED'
+    ).values('property__name', 'property__identifier').annotate(
+        avg_value=Avg('value')
+    ).order_by('-avg_value')[:5]
+    
+    # Combinar médias de propriedades
+    property_averages = {}
+    for item in spot_averages:
+        prop_name = item['property__name']
+        if prop_name not in property_averages:
+            property_averages[prop_name] = {'total': 0, 'count': 0}
+        property_averages[prop_name]['total'] += float(item['avg_value'])
+        property_averages[prop_name]['count'] += 1
+    
+    for item in composite_averages:
+        prop_name = item['property__name']
+        if prop_name not in property_averages:
+            property_averages[prop_name] = {'total': 0, 'count': 0}
+        property_averages[prop_name]['total'] += float(item['avg_value'])
+        property_averages[prop_name]['count'] += 1
+    
+    # Calcular médias finais
+    final_averages = []
+    for prop_name, data in property_averages.items():
+        final_averages.append({
+            'property__name': prop_name,
+            'avg_value': data['total'] / data['count']
+        })
+    
+    final_averages.sort(key=lambda x: x['avg_value'], reverse=True)
+    
     return JsonResponse({
         'success': True,
-        'rejection_status': list(rejection_status_data),
-        'rejection_by_line': list(rejection_by_line),
-        'rejection_reasons': list(rejection_reasons),
-        'property_averages': list(property_averages),
+        'rejection_status': [{'status': k, 'count': v} for k, v in all_status_data.items()],
+        'rejection_by_line': [{'production_line__name': k, 'count': v} for k, v in line_rejections.items()],
+        'rejection_reasons': [{'property__name': k, 'count': v} for k, v in rejection_reasons.items()],
+        'property_averages': final_averages[:5],
         'totals': {
             'spot_analyses': SpotAnalysis.objects.count(),
             'composite_samples': CompositeSample.objects.count(),
-            'total_rejections': SpotAnalysis.objects.filter(status='REJECTED').count(),
-            'total_alerts': SpotAnalysis.objects.filter(status='ALERT').count(),
-            'total_approved': SpotAnalysis.objects.filter(status='APPROVED').count(),
+            'total_rejections': SpotAnalysis.objects.filter(status='REJECTED').count() + 
+                              CompositeSampleResult.objects.filter(status='REJECTED').count(),
+            'total_alerts': SpotAnalysis.objects.filter(status='ALERT').count() + 
+                          CompositeSampleResult.objects.filter(status='ALERT').count(),
+            'total_approved': SpotAnalysis.objects.filter(status='APPROVED').count() + 
+                            CompositeSampleResult.objects.filter(status='APPROVED').count(),
             'today_rejections': SpotAnalysis.objects.filter(
                 sample_time__date=timezone.now().date(),
+                status='REJECTED'
+            ).count() + CompositeSampleResult.objects.filter(
+                composite_sample__date=timezone.now().date(),
                 status='REJECTED'
             ).count(),
             'today_alerts': SpotAnalysis.objects.filter(
                 sample_time__date=timezone.now().date(),
+                status='ALERT'
+            ).count() + CompositeSampleResult.objects.filter(
+                composite_sample__date=timezone.now().date(),
                 status='ALERT'
             ).count()
         }

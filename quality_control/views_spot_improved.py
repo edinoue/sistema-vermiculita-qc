@@ -69,8 +69,11 @@ def spot_analysis_create_improved(request):
                             value=value,
                             unit=property.unit,
                             test_method=test_method,
-                            status='PENDENTE'
+                            status='APPROVED'  # Status será calculado automaticamente
                         )
+                        
+                        # O status será calculado automaticamente pelo método save() do modelo
+                        print(f"DEBUG: Análise criada com status: {analysis.status}")
                         created_analyses.append(analysis)
                         
                     except ValueError:

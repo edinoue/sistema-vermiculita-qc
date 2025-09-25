@@ -89,7 +89,7 @@
                                 </thead>
                                 <tbody>
                                     {% for result in results %}
-                                        <tr>
+                                        <tr class="{% if result.status == 'REJECTED' %}table-danger{% elif result.status == 'ALERT' %}table-warning{% endif %}">
                                             <td>
                                                 <strong>{{ result.property.name }}</strong><br>
                                                 <small class="text-muted">{{ result.property.identifier }}</small>
@@ -100,12 +100,18 @@
                                             <td>{{ result.property.unit }}</td>
                                             <td>{{ result.test_method|default:"Método padrão" }}</td>
                                             <td>
-                                                {% if result.status == 'PENDENTE' %}
-                                                    <span class="badge bg-warning">Pendente</span>
-                                                {% elif result.status == 'APROVADO' %}
-                                                    <span class="badge bg-success">Aprovado</span>
-                                                {% elif result.status == 'REJEITADO' %}
-                                                    <span class="badge bg-danger">Rejeitado</span>
+                                                {% if result.status == 'APPROVED' %}
+                                                    <span class="badge bg-success">
+                                                        <i class="bi bi-check-circle"></i> Aprovado
+                                                    </span>
+                                                {% elif result.status == 'REJECTED' %}
+                                                    <span class="badge bg-danger">
+                                                        <i class="bi bi-x-circle"></i> Reprovado
+                                                    </span>
+                                                {% elif result.status == 'ALERT' %}
+                                                    <span class="badge bg-warning">
+                                                        <i class="bi bi-exclamation-triangle"></i> Alerta
+                                                    </span>
                                                 {% else %}
                                                     <span class="badge bg-secondary">{{ result.status }}</span>
                                                 {% endif %}

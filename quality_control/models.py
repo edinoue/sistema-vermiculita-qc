@@ -265,12 +265,19 @@ class CompositeSampleResult(AuditModel):
     """
     Resultados das análises das amostras compostas
     """
+    STATUS_CHOICES = [
+        ('APPROVED', 'Aprovado'),
+        ('ALERT', 'Alerta'),
+        ('REJECTED', 'Reprovado'),
+    ]
+    
     composite_sample = models.ForeignKey(CompositeSample, on_delete=models.CASCADE, verbose_name='Amostra Composta')
     property = models.ForeignKey(Property, on_delete=models.PROTECT, verbose_name='Propriedade')
     
     value = models.DecimalField('Valor', max_digits=10, decimal_places=4)
     unit = models.CharField('Unidade', max_length=20)
     test_method = models.CharField('Método', max_length=100, blank=True)
+    status = models.CharField('Status', max_length=20, choices=STATUS_CHOICES, default='APPROVED')
     
     class Meta:
         verbose_name = 'Resultado da Amostra Composta'
@@ -279,6 +286,32 @@ class CompositeSampleResult(AuditModel):
     
     def __str__(self):
         return f"{self.composite_sample} - {self.property.identifier}: {self.value}"
+    
+    def save(self, *args, **kwargs):
+        """Calcula o status automaticamente baseado nas especificações"""
+        if not self.status or self.status == 'APPROVED':
+            self.status = self.calculate_status()
+        super().save(*args, **kwargs)
+    
+    def calculate_status(self):
+        """Calcula o status baseado nas especificações"""
+        try:
+            spec = Specification.objects.get(
+                product=self.composite_sample.product, 
+                property=self.property, 
+                is_active=True
+            )
+            
+            if spec.lsl is not None and self.value < spec.lsl:
+                return 'REJECTED'
+            if spec.usl is not None and self.value > spec.usl:
+                return 'REJECTED'
+            
+            # Pode implementar lógica de alerta aqui (ex: próximo aos limites)
+            return 'APPROVED'
+            
+        except Specification.DoesNotExist:
+            return 'APPROVED'
 
 
 class ChemicalAnalysis(AuditModel):

@@ -84,23 +84,23 @@ def composite_sample_create(request):
             # Debug: imprimir propriedades encontradas
             print(f"DEBUG: Propriedades encontradas: {properties.count()}")
             
-            for property in properties:
-                value_key = f'property_{property.id}_value'
-                method_key = f'property_{property.id}_method'
-                
-                print(f"DEBUG: Verificando {value_key}: {request.POST.get(value_key, 'NÃO ENCONTRADO')}")
-                
-                if value_key in request.POST and request.POST[value_key]:
-                    try:
-                        CompositeSampleResult.objects.create(
-                            composite_sample=sample,
-                            property=property,
-                            value=request.POST[value_key],
-                            test_method=request.POST.get(method_key, property.test_method or '')
-                        )
-                        print(f"DEBUG: Resultado criado para {property.identifier}")
-                    except Exception as e:
-                        print(f"DEBUG: Erro ao criar resultado para {property.identifier}: {e}")
+                for property in properties:
+                    value_key = f'property_{property.id}_value'
+                    method_key = f'property_{property.id}_method'
+                    
+                    print(f"DEBUG: Verificando {value_key}: {request.POST.get(value_key, 'NÃO ENCONTRADO')}")
+                    
+                    if value_key in request.POST and request.POST[value_key]:
+                        try:
+                            result = CompositeSampleResult.objects.create(
+                                composite_sample=sample,
+                                property=property,
+                                value=request.POST[value_key],
+                                test_method=request.POST.get(method_key, property.test_method or '')
+                            )
+                            print(f"DEBUG: Resultado criado para {property.identifier} com status: {result.status}")
+                        except Exception as e:
+                            print(f"DEBUG: Erro ao criar resultado para {property.identifier}: {e}")
             
             messages.success(request, 'Amostra composta criada com sucesso!')
             return redirect('quality_control:composite_sample_detail', sample_id=sample.id)

@@ -115,10 +115,10 @@ class MobileHomeView(TemplateView):
         Determina o turno atual baseado no horário
         """
         try:
-            # Turno A: 06:00 - 18:00
-            if time(6, 0) <= current_time < time(18, 0):
+            # Turno A: 07:00 - 19:00
+            if time(7, 0) <= current_time < time(19, 0):
                 return Shift.objects.get(name='A')
-            # Turno B: 18:00 - 06:00
+            # Turno B: 19:00 - 07:00
             else:
                 return Shift.objects.get(name='B')
         except Shift.DoesNotExist:
@@ -141,7 +141,7 @@ class QRCodeView(TemplateView):
         current_time = timezone.now().time()
         today = timezone.now().date()
         
-        if time(6, 0) <= current_time < time(18, 0):
+        if time(7, 0) <= current_time < time(19, 0):
             current_shift = Shift.objects.get(name='A')
         else:
             current_shift = Shift.objects.get(name='B')

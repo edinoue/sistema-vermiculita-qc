@@ -336,7 +336,7 @@
                 </thead>
                 <tbody>
                     {% for analysis in analyses %}
-                    <tr>
+                    <tr class="{% if analysis.status == 'REJECTED' %}table-danger{% elif analysis.status == 'ALERT' %}table-warning{% endif %}">
                         <td>
                             <div class="fw-bold">{{ analysis.sample_time|date:"d/m/Y" }}</div>
                             <small class="text-muted">{{ analysis.sample_time|time:"H:i" }}</small>
