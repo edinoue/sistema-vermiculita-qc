@@ -254,7 +254,7 @@ class SpotAnalysis(AuditModel):
     ]
     
     # Referência à amostra
-    spot_sample = models.ForeignKey(SpotSample, on_delete=models.CASCADE, verbose_name='Amostra Pontual')
+    spot_sample = models.ForeignKey(SpotSample, on_delete=models.CASCADE, verbose_name='Amostra Pontual', null=True, blank=True)
     property = models.ForeignKey(Property, on_delete=models.PROTECT, verbose_name='Propriedade')
     
     # Dados da análise
