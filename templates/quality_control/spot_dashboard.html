@@ -117,8 +117,8 @@
         font-weight: 600;
         color: #2c5530;
         font-size: 0.7rem;
-        width: 120px;
-        min-width: 120px;
+        width: 80px;
+        min-width: 80px;
         text-align: left;
     }
     
@@ -134,8 +134,8 @@
         font-size: 0.65rem;
         font-weight: 600;
         color: #495057;
-        width: 60px;
-        min-width: 60px;
+        width: 80px;
+        min-width: 80px;
         text-align: center;
     }
     
@@ -184,9 +184,10 @@
     }
     
     .analysis-time {
-        font-size: 0.5rem;
+        font-size: 0.55rem;
         color: #6c757d;
         line-height: 1.2;
+        margin-top: 2px;
     }
     
     .empty-state {
@@ -325,8 +326,7 @@
                         {% for product_data in line_data.products %}
                         <tr class="product-row">
                             <td class="product-name-cell">
-                                <div class="fw-bold">{{ product_data.product.name }}</div>
-                                <small class="text-muted">{{ product_data.product.code }}</small>
+                                <div class="fw-bold">{{ product_data.product.code }}</div>
                             </td>
                             {% for property in properties %}
                             <td class="analysis-cell">
@@ -344,6 +344,9 @@
                                 {% if product_data.sequence %}
                                     <span class="sequence-badge">{{ product_data.sequence }}ª</span>
                                     <div class="status-indicator status-{{ product_data.status|lower }}"></div>
+                                    {% if product_data.sample and product_data.sample.sample_time %}
+                                        <div class="analysis-time">{{ product_data.sample.sample_time|time:"H:i" }}</div>
+                                    {% endif %}
                                 {% else %}
                                     <div style="color: #6c757d; font-size: 0.6rem;">-</div>
                                 {% endif %}

@@ -617,36 +617,28 @@ def spot_dashboard_view(request):
                     spot_sample=latest_sample
                 ).select_related('property')
                 
-                # Organizar análises por propriedade
-                property_analyses = {}
-                for analysis in analyses:
-                    property_analyses[analysis.property_id] = analysis
-                
-                # Calcular status geral da amostra
-                sample_status = 'APPROVED'
-                if analyses.filter(status='REJECTED').exists():
-                    sample_status = 'REJECTED'
-                elif analyses.filter(status='ALERT').exists():
-                    sample_status = 'ALERT'
-                
-                products_data.append({
-                    'product': product,
-                    'sample': latest_sample,
-                    'analyses': analyses,
-                    'property_analyses': property_analyses,
-                    'status': sample_status,
-                    'sequence': latest_sample.sample_sequence
-                })
-            else:
-                # Produto sem amostras
-                products_data.append({
-                    'product': product,
-                    'sample': None,
-                    'analyses': [],
-                    'property_analyses': {},
-                    'status': 'PENDENTE',
-                    'sequence': None
-                })
+                # Só incluir o produto se tiver análises registradas
+                if analyses.exists():
+                    # Organizar análises por propriedade
+                    property_analyses = {}
+                    for analysis in analyses:
+                        property_analyses[analysis.property_id] = analysis
+                    
+                    # Calcular status geral da amostra
+                    sample_status = 'APPROVED'
+                    if analyses.filter(status='REJECTED').exists():
+                        sample_status = 'REJECTED'
+                    elif analyses.filter(status='ALERT').exists():
+                        sample_status = 'ALERT'
+                    
+                    products_data.append({
+                        'product': product,
+                        'sample': latest_sample,
+                        'analyses': analyses,
+                        'property_analyses': property_analyses,
+                        'status': sample_status,
+                        'sequence': latest_sample.sample_sequence
+                    })
         
         lines_data.append({
             'line': line,
