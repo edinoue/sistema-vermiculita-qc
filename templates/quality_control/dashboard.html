@@ -241,9 +241,19 @@
             </div>
             <div class="col-md-4 text-md-end">
                 <div class="d-flex flex-column align-items-end gap-2">
-                    <a href="{% url 'quality_control:spot_dashboard' %}" class="btn btn-light btn-sm">
-                        <i class="bi bi-speedometer2"></i> Dashboard Pontual
-                    </a>
+                    <div class="dropdown">
+                        <button class="btn btn-light btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-speedometer2"></i> Dashboards
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item active" href="{% url 'quality_control:dashboard' %}">
+                                <i class="bi bi-graph-up"></i> Dashboard Geral
+                            </a></li>
+                            <li><a class="dropdown-item" href="{% url 'quality_control:spot_dashboard' %}">
+                                <i class="bi bi-clipboard-data"></i> Dashboard Pontual
+                            </a></li>
+                        </ul>
+                    </div>
                     <div class="text-white">
                         <small>Última atualização:</small><br>
                         <strong id="last-update">{{ 'now'|date:"H:i:s" }}</strong>

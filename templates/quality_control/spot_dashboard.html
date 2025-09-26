@@ -221,14 +221,35 @@
 <div class="container-fluid">
     <!-- Header -->
     <div class="dashboard-header">
-        <h2 class="mb-2">
-            <i class="bi bi-speedometer2"></i> Dashboard - Análises Pontuais
-        </h2>
-        <p class="mb-0">Resultados das últimas amostras sequenciais por local de produção</p>
-        <div class="shift-info">
-            <i class="bi bi-clock"></i> 
-            Turno: {{ current_shift.name }} | 
-            Data: {{ current_date|date:"d/m/Y" }}
+        <div class="container-fluid">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h2 class="mb-2">
+                        <i class="bi bi-speedometer2"></i> Dashboard - Análises Pontuais
+                    </h2>
+                    <p class="mb-0">Resultados das últimas amostras sequenciais por local de produção</p>
+                    <div class="shift-info">
+                        <i class="bi bi-clock"></i> 
+                        Turno: {{ current_shift.name }} | 
+                        Data: {{ current_date|date:"d/m/Y" }}
+                    </div>
+                </div>
+                <div class="col-md-4 text-md-end">
+                    <div class="dropdown">
+                        <button class="btn btn-light btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-speedometer2"></i> Dashboards
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="{% url 'quality_control:dashboard' %}">
+                                <i class="bi bi-graph-up"></i> Dashboard Geral
+                            </a></li>
+                            <li><a class="dropdown-item active" href="{% url 'quality_control:spot_dashboard' %}">
+                                <i class="bi bi-clipboard-data"></i> Dashboard Pontual
+                            </a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
     
