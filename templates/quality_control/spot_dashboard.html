@@ -117,16 +117,26 @@
         font-weight: 600;
         color: #2c5530;
         font-size: 0.7rem;
-        width: 30px;
-        min-width: 30px;
+        width: 120px;
+        min-width: 120px;
+        text-align: left;
     }
     
     .analysis-cell {
         font-size: 0.65rem;
         font-weight: 600;
         color: #495057;
+        width: 80px;
+        min-width: 80px;
+    }
+    
+    .sequence-cell {
+        font-size: 0.65rem;
+        font-weight: 600;
+        color: #495057;
         width: 60px;
         min-width: 60px;
+        text-align: center;
     }
     
     .status-indicator {
@@ -304,32 +314,40 @@
                 <table class="products-table">
                     <thead>
                         <tr>
-                            <th>#</th>
-                            {% for product in products %}
-                            <th>{{ product.code }}</th>
+                            <th>Produto</th>
+                            {% for property in properties %}
+                            <th>{{ property.identifier }}</th>
                             {% endfor %}
+                            <th>Amostra</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {% for sample_data in line_data.samples %}
+                        {% for product_data in line_data.products %}
                         <tr class="product-row">
                             <td class="product-name-cell">
-                                <span class="sequence-badge">{{ sample_data.sequence }}</span>
+                                <div class="fw-bold">{{ product_data.product.name }}</div>
+                                <small class="text-muted">{{ product_data.product.code }}</small>
                             </td>
-                            {% for product in products %}
+                            {% for property in properties %}
                             <td class="analysis-cell">
-                                {% if sample_data.product_analyses and product.id in sample_data.product_analyses %}
-                                    {% with product_data=sample_data.product_analyses|lookup:product.id %}
-                                        {% for analysis in product_data.analyses %}
-                                            <div class="analysis-value">{{ analysis.value|floatformat:1 }} {{ analysis.unit }}</div>
-                                            <div class="status-indicator status-{{ analysis.status|lower }}"></div>
-                                        {% endfor %}
+                                {% if product_data.property_analyses and property.id in product_data.property_analyses %}
+                                    {% with analysis=product_data.property_analyses|lookup:property.id %}
+                                        <div class="analysis-value">{{ analysis.value|floatformat:1 }} {{ analysis.unit }}</div>
+                                        <div class="status-indicator status-{{ analysis.status|lower }}"></div>
                                     {% endwith %}
                                 {% else %}
                                     <div style="color: #6c757d; font-size: 0.6rem;">-</div>
                                 {% endif %}
                             </td>
                             {% endfor %}
+                            <td class="sequence-cell">
+                                {% if product_data.sequence %}
+                                    <span class="sequence-badge">{{ product_data.sequence }}ª</span>
+                                    <div class="status-indicator status-{{ product_data.status|lower }}"></div>
+                                {% else %}
+                                    <div style="color: #6c757d; font-size: 0.6rem;">-</div>
+                                {% endif %}
+                            </td>
                         </tr>
                         {% endfor %}
                     </tbody>

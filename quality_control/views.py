@@ -592,67 +592,65 @@ def spot_dashboard_view(request):
     # Obter todos os produtos ativos
     products = Product.objects.filter(is_active=True)
     
+    # Obter todas as propriedades ativas
+    properties = Property.objects.filter(is_active=True)
+    
     # Dados para cada linha de produção
     lines_data = []
     
     for line in production_lines:
-        # Buscar as 3 amostras mais recentes desta linha (1ª, 2ª, 3ª)
-        recent_samples = SpotSample.objects.filter(
-            production_line=line,
-            shift=current_shift,
-            date=timezone.now().date()
-        ).order_by('-sample_sequence')[:3]
+        # Buscar as amostras mais recentes desta linha para cada produto
+        products_data = []
         
-        # Organizar dados por amostra (1ª, 2ª, 3ª)
-        samples_data = []
-        
-        for i, sample in enumerate(recent_samples, 1):
-            # Buscar todas as análises desta amostra
-            analyses = SpotAnalysis.objects.filter(
-                spot_sample=sample
-            ).select_related('property')
+        for product in products:
+            # Buscar a amostra mais recente deste produto nesta linha
+            latest_sample = SpotSample.objects.filter(
+                production_line=line,
+                product=product,
+                shift=current_shift,
+                date=timezone.now().date()
+            ).order_by('-sample_sequence').first()
             
-            # Calcular status geral da amostra
-            sample_status = 'APPROVED'
-            if analyses.filter(status='REJECTED').exists():
-                sample_status = 'REJECTED'
-            elif analyses.filter(status='ALERT').exists():
-                sample_status = 'ALERT'
-            
-            # Organizar análises por produto - cada amostra tem um produto específico
-            product_analyses = {}
-            if sample:
-                # Buscar análises para o produto desta amostra
+            if latest_sample:
+                # Buscar todas as análises desta amostra
+                analyses = SpotAnalysis.objects.filter(
+                    spot_sample=latest_sample
+                ).select_related('property')
+                
+                # Organizar análises por propriedade
+                property_analyses = {}
                 for analysis in analyses:
-                    product_analyses[sample.product_id] = {
-                        'analyses': analyses,
-                        'product': sample.product,
-                        'status': sample_status
-                    }
-            
-            samples_data.append({
-                'sequence': sample.sample_sequence if sample else i,
-                'sample': sample,
-                'analyses': analyses,
-                'product_analyses': product_analyses,
-                'status': sample_status,
-                'time': sample.sample_time if sample else None
-            })
-        
-        # Garantir que sempre temos 3 linhas (1ª, 2ª, 3ª)
-        while len(samples_data) < 3:
-            samples_data.append({
-                'sequence': len(samples_data) + 1,
-                'sample': None,
-                'analyses': [],
-                'product_analyses': {},
-                'status': 'PENDENTE',
-                'time': None
-            })
+                    property_analyses[analysis.property_id] = analysis
+                
+                # Calcular status geral da amostra
+                sample_status = 'APPROVED'
+                if analyses.filter(status='REJECTED').exists():
+                    sample_status = 'REJECTED'
+                elif analyses.filter(status='ALERT').exists():
+                    sample_status = 'ALERT'
+                
+                products_data.append({
+                    'product': product,
+                    'sample': latest_sample,
+                    'analyses': analyses,
+                    'property_analyses': property_analyses,
+                    'status': sample_status,
+                    'sequence': latest_sample.sample_sequence
+                })
+            else:
+                # Produto sem amostras
+                products_data.append({
+                    'product': product,
+                    'sample': None,
+                    'analyses': [],
+                    'property_analyses': {},
+                    'status': 'PENDENTE',
+                    'sequence': None
+                })
         
         lines_data.append({
             'line': line,
-            'samples': samples_data
+            'products': products_data
         })
     
     # Estatísticas gerais
@@ -678,6 +676,7 @@ def spot_dashboard_view(request):
     context = {
         'lines_data': lines_data,
         'products': products,
+        'properties': properties,
         'current_shift': current_shift,
         'current_date': timezone.now().date(),
         'stats': {
