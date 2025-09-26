@@ -9,122 +9,131 @@
     .dashboard-header {
         background: linear-gradient(135deg, #2c5530, #4a7c59);
         color: white;
-        padding: 2rem;
-        border-radius: 15px;
-        margin-bottom: 2rem;
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
         text-align: center;
     }
     
     .stats-cards {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 1rem;
-        margin-bottom: 2rem;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 0.5rem;
+        margin-bottom: 1rem;
     }
     
     .stat-card {
         background: white;
-        border-radius: 10px;
-        padding: 1.5rem;
+        border-radius: 6px;
+        padding: 0.8rem;
         text-align: center;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        border-left: 4px solid #2c5530;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        border-left: 3px solid #2c5530;
     }
     
     .stat-number {
-        font-size: 2rem;
+        font-size: 1.2rem;
         font-weight: bold;
         color: #2c5530;
-        margin-bottom: 0.5rem;
+        margin-bottom: 0.2rem;
     }
     
     .stat-label {
         color: #6c757d;
-        font-size: 0.9rem;
+        font-size: 0.7rem;
     }
     
     .modules-grid {
         display: grid;
-        grid-template-columns: 1fr 1fr;
-        grid-template-rows: 1fr 1fr;
-        gap: 1rem;
-        margin-bottom: 2rem;
-        height: 80vh;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 0.5rem;
+        margin-bottom: 1rem;
     }
     
     .module-card {
         background: white;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        border-radius: 6px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         overflow: hidden;
         display: flex;
         flex-direction: column;
+        min-height: 200px;
     }
     
     .module-header {
         background: #007bff;
         color: white;
-        padding: 0.5rem 1rem;
+        padding: 0.3rem 0.5rem;
         font-weight: 600;
-        font-size: 0.9rem;
+        font-size: 0.8rem;
         text-align: center;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
     
     .module-content {
         flex: 1;
-        padding: 0.5rem;
-        overflow-y: auto;
+        padding: 0.3rem;
+        overflow: visible;
     }
     
     .products-table {
         width: 100%;
-        font-size: 0.75rem;
+        font-size: 0.6rem;
         border-collapse: collapse;
+        table-layout: fixed;
     }
     
     .products-table th {
         background: #f8f9fa;
         color: #495057;
         font-weight: 600;
-        padding: 0.25rem 0.5rem;
+        padding: 0.2rem 0.3rem;
         border: 1px solid #dee2e6;
         text-align: center;
-        font-size: 0.7rem;
+        font-size: 0.55rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
     
     .products-table td {
-        padding: 0.25rem 0.5rem;
+        padding: 0.15rem 0.2rem;
         border: 1px solid #dee2e6;
         text-align: center;
         vertical-align: middle;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
     
     .product-row {
-        height: 2rem;
+        height: 1.5rem;
     }
     
     .product-name-cell {
         font-weight: 600;
         color: #2c5530;
-        font-size: 0.7rem;
-        max-width: 60px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
+        font-size: 0.55rem;
+        width: 40px;
+        min-width: 40px;
     }
     
     .analysis-cell {
-        font-size: 0.65rem;
+        font-size: 0.5rem;
         font-weight: 600;
         color: #495057;
+        width: 50px;
+        min-width: 50px;
     }
     
     .status-indicator {
-        width: 12px;
-        height: 12px;
+        width: 8px;
+        height: 8px;
         border-radius: 50%;
         display: inline-block;
-        margin: 0 2px;
+        margin: 0 1px;
     }
     
     .status-approved {
@@ -142,38 +151,30 @@
     .sequence-badge {
         background: #2c5530;
         color: white;
-        padding: 0.1rem 0.3rem;
-        border-radius: 8px;
-        font-size: 0.6rem;
+        padding: 0.05rem 0.2rem;
+        border-radius: 6px;
+        font-size: 0.5rem;
         font-weight: 600;
+        display: inline-block;
+        margin-bottom: 1px;
     }
     
-    .module-iv-v {
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
+    .analysis-value {
+        font-weight: 700;
+        font-size: 0.55rem;
+        line-height: 1;
     }
     
-    .module-iv, .module-v {
-        flex: 1;
-        background: white;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        overflow: hidden;
+    .analysis-unit {
+        font-size: 0.45rem;
+        color: #6c757d;
+        line-height: 1;
     }
     
-    .module-iv-header, .module-v-header {
-        background: #007bff;
-        color: white;
-        padding: 0.4rem 0.8rem;
-        font-weight: 600;
-        font-size: 0.8rem;
-        text-align: center;
-    }
-    
-    .module-iv-content, .module-v-content {
-        padding: 0.4rem;
-        overflow-y: auto;
+    .analysis-time {
+        font-size: 0.4rem;
+        color: #6c757d;
+        line-height: 1;
     }
     
     .empty-state {
@@ -209,21 +210,19 @@
         
         .modules-grid {
             grid-template-columns: 1fr;
-            grid-template-rows: auto;
-            height: auto;
-        }
-        
-        .module-iv-v {
-            flex-direction: column;
         }
         
         .products-table {
-            font-size: 0.7rem;
+            font-size: 0.55rem;
         }
         
         .products-table th,
         .products-table td {
-            padding: 0.2rem 0.3rem;
+            padding: 0.1rem 0.2rem;
+        }
+        
+        .product-row {
+            height: 1.2rem;
         }
     }
 </style>
@@ -236,11 +235,11 @@
         <div class="container-fluid">
             <div class="row align-items-center">
                 <div class="col-md-8">
-                    <h2 class="mb-2">
+                    <h3 class="mb-1" style="font-size: 1.2rem;">
                         <i class="bi bi-speedometer2"></i> Dashboard - Análises Pontuais
-                    </h2>
-                    <p class="mb-0">Resultados das últimas amostras sequenciais por local de produção</p>
-                    <div class="shift-info">
+                    </h3>
+                    <p class="mb-1" style="font-size: 0.8rem;">Resultados das últimas amostras sequenciais por local de produção</p>
+                    <div class="shift-info" style="font-size: 0.7rem;">
                         <i class="bi bi-clock"></i> 
                         Turno: {{ current_shift.name }} | 
                         Data: {{ current_date|date:"d/m/Y" }}
@@ -307,19 +306,19 @@
                                 <span class="sequence-badge">{{ sample_data.sequence }}ª</span>
                                 <div class="status-indicator status-{{ sample_data.status|lower }}"></div>
                                 {% if sample_data.time %}
-                                <div style="font-size: 0.6rem; color: #6c757d;">{{ sample_data.time|time:"H:i" }}</div>
+                                <div class="analysis-time">{{ sample_data.time|time:"H:i" }}</div>
                                 {% endif %}
                             </td>
                             {% for product in products %}
                             <td class="analysis-cell">
                                 {% if sample_data.product_analyses and product.id in sample_data.product_analyses %}
                                     {% with analysis=sample_data.product_analyses|lookup:product.id %}
-                                        <div style="font-weight: 600;">{{ analysis.value }}</div>
-                                        <div style="font-size: 0.6rem; color: #6c757d;">{{ analysis.unit }}</div>
-                                        <div class="status-indicator status-{{ analysis.status|lower }}" style="margin-top: 2px;"></div>
+                                        <div class="analysis-value">{{ analysis.value|floatformat:1 }}</div>
+                                        <div class="analysis-unit">{{ analysis.unit }}</div>
+                                        <div class="status-indicator status-{{ analysis.status|lower }}"></div>
                                     {% endwith %}
                                 {% else %}
-                                    <div style="color: #6c757d; font-size: 0.6rem;">-</div>
+                                    <div style="color: #6c757d; font-size: 0.5rem;">-</div>
                                 {% endif %}
                             </td>
                             {% endfor %}
