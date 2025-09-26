@@ -10,7 +10,7 @@ from django.utils import timezone
 from datetime import datetime, time
 
 from core.models import ProductionLine, Shift
-from .models import Product, Property, SpotAnalysis, AnalysisType
+from .models import Product, Property, SpotAnalysis, SpotSample, AnalysisType
 
 @login_required
 def spot_analysis_create_improved(request):
@@ -57,14 +57,23 @@ def spot_analysis_create_improved(request):
                         test_method = request.POST.get(method_key, property.test_method or 'Método padrão')
                         
                         # Criar análise para esta propriedade
-                        analysis = SpotAnalysis.objects.create(
+                        # Primeiro criar ou obter SpotSample
+                        spot_sample, created = SpotSample.objects.get_or_create(
                             analysis_type=analysis_type,
                             date=date,
                             product=product,
                             production_line=production_line,
                             shift=shift,
-                            sample_time=sample_time,
-                            sequence=sequence,
+                            defaults={
+                                'sample_time': sample_time,
+                                'sample_sequence': sequence,
+                                'operator': request.user
+                            }
+                        )
+                        
+                        # Depois criar SpotAnalysis vinculado ao SpotSample
+                        analysis = SpotAnalysis.objects.create(
+                            spot_sample=spot_sample,
                             property=property,
                             value=value,
                             unit=property.unit,

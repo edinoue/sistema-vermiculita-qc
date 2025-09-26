@@ -71,7 +71,7 @@ def test_spot_sample_grouping():
             shift=shift,
             production_line=line,
             product=product,
-            sequence=1,
+            sample_sequence=1,
             sample_time=timezone.now(),
             observations="Amostra de teste para agrupamento"
         )
@@ -105,7 +105,7 @@ def test_spot_sample_grouping():
             shift=spot_sample.shift,
             production_line=spot_sample.production_line,
             product=spot_sample.product,
-            sequence=spot_sample.sequence
+            sample_sequence=spot_sample.sample_sequence
         ).first()
         
         if unique_sample and unique_sample.id == spot_sample.id:
