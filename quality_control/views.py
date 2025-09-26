@@ -199,7 +199,7 @@ def dashboard_view(request):
     # Análises pontuais por produto
     spot_analyses_by_product = SpotAnalysis.objects.filter(
         spot_sample__sample_time__gte=thirty_days_ago
-    ).values('product__name').annotate(
+    ).values('spot_sample__product__name').annotate(
         count=Count('id')
     ).order_by('-count')[:5]
     
