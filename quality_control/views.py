@@ -28,8 +28,8 @@ class SpotAnalysisListView(ListView):
     
     def get_queryset(self):
         queryset = SpotAnalysis.objects.select_related(
-            'product', 'production_line', 'shift', 'operator'
-        ).order_by('-sample_time')
+            'spot_sample__product', 'spot_sample__production_line', 'spot_sample__shift', 'spot_sample__operator'
+        ).order_by('-spot_sample__sample_time')
         
         # Filtros
         product_id = self.request.GET.get('product')
@@ -38,13 +38,13 @@ class SpotAnalysisListView(ListView):
         date_to = self.request.GET.get('date_to')
         
         if product_id:
-            queryset = queryset.filter(product_id=product_id)
+            queryset = queryset.filter(spot_sample__product_id=product_id)
         if line_id:
-            queryset = queryset.filter(production_line_id=line_id)
+            queryset = queryset.filter(spot_sample__production_line_id=line_id)
         if date_from:
-            queryset = queryset.filter(sample_time__date__gte=date_from)
+            queryset = queryset.filter(spot_sample__sample_time__date__gte=date_from)
         if date_to:
-            queryset = queryset.filter(sample_time__date__lte=date_to)
+            queryset = queryset.filter(spot_sample__sample_time__date__lte=date_to)
             
         return queryset
     
@@ -165,7 +165,7 @@ def dashboard_view(request):
     total_analyses = total_spot_analyses + total_composite_samples
     
     today_analyses = SpotAnalysis.objects.filter(
-        sample_time__date=timezone.now().date()
+        spot_sample__sample_time__date=timezone.now().date()
     ).count()
     
     # Análises por produto (últimos 30 dias) - incluindo amostras compostas
@@ -173,8 +173,8 @@ def dashboard_view(request):
     
     # Análises pontuais por produto
     spot_analyses_by_product = SpotAnalysis.objects.filter(
-        sample_time__gte=thirty_days_ago
-    ).values('product__name').annotate(
+        spot_sample__sample_time__gte=thirty_days_ago
+    ).values('spot_sample__product__name').annotate(
         count=Count('id')
     ).order_by('-count')[:5]
     
@@ -201,15 +201,15 @@ def dashboard_view(request):
     # Análises por linha (últimos 7 dias)
     seven_days_ago = timezone.now() - timedelta(days=7)
     analyses_by_line = SpotAnalysis.objects.filter(
-        sample_time__gte=seven_days_ago
-    ).values('production_line__name').annotate(
+        spot_sample__sample_time__gte=seven_days_ago
+    ).values('spot_sample__production_line__name').annotate(
         count=Count('id')
     ).order_by('-count')
     
     # Análises recentes - incluindo amostras compostas
     recent_spot_analyses = SpotAnalysis.objects.select_related(
-        'product', 'production_line', 'shift', 'operator'
-    ).order_by('-sample_time')[:5]
+        'spot_sample__product', 'spot_sample__production_line', 'spot_sample__shift', 'spot_sample__operator'
+    ).order_by('-spot_sample__sample_time')[:5]
     
     recent_composite_samples = CompositeSample.objects.select_related(
         'product', 'production_line', 'shift'
@@ -220,10 +220,10 @@ def dashboard_view(request):
     for analysis in recent_spot_analyses:
         recent_analyses.append({
             'type': 'spot',
-            'product': analysis.product,
-            'production_line': analysis.production_line,
-            'date': analysis.sample_time,
-            'shift': analysis.shift
+            'product': analysis.spot_sample.product,
+            'production_line': analysis.spot_sample.production_line,
+            'date': analysis.spot_sample.sample_time,
+            'shift': analysis.spot_sample.shift
         })
     
     for sample in recent_composite_samples:
@@ -278,7 +278,7 @@ def reports_list_view(request):
             month_end = current_date.replace(month=current_date.month + 1, day=1) - timedelta(days=1)
         
         count = SpotAnalysis.objects.filter(
-            sample_time__date__range=[month_start, month_end]
+            spot_sample__sample_time__date__range=[month_start, month_end]
         ).count()
         
         if count > 0:
@@ -386,7 +386,7 @@ def dashboard_data_api(request):
     
     # 1. Status das Amostras (Pontuais + Compostas) - CONTAR POR AMOSTRA, NÃO POR ANÁLISE
     spot_status_data = SpotAnalysis.objects.filter(
-        sample_time__gte=thirty_days_ago
+        spot_sample__sample_time__gte=thirty_days_ago
     ).values('status').annotate(
         count=Count('id')
     ).order_by('-count')
@@ -410,7 +410,7 @@ def dashboard_data_api(request):
     
     # 2. Reprovações por Linha de Produção (Pontuais + Compostas) - CONTAR POR AMOSTRA
     spot_rejections_by_line = SpotAnalysis.objects.filter(
-        sample_time__gte=thirty_days_ago,
+        spot_sample__sample_time__gte=thirty_days_ago,
         status='REJECTED'
     ).values('production_line__name').annotate(
         count=Count('id')
@@ -436,7 +436,7 @@ def dashboard_data_api(request):
     
     # 3. Motivos de Reprovação (por propriedade) - MANTER CONTAGEM POR PROPRIEDADE
     spot_rejection_reasons = SpotAnalysis.objects.filter(
-        sample_time__gte=thirty_days_ago,
+        spot_sample__sample_time__gte=thirty_days_ago,
         status='REJECTED'
     ).values('property__name', 'property__identifier').annotate(
         count=Count('id')
@@ -463,7 +463,7 @@ def dashboard_data_api(request):
     
     # 4. Média de Propriedades Aprovadas (últimos 30 dias) - MANTER CONTAGEM POR PROPRIEDADE
     spot_averages = SpotAnalysis.objects.filter(
-        sample_time__gte=thirty_days_ago,
+        spot_sample__sample_time__gte=thirty_days_ago,
         status='APPROVED'
     ).values('property__name', 'property__identifier').annotate(
         avg_value=Avg('value')
@@ -520,14 +520,14 @@ def dashboard_data_api(request):
             'total_approved': SpotAnalysis.objects.filter(status='APPROVED').count() + 
                             CompositeSample.objects.filter(status='APPROVED').count(),
             'today_rejections': SpotAnalysis.objects.filter(
-                sample_time__date=timezone.now().date(),
+                spot_sample__sample_time__date=timezone.now().date(),
                 status='REJECTED'
             ).count() + CompositeSample.objects.filter(
                 date=timezone.now().date(),
                 status='REJECTED'
             ).count(),
             'today_alerts': SpotAnalysis.objects.filter(
-                sample_time__date=timezone.now().date(),
+                spot_sample__sample_time__date=timezone.now().date(),
                 status='ALERT'
             ).count() + CompositeSample.objects.filter(
                 date=timezone.now().date(),
