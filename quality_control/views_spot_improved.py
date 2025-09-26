@@ -146,13 +146,7 @@ def spot_analysis_edit_improved(request, analysis_id):
                         
                         # Atualizar ou criar análise para esta propriedade
                         property_analysis, created = SpotAnalysis.objects.get_or_create(
-                            analysis_type=analysis.analysis_type,
-                            date=analysis.date,
-                            product=analysis.product,
-                            production_line=analysis.production_line,
-                            shift=analysis.shift,
-                            sample_time=analysis.sample_time,
-                            sequence=analysis.sequence,
+                            spot_sample=analysis,
                             property=property,
                             defaults={
                                 'value': value,

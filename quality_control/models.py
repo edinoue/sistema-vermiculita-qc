@@ -102,7 +102,7 @@ class AnalysisTypeProperty(models.Model):
     class Meta:
         verbose_name = 'Propriedade do Tipo de Análise'
         verbose_name_plural = 'Propriedades dos Tipos de Análise'
-        unique_together = [['analysis_type', 'property']]
+        # unique_together = [['analysis_type', 'property']]
         ordering = ['display_order', 'property__name']
     
     def __str__(self):
@@ -127,7 +127,7 @@ class ProductPropertyMap(AuditModel):
     class Meta:
         verbose_name = 'Mapa Produto-Propriedade'
         verbose_name_plural = 'Mapas Produto-Propriedade'
-        unique_together = [['product', 'property']]
+        # unique_together = [['product', 'property']]
     
     def __str__(self):
         return f"{self.product.code} - {self.property.identifier}"
@@ -150,7 +150,7 @@ class Specification(AuditModel):
     class Meta:
         verbose_name = 'Especificação'
         verbose_name_plural = 'Especificações'
-        unique_together = [['product', 'property']]
+        # unique_together = [['product', 'property']]
     
     def __str__(self):
         return f"{self.product.code} - {self.property.identifier}"
@@ -178,7 +178,7 @@ class SpotSample(models.Model):
     product = models.ForeignKey(Product, on_delete=models.PROTECT, verbose_name='Produto')
     
     # Dados da amostra
-    sequence = models.PositiveSmallIntegerField('Sequência', validators=[MinValueValidator(1), MaxValueValidator(3)])
+    sample_sequence = models.PositiveIntegerField('Sequência da Amostra', default=1)
     sample_time = models.DateTimeField('Horário da Amostra', default=timezone.now)
     operator = models.ForeignKey(User, on_delete=models.PROTECT, verbose_name='Operador', null=True, blank=True)
     
@@ -194,10 +194,27 @@ class SpotSample(models.Model):
         verbose_name = 'Amostra Pontual'
         verbose_name_plural = 'Amostras Pontuais'
         ordering = ['-date', '-sample_time']
-        unique_together = [['date', 'shift', 'production_line', 'product', 'sequence']]
+        # unique_together = [['date', 'shift', 'production_line', 'product', 'sample_sequence']]
     
     def __str__(self):
-        return f"{self.date} - {self.shift} - {self.production_line} - {self.product} #{self.sequence}"
+        return f"{self.date} - {self.shift} - {self.production_line} - {self.product} - Amostra {self.sample_sequence}"
+    
+    def save(self, *args, **kwargs):
+        if not self.pk:  # Se é um novo objeto
+            # Gerar sequência automática para o dia/turno/linha/produto
+            last_sample = SpotSample.objects.filter(
+                date=self.date,
+                shift=self.shift,
+                production_line=self.production_line,
+                product=self.product
+            ).order_by('-sample_sequence').first()
+            
+            if last_sample:
+                self.sample_sequence = last_sample.sample_sequence + 1
+            else:
+                self.sample_sequence = 1
+        
+        super().save(*args, **kwargs)
     
     def calculate_overall_status(self):
         """Calcula o status geral da amostra baseado nas análises"""
@@ -253,7 +270,7 @@ class SpotAnalysis(AuditModel):
         verbose_name = 'Análise Pontual'
         verbose_name_plural = 'Análises Pontuais'
         ordering = ['property__display_order']
-        unique_together = [['spot_sample', 'property']]
+        # unique_together = [['spot_sample', 'property']]
     
     def __str__(self):
         return f"{self.spot_sample} - {self.property.identifier}: {self.value}"
@@ -395,7 +412,7 @@ class CompositeSampleResult(AuditModel):
     class Meta:
         verbose_name = 'Resultado da Amostra Composta'
         verbose_name_plural = 'Resultados das Amostras Compostas'
-        unique_together = [['composite_sample', 'property']]
+        # unique_together = [['composite_sample', 'property']]
     
     def __str__(self):
         return f"{self.composite_sample} - {self.property.identifier}: {self.value}"
@@ -477,7 +494,7 @@ class ChemicalAnalysisResult(AuditModel):
     class Meta:
         verbose_name = 'Resultado da Análise Química'
         verbose_name_plural = 'Resultados das Análises Químicas'
-        unique_together = [['chemical_analysis', 'property']]
+        # unique_together = [['chemical_analysis', 'property']]
     
     def __str__(self):
         return f"{self.chemical_analysis} - {self.property.identifier}: {self.value}"

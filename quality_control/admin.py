@@ -89,7 +89,7 @@ class SpotAnalysisInline(admin.TabularInline):
 
 @admin.register(SpotSample)
 class SpotSampleAdmin(admin.ModelAdmin):
-    list_display = ['date', 'shift', 'production_line', 'product', 'sequence', 'status', 'sample_time', 'operator']
+    list_display = ['date', 'shift', 'production_line', 'product', 'sample_sequence', 'status', 'sample_time', 'operator']
     list_filter = ['date', 'shift', 'production_line', 'product', 'status', 'analysis_type']
     search_fields = ['production_line__name', 'product__name', 'operator__username']
     ordering = ['-date', '-sample_time']

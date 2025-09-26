@@ -29,7 +29,7 @@ class SpotAnalysisListView(ListView):
     def get_queryset(self):
         queryset = SpotAnalysis.objects.select_related(
             'spot_sample__product', 'spot_sample__production_line', 'spot_sample__shift', 'spot_sample__operator'
-        ).order_by('-spot_sample__sample_time')
+        ).order_by('-spot_sample__spot_sample__sample_time')
         
         # Filtros
         product_id = self.request.GET.get('product')
@@ -42,9 +42,9 @@ class SpotAnalysisListView(ListView):
         if line_id:
             queryset = queryset.filter(spot_sample__production_line_id=line_id)
         if date_from:
-            queryset = queryset.filter(spot_sample__sample_time__date__gte=date_from)
+            queryset = queryset.filter(spot_sample__spot_sample__sample_time__date__gte=date_from)
         if date_to:
-            queryset = queryset.filter(spot_sample__sample_time__date__lte=date_to)
+            queryset = queryset.filter(spot_sample__spot_sample__sample_time__date__lte=date_to)
             
         return queryset
     
@@ -62,7 +62,7 @@ class SpotAnalysisListView(ListView):
 class SpotAnalysisCreateView(CreateView):
     model = SpotAnalysis
     template_name = 'quality_control/spot_analysis_create_dynamic.html'
-    fields = ['analysis_type', 'date', 'product', 'production_line', 'shift', 'property', 'sequence', 'value', 'unit', 'test_method']
+    fields = ['property', 'value', 'unit', 'test_method']
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -132,8 +132,33 @@ class SpotAnalysisCreateView(CreateView):
         return pontual
     
     def form_valid(self, form):
-        form.instance.operator = self.request.user
+        # Primeiro, criar ou obter o SpotSample
+        from .models import SpotSample
+        
+        # Obter dados do formulário
+        date = self.request.POST.get('date')
+        shift_id = self.request.POST.get('shift')
+        production_line_id = self.request.POST.get('production_line')
+        product_id = self.request.POST.get('product')
+        sample_time = self.request.POST.get('sample_time')
+        
+        # Criar ou obter SpotSample
+        spot_sample, created = SpotSample.objects.get_or_create(
+            date=date,
+            shift_id=shift_id,
+            production_line_id=production_line_id,
+            product_id=product_id,
+            analysis_type=self.get_context_data()['analysis_type'],
+            defaults={
+                'sample_time': sample_time,
+                'operator': self.request.user,
+            }
+        )
+        
+        # Associar a análise à amostra
+        form.instance.spot_sample = spot_sample
         form.instance.created_by = self.request.user
+        
         messages.success(self.request, 'Análise criada com sucesso!')
         return super().form_valid(form)
     
@@ -165,7 +190,7 @@ def dashboard_view(request):
     total_analyses = total_spot_analyses + total_composite_samples
     
     today_analyses = SpotAnalysis.objects.filter(
-        spot_sample__sample_time__date=timezone.now().date()
+        spot_sample__spot_sample__sample_time__date=timezone.now().date()
     ).count()
     
     # Análises por produto (últimos 30 dias) - incluindo amostras compostas
@@ -173,15 +198,15 @@ def dashboard_view(request):
     
     # Análises pontuais por produto
     spot_analyses_by_product = SpotAnalysis.objects.filter(
-        spot_sample__sample_time__gte=thirty_days_ago
-    ).values('spot_sample__product__name').annotate(
+        spot_sample__spot_sample__sample_time__gte=thirty_days_ago
+    ).values('spot_sample__spot_sample__product__name').annotate(
         count=Count('id')
     ).order_by('-count')[:5]
     
     # Amostras compostas por produto
     composite_analyses_by_product = CompositeSample.objects.filter(
         date__gte=thirty_days_ago.date()
-    ).values('product__name').annotate(
+    ).values('spot_sample__product__name').annotate(
         count=Count('id')
     ).order_by('-count')[:5]
     
@@ -189,7 +214,7 @@ def dashboard_view(request):
     analyses_by_product = list(spot_analyses_by_product)
     for item in composite_analyses_by_product:
         # Verificar se já existe o produto na lista
-        existing = next((x for x in analyses_by_product if x['product__name'] == item['product__name']), None)
+        existing = next((x for x in analyses_by_product if x['spot_sample__product__name'] == item['spot_sample__product__name']), None)
         if existing:
             existing['count'] += item['count']
         else:
@@ -201,15 +226,15 @@ def dashboard_view(request):
     # Análises por linha (últimos 7 dias)
     seven_days_ago = timezone.now() - timedelta(days=7)
     analyses_by_line = SpotAnalysis.objects.filter(
-        spot_sample__sample_time__gte=seven_days_ago
-    ).values('spot_sample__production_line__name').annotate(
+        spot_sample__spot_sample__sample_time__gte=seven_days_ago
+    ).values('spot_sample__spot_sample__production_line__name').annotate(
         count=Count('id')
     ).order_by('-count')
     
     # Análises recentes - incluindo amostras compostas
     recent_spot_analyses = SpotAnalysis.objects.select_related(
         'spot_sample__product', 'spot_sample__production_line', 'spot_sample__shift', 'spot_sample__operator'
-    ).order_by('-spot_sample__sample_time')[:5]
+    ).order_by('-spot_sample__spot_sample__sample_time')[:5]
     
     recent_composite_samples = CompositeSample.objects.select_related(
         'product', 'production_line', 'shift'
@@ -222,7 +247,7 @@ def dashboard_view(request):
             'type': 'spot',
             'product': analysis.spot_sample.product,
             'production_line': analysis.spot_sample.production_line,
-            'date': analysis.spot_sample.sample_time,
+            'date': analysis.spot_sample.spot_sample__sample_time,
             'shift': analysis.spot_sample.shift
         })
     
@@ -278,7 +303,7 @@ def reports_list_view(request):
             month_end = current_date.replace(month=current_date.month + 1, day=1) - timedelta(days=1)
         
         count = SpotAnalysis.objects.filter(
-            spot_sample__sample_time__date__range=[month_start, month_end]
+            spot_sample__spot_sample__sample_time__date__range=[month_start, month_end]
         ).count()
         
         if count > 0:
@@ -295,7 +320,7 @@ def reports_list_view(request):
     
     # Produtos mais analisados
     top_products = SpotAnalysis.objects.values(
-        'product__name', 'product__code'
+        'spot_sample__product__name', 'product__code'
     ).annotate(
         count=Count('id')
     ).order_by('-count')[:10]
@@ -386,7 +411,7 @@ def dashboard_data_api(request):
     
     # 1. Status das Amostras (Pontuais + Compostas) - CONTAR POR AMOSTRA, NÃO POR ANÁLISE
     spot_status_data = SpotAnalysis.objects.filter(
-        spot_sample__sample_time__gte=thirty_days_ago
+        spot_sample__spot_sample__sample_time__gte=thirty_days_ago
     ).values('status').annotate(
         count=Count('id')
     ).order_by('-count')
@@ -410,9 +435,9 @@ def dashboard_data_api(request):
     
     # 2. Reprovações por Linha de Produção (Pontuais + Compostas) - CONTAR POR AMOSTRA
     spot_rejections_by_line = SpotAnalysis.objects.filter(
-        spot_sample__sample_time__gte=thirty_days_ago,
+        spot_sample__spot_sample__sample_time__gte=thirty_days_ago,
         status='REJECTED'
-    ).values('production_line__name').annotate(
+    ).values('spot_sample__spot_sample__production_line__name').annotate(
         count=Count('id')
     ).order_by('-count')[:5]
     
@@ -420,23 +445,23 @@ def dashboard_data_api(request):
     composite_rejections_by_line = CompositeSample.objects.filter(
         date__gte=thirty_days_ago.date(),
         status='REJECTED'
-    ).values('production_line__name').annotate(
+    ).values('spot_sample__production_line__name').annotate(
         count=Count('id')
     ).order_by('-count')[:5]
     
     # Combinar reprovações por linha
     line_rejections = {}
     for item in spot_rejections_by_line:
-        line_name = item['production_line__name']
+        line_name = item['spot_sample__production_line__name']
         line_rejections[line_name] = line_rejections.get(line_name, 0) + item['count']
     
     for item in composite_rejections_by_line:
-        line_name = item['production_line__name']
+        line_name = item['spot_sample__production_line__name']
         line_rejections[line_name] = line_rejections.get(line_name, 0) + item['count']
     
     # 3. Motivos de Reprovação (por propriedade) - MANTER CONTAGEM POR PROPRIEDADE
     spot_rejection_reasons = SpotAnalysis.objects.filter(
-        spot_sample__sample_time__gte=thirty_days_ago,
+        spot_sample__spot_sample__sample_time__gte=thirty_days_ago,
         status='REJECTED'
     ).values('property__name', 'property__identifier').annotate(
         count=Count('id')
@@ -447,7 +472,7 @@ def dashboard_data_api(request):
     composite_rejection_reasons = CompositeSample.objects.filter(
         date__gte=thirty_days_ago.date(),
         status='REJECTED'
-    ).values('product__name').annotate(
+    ).values('spot_sample__product__name').annotate(
         count=Count('id')
     ).order_by('-count')[:5]
     
@@ -458,12 +483,12 @@ def dashboard_data_api(request):
         rejection_reasons[prop_name] = rejection_reasons.get(prop_name, 0) + item['count']
     
     for item in composite_rejection_reasons:
-        prop_name = item['product__name']
+        prop_name = item['spot_sample__product__name']
         rejection_reasons[prop_name] = rejection_reasons.get(prop_name, 0) + item['count']
     
     # 4. Média de Propriedades Aprovadas (últimos 30 dias) - MANTER CONTAGEM POR PROPRIEDADE
     spot_averages = SpotAnalysis.objects.filter(
-        spot_sample__sample_time__gte=thirty_days_ago,
+        spot_sample__spot_sample__sample_time__gte=thirty_days_ago,
         status='APPROVED'
     ).values('property__name', 'property__identifier').annotate(
         avg_value=Avg('value')
@@ -473,7 +498,7 @@ def dashboard_data_api(request):
     composite_averages = CompositeSample.objects.filter(
         date__gte=thirty_days_ago.date(),
         status='APPROVED'
-    ).values('product__name').annotate(
+    ).values('spot_sample__product__name').annotate(
         avg_value=Avg('id')  # Usar ID como placeholder, já que não temos valores reais
     ).order_by('-avg_value')[:5]
     
@@ -487,7 +512,7 @@ def dashboard_data_api(request):
         property_averages[prop_name]['count'] += 1
     
     for item in composite_averages:
-        prop_name = item['product__name']  # Usar product__name em vez de property__name
+        prop_name = item['spot_sample__product__name']  # Usar spot_sample__product__name em vez de property__name
         if prop_name not in property_averages:
             property_averages[prop_name] = {'total': 0, 'count': 0}
         property_averages[prop_name]['total'] += float(item['avg_value'])
@@ -506,7 +531,7 @@ def dashboard_data_api(request):
     return JsonResponse({
         'success': True,
         'rejection_status': [{'status': k, 'count': v} for k, v in all_status_data.items()],
-        'rejection_by_line': [{'production_line__name': k, 'count': v} for k, v in line_rejections.items()],
+        'rejection_by_line': [{'spot_sample__production_line__name': k, 'count': v} for k, v in line_rejections.items()],
         'rejection_reasons': [{'property__name': k, 'count': v} for k, v in rejection_reasons.items()],
         'property_averages': final_averages[:5],
         'totals': {
@@ -520,14 +545,14 @@ def dashboard_data_api(request):
             'total_approved': SpotAnalysis.objects.filter(status='APPROVED').count() + 
                             CompositeSample.objects.filter(status='APPROVED').count(),
             'today_rejections': SpotAnalysis.objects.filter(
-                spot_sample__sample_time__date=timezone.now().date(),
+                spot_sample__spot_sample__sample_time__date=timezone.now().date(),
                 status='REJECTED'
             ).count() + CompositeSample.objects.filter(
                 date=timezone.now().date(),
                 status='REJECTED'
             ).count(),
             'today_alerts': SpotAnalysis.objects.filter(
-                spot_sample__sample_time__date=timezone.now().date(),
+                spot_sample__spot_sample__sample_time__date=timezone.now().date(),
                 status='ALERT'
             ).count() + CompositeSample.objects.filter(
                 date=timezone.now().date(),
