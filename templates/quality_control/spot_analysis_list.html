@@ -328,6 +328,7 @@
                         <th>Produto</th>
                         <th>Linha</th>
                         <th>Turno</th>
+                        <th>Amostra</th>
                         <th>Propriedade</th>
                         <th>Valor</th>
                         <th>Status</th>
@@ -338,19 +339,47 @@
                     {% for analysis in analyses %}
                     <tr class="{% if analysis.status == 'REJECTED' %}table-danger{% elif analysis.status == 'ALERT' %}table-warning{% endif %}">
                         <td>
-                            <div class="fw-bold">{{ analysis.sample_time|date:"d/m/Y" }}</div>
-                            <small class="text-muted">{{ analysis.sample_time|time:"H:i" }}</small>
+                            {% if analysis.spot_sample %}
+                                <div class="fw-bold">{{ analysis.spot_sample.sample_time|date:"d/m/Y" }}</div>
+                                <small class="text-muted">{{ analysis.spot_sample.sample_time|time:"H:i" }}</small>
+                            {% else %}
+                                <div class="fw-bold text-muted">N/A</div>
+                                <small class="text-muted">Sem amostra</small>
+                            {% endif %}
                         </td>
                         <td>
-                            <div class="fw-bold">{{ analysis.product.name }}</div>
-                            <small class="text-muted">{{ analysis.product.code }}</small>
+                            {% if analysis.spot_sample %}
+                                <div class="fw-bold">{{ analysis.spot_sample.product.name }}</div>
+                                <small class="text-muted">{{ analysis.spot_sample.product.code }}</small>
+                            {% else %}
+                                <div class="fw-bold text-muted">N/A</div>
+                                <small class="text-muted">Sem amostra</small>
+                            {% endif %}
                         </td>
                         <td>
-                            <div class="fw-bold">{{ analysis.production_line.name }}</div>
-                            <small class="text-muted">{{ analysis.production_line.code }}</small>
+                            {% if analysis.spot_sample %}
+                                <div class="fw-bold">{{ analysis.spot_sample.production_line.name }}</div>
+                                <small class="text-muted">{{ analysis.spot_sample.production_line.code }}</small>
+                            {% else %}
+                                <div class="fw-bold text-muted">N/A</div>
+                                <small class="text-muted">Sem amostra</small>
+                            {% endif %}
                         </td>
                         <td>
-                            <span class="badge bg-primary">{{ analysis.shift.name }}</span>
+                            {% if analysis.spot_sample %}
+                                <span class="badge bg-primary">{{ analysis.spot_sample.shift.name }}</span>
+                            {% else %}
+                                <span class="badge bg-secondary">N/A</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if analysis.spot_sample %}
+                                <div class="fw-bold text-primary">Amostra {{ analysis.spot_sample.sample_sequence }}</div>
+                                <small class="text-muted">{{ analysis.spot_sample.date|date:"d/m/Y" }}</small>
+                            {% else %}
+                                <div class="fw-bold text-muted">N/A</div>
+                                <small class="text-muted">Sem amostra</small>
+                            {% endif %}
                         </td>
                         <td>
                             <div class="fw-bold">{{ analysis.property.identifier }}</div>
@@ -372,9 +401,9 @@
                             </span>
                         </td>
                         <td>
-                            {% if analysis.operator %}
-                                <div class="fw-bold">{{ analysis.operator.get_full_name|default:analysis.operator.username }}</div>
-                                <small class="text-muted">{{ analysis.operator.username }}</small>
+                            {% if analysis.spot_sample and analysis.spot_sample.operator %}
+                                <div class="fw-bold">{{ analysis.spot_sample.operator.get_full_name|default:analysis.spot_sample.operator.username }}</div>
+                                <small class="text-muted">{{ analysis.spot_sample.operator.username }}</small>
                             {% else %}
                                 <div class="fw-bold text-muted">N/A</div>
                                 <small class="text-muted">Não informado</small>
