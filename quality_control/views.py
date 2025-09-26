@@ -589,8 +589,8 @@ def spot_dashboard_view(request):
     # Obter todas as linhas de produção ativas
     production_lines = ProductionLine.objects.filter(is_active=True)
     
-    # Obter todos os produtos ativos
-    products = Product.objects.filter(is_active=True)
+    # Obter todas as propriedades ativas
+    properties = Property.objects.filter(is_active=True)
     
     # Dados para cada linha de produção
     lines_data = []
@@ -619,16 +619,16 @@ def spot_dashboard_view(request):
             elif analyses.filter(status='ALERT').exists():
                 sample_status = 'ALERT'
             
-            # Organizar análises por produto
-            product_analyses = {}
+            # Organizar análises por propriedade - cada análise tem uma propriedade diferente
+            property_analyses = {}
             for analysis in analyses:
-                product_analyses[analysis.spot_sample.product_id] = analysis
+                property_analyses[analysis.property_id] = analysis
             
             samples_data.append({
                 'sequence': sample.sample_sequence,
                 'sample': sample,
                 'analyses': analyses,
-                'product_analyses': product_analyses,
+                'property_analyses': property_analyses,
                 'status': sample_status,
                 'time': sample.sample_time
             })
@@ -639,7 +639,7 @@ def spot_dashboard_view(request):
                 'sequence': len(samples_data) + 1,
                 'sample': None,
                 'analyses': [],
-                'product_analyses': {},
+                'property_analyses': {},
                 'status': 'PENDENTE',
                 'time': None
             })
@@ -671,7 +671,7 @@ def spot_dashboard_view(request):
     
     context = {
         'lines_data': lines_data,
-        'products': products,
+        'properties': properties,
         'current_shift': current_shift,
         'current_date': timezone.now().date(),
         'stats': {

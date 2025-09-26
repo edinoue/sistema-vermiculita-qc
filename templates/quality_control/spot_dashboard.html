@@ -45,27 +45,28 @@
     
     .modules-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 0.5rem;
+        grid-template-columns: repeat(3, 1fr);
+        grid-template-rows: repeat(2, 1fr);
+        gap: 0.8rem;
         margin-bottom: 1rem;
+        height: 70vh;
     }
     
     .module-card {
         background: white;
-        border-radius: 6px;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         overflow: hidden;
         display: flex;
         flex-direction: column;
-        min-height: 200px;
     }
     
     .module-header {
         background: #007bff;
         color: white;
-        padding: 0.3rem 0.5rem;
+        padding: 0.5rem;
         font-weight: 600;
-        font-size: 0.8rem;
+        font-size: 0.9rem;
         text-align: center;
         white-space: nowrap;
         overflow: hidden;
@@ -74,13 +75,13 @@
     
     .module-content {
         flex: 1;
-        padding: 0.3rem;
+        padding: 0.5rem;
         overflow: visible;
     }
     
     .products-table {
         width: 100%;
-        font-size: 0.6rem;
+        font-size: 0.75rem;
         border-collapse: collapse;
         table-layout: fixed;
     }
@@ -89,17 +90,17 @@
         background: #f8f9fa;
         color: #495057;
         font-weight: 600;
-        padding: 0.2rem 0.3rem;
+        padding: 0.3rem 0.4rem;
         border: 1px solid #dee2e6;
         text-align: center;
-        font-size: 0.55rem;
+        font-size: 0.7rem;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
     }
     
     .products-table td {
-        padding: 0.15rem 0.2rem;
+        padding: 0.25rem 0.3rem;
         border: 1px solid #dee2e6;
         text-align: center;
         vertical-align: middle;
@@ -109,31 +110,31 @@
     }
     
     .product-row {
-        height: 1.5rem;
+        height: 2rem;
     }
     
     .product-name-cell {
         font-weight: 600;
         color: #2c5530;
-        font-size: 0.55rem;
-        width: 40px;
-        min-width: 40px;
+        font-size: 0.7rem;
+        width: 30px;
+        min-width: 30px;
     }
     
     .analysis-cell {
-        font-size: 0.5rem;
+        font-size: 0.65rem;
         font-weight: 600;
         color: #495057;
-        width: 50px;
-        min-width: 50px;
+        width: 60px;
+        min-width: 60px;
     }
     
     .status-indicator {
-        width: 8px;
-        height: 8px;
+        width: 10px;
+        height: 10px;
         border-radius: 50%;
         display: inline-block;
-        margin: 0 1px;
+        margin: 0 2px;
     }
     
     .status-approved {
@@ -151,30 +152,30 @@
     .sequence-badge {
         background: #2c5530;
         color: white;
-        padding: 0.05rem 0.2rem;
-        border-radius: 6px;
-        font-size: 0.5rem;
+        padding: 0.1rem 0.3rem;
+        border-radius: 8px;
+        font-size: 0.6rem;
         font-weight: 600;
         display: inline-block;
-        margin-bottom: 1px;
+        margin-bottom: 2px;
     }
     
     .analysis-value {
         font-weight: 700;
-        font-size: 0.55rem;
-        line-height: 1;
+        font-size: 0.7rem;
+        line-height: 1.2;
     }
     
     .analysis-unit {
-        font-size: 0.45rem;
+        font-size: 0.55rem;
         color: #6c757d;
-        line-height: 1;
+        line-height: 1.2;
     }
     
     .analysis-time {
-        font-size: 0.4rem;
+        font-size: 0.5rem;
         color: #6c757d;
-        line-height: 1;
+        line-height: 1.2;
     }
     
     .empty-state {
@@ -199,6 +200,13 @@
         margin-bottom: 1rem;
     }
     
+    @media (max-width: 1200px) {
+        .modules-grid {
+            grid-template-columns: repeat(2, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+        }
+    }
+    
     @media (max-width: 768px) {
         .dashboard-header {
             padding: 1rem;
@@ -210,19 +218,21 @@
         
         .modules-grid {
             grid-template-columns: 1fr;
+            grid-template-rows: auto;
+            height: auto;
         }
         
         .products-table {
-            font-size: 0.55rem;
+            font-size: 0.65rem;
         }
         
         .products-table th,
         .products-table td {
-            padding: 0.1rem 0.2rem;
+            padding: 0.2rem 0.3rem;
         }
         
         .product-row {
-            height: 1.2rem;
+            height: 1.8rem;
         }
     }
 </style>
@@ -293,9 +303,9 @@
                 <table class="products-table">
                     <thead>
                         <tr>
-                            <th>Amostra</th>
-                            {% for product in products %}
-                            <th>{{ product.code }}</th>
+                            <th>#</th>
+                            {% for property in properties %}
+                            <th>{{ property.identifier }}</th>
                             {% endfor %}
                         </tr>
                     </thead>
@@ -303,22 +313,18 @@
                         {% for sample_data in line_data.samples %}
                         <tr class="product-row">
                             <td class="product-name-cell">
-                                <span class="sequence-badge">{{ sample_data.sequence }}ª</span>
-                                <div class="status-indicator status-{{ sample_data.status|lower }}"></div>
-                                {% if sample_data.time %}
-                                <div class="analysis-time">{{ sample_data.time|time:"H:i" }}</div>
-                                {% endif %}
+                                <span class="sequence-badge">{{ sample_data.sequence }}</span>
                             </td>
-                            {% for product in products %}
+                            {% for property in properties %}
                             <td class="analysis-cell">
-                                {% if sample_data.product_analyses and product.id in sample_data.product_analyses %}
-                                    {% with analysis=sample_data.product_analyses|lookup:product.id %}
+                                {% if sample_data.property_analyses and property.id in sample_data.property_analyses %}
+                                    {% with analysis=sample_data.property_analyses|lookup:property.id %}
                                         <div class="analysis-value">{{ analysis.value|floatformat:1 }}</div>
                                         <div class="analysis-unit">{{ analysis.unit }}</div>
                                         <div class="status-indicator status-{{ analysis.status|lower }}"></div>
                                     {% endwith %}
                                 {% else %}
-                                    <div style="color: #6c757d; font-size: 0.5rem;">-</div>
+                                    <div style="color: #6c757d; font-size: 0.6rem;">-</div>
                                 {% endif %}
                             </td>
                             {% endfor %}
