@@ -5,7 +5,7 @@ Configuração do Django Admin para o app quality_control
 from django.contrib import admin
 from .models import (
     AnalysisType, AnalysisTypeProperty, Product, Property, ProductPropertyMap, Specification,
-    SpotAnalysis, CompositeSample, CompositeSampleResult,
+    SpotSample, SpotAnalysis, CompositeSample, CompositeSampleResult,
     ChemicalAnalysis, ChemicalAnalysisResult,
     QualityReport, LoadingOrder
 )
@@ -81,12 +81,28 @@ class CompositeSampleAdmin(admin.ModelAdmin):
     inlines = [CompositeSampleResultInline]
 
 
+class SpotAnalysisInline(admin.TabularInline):
+    model = SpotAnalysis
+    extra = 0
+    fields = ['property', 'value', 'unit', 'test_method', 'status']
+
+
+@admin.register(SpotSample)
+class SpotSampleAdmin(admin.ModelAdmin):
+    list_display = ['date', 'shift', 'production_line', 'product', 'sequence', 'status', 'sample_time', 'operator']
+    list_filter = ['date', 'shift', 'production_line', 'product', 'status', 'analysis_type']
+    search_fields = ['production_line__name', 'product__name', 'operator__username']
+    ordering = ['-date', '-sample_time']
+    inlines = [SpotAnalysisInline]
+    readonly_fields = ['created_at', 'updated_at']
+
+
 @admin.register(SpotAnalysis)
 class SpotAnalysisAdmin(admin.ModelAdmin):
-    list_display = ['analysis_type', 'date', 'shift', 'production_line', 'product', 'property', 'sequence', 'value', 'status']
-    list_filter = ['analysis_type', 'date', 'shift', 'production_line', 'product', 'property', 'status']
-    search_fields = ['production_line__name', 'product__name', 'property__name']
-    ordering = ['-date', '-sample_time']
+    list_display = ['spot_sample', 'property', 'value', 'unit', 'status', 'test_method']
+    list_filter = ['property', 'status', 'spot_sample__date', 'spot_sample__shift', 'spot_sample__production_line']
+    search_fields = ['property__name', 'spot_sample__production_line__name', 'spot_sample__product__name']
+    ordering = ['-spot_sample__date', 'property__display_order']
 
 
 class ChemicalAnalysisResultInline(admin.TabularInline):
