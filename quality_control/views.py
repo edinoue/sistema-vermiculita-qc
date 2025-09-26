@@ -199,14 +199,14 @@ def dashboard_view(request):
     # Análises pontuais por produto
     spot_analyses_by_product = SpotAnalysis.objects.filter(
         spot_sample__sample_time__gte=thirty_days_ago
-    ).values('spot_sample__product__name').annotate(
+    ).values('product__name').annotate(
         count=Count('id')
     ).order_by('-count')[:5]
     
     # Amostras compostas por produto
     composite_analyses_by_product = CompositeSample.objects.filter(
         date__gte=thirty_days_ago.date()
-    ).values('spot_sample__product__name').annotate(
+    ).values('product__name').annotate(
         count=Count('id')
     ).order_by('-count')[:5]
     
@@ -214,7 +214,7 @@ def dashboard_view(request):
     analyses_by_product = list(spot_analyses_by_product)
     for item in composite_analyses_by_product:
         # Verificar se já existe o produto na lista
-        existing = next((x for x in analyses_by_product if x['spot_sample__product__name'] == item['spot_sample__product__name']), None)
+        existing = next((x for x in analyses_by_product if x['spot_sample__product__name'] == item['product__name']), None)
         if existing:
             existing['count'] += item['count']
         else:
@@ -227,7 +227,7 @@ def dashboard_view(request):
     seven_days_ago = timezone.now() - timedelta(days=7)
     analyses_by_line = SpotAnalysis.objects.filter(
         spot_sample__sample_time__gte=seven_days_ago
-    ).values('spot_sample__production_line__name').annotate(
+    ).values('production_line__name').annotate(
         count=Count('id')
     ).order_by('-count')
     
@@ -437,7 +437,7 @@ def dashboard_data_api(request):
     spot_rejections_by_line = SpotAnalysis.objects.filter(
         spot_sample__sample_time__gte=thirty_days_ago,
         status='REJECTED'
-    ).values('spot_sample__production_line__name').annotate(
+    ).values('production_line__name').annotate(
         count=Count('id')
     ).order_by('-count')[:5]
     
@@ -445,18 +445,18 @@ def dashboard_data_api(request):
     composite_rejections_by_line = CompositeSample.objects.filter(
         date__gte=thirty_days_ago.date(),
         status='REJECTED'
-    ).values('spot_sample__production_line__name').annotate(
+    ).values('production_line__name').annotate(
         count=Count('id')
     ).order_by('-count')[:5]
     
     # Combinar reprovações por linha
     line_rejections = {}
     for item in spot_rejections_by_line:
-        line_name = item['spot_sample__production_line__name']
+        line_name = item['production_line__name']
         line_rejections[line_name] = line_rejections.get(line_name, 0) + item['count']
     
     for item in composite_rejections_by_line:
-        line_name = item['spot_sample__production_line__name']
+        line_name = item['production_line__name']
         line_rejections[line_name] = line_rejections.get(line_name, 0) + item['count']
     
     # 3. Motivos de Reprovação (por propriedade) - MANTER CONTAGEM POR PROPRIEDADE
@@ -472,7 +472,7 @@ def dashboard_data_api(request):
     composite_rejection_reasons = CompositeSample.objects.filter(
         date__gte=thirty_days_ago.date(),
         status='REJECTED'
-    ).values('spot_sample__product__name').annotate(
+    ).values('product__name').annotate(
         count=Count('id')
     ).order_by('-count')[:5]
     
@@ -483,7 +483,7 @@ def dashboard_data_api(request):
         rejection_reasons[prop_name] = rejection_reasons.get(prop_name, 0) + item['count']
     
     for item in composite_rejection_reasons:
-        prop_name = item['spot_sample__product__name']
+        prop_name = item['product__name']
         rejection_reasons[prop_name] = rejection_reasons.get(prop_name, 0) + item['count']
     
     # 4. Média de Propriedades Aprovadas (últimos 30 dias) - MANTER CONTAGEM POR PROPRIEDADE
@@ -498,7 +498,7 @@ def dashboard_data_api(request):
     composite_averages = CompositeSample.objects.filter(
         date__gte=thirty_days_ago.date(),
         status='APPROVED'
-    ).values('spot_sample__product__name').annotate(
+    ).values('product__name').annotate(
         avg_value=Avg('id')  # Usar ID como placeholder, já que não temos valores reais
     ).order_by('-avg_value')[:5]
     
@@ -512,7 +512,7 @@ def dashboard_data_api(request):
         property_averages[prop_name]['count'] += 1
     
     for item in composite_averages:
-        prop_name = item['spot_sample__product__name']  # Usar spot_sample__product__name em vez de property__name
+        prop_name = item['product__name']  # Usar spot_sample__product__name em vez de property__name
         if prop_name not in property_averages:
             property_averages[prop_name] = {'total': 0, 'count': 0}
         property_averages[prop_name]['total'] += float(item['avg_value'])
@@ -531,7 +531,7 @@ def dashboard_data_api(request):
     return JsonResponse({
         'success': True,
         'rejection_status': [{'status': k, 'count': v} for k, v in all_status_data.items()],
-        'rejection_by_line': [{'spot_sample__production_line__name': k, 'count': v} for k, v in line_rejections.items()],
+        'rejection_by_line': [{'production_line__name': k, 'count': v} for k, v in line_rejections.items()],
         'rejection_reasons': [{'property__name': k, 'count': v} for k, v in rejection_reasons.items()],
         'property_averages': final_averages[:5],
         'totals': {
