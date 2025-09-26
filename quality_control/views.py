@@ -320,7 +320,7 @@ def reports_list_view(request):
     
     # Produtos mais analisados
     top_products = SpotAnalysis.objects.values(
-        'spot_sample__product__name', 'product__code'
+        'spot_sample__product__name', 'spot_sample__product__code'
     ).annotate(
         count=Count('id')
     ).order_by('-count')[:10]
