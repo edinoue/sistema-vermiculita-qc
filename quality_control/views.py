@@ -243,13 +243,14 @@ def dashboard_view(request):
     # Combinar análises recentes
     recent_analyses = []
     for analysis in recent_spot_analyses:
-        recent_analyses.append({
-            'type': 'spot',
-            'product': analysis.spot_sample.product,
-            'production_line': analysis.spot_sample.production_line,
-            'date': analysis.spot_sample.sample_time,
-            'shift': analysis.spot_sample.shift
-        })
+        if analysis.spot_sample:  # Verificar se spot_sample não é None
+            recent_analyses.append({
+                'type': 'spot',
+                'product': analysis.spot_sample.product,
+                'production_line': analysis.spot_sample.production_line,
+                'date': analysis.spot_sample.sample_time,
+                'shift': analysis.spot_sample.shift
+            })
     
     for sample in recent_composite_samples:
         recent_analyses.append({
