@@ -3,7 +3,7 @@ URLs do app quality_control
 """
 
 from django.urls import path
-from . import views, views_simple, views_import, views_composite, views_spot_fixed, views_spot_improved, views_reports
+from . import views, views_simple, views_import, views_composite, views_spot_fixed, views_spot_improved, views_spot_grouped, views_reports
 
 app_name = 'quality_control'
 
@@ -23,6 +23,13 @@ urlpatterns = [
     path('spot-analysis/create-improved/', views_spot_improved.spot_analysis_create_improved, name='spot_analysis_create_improved'),
     path('spot-analysis/<int:analysis_id>/edit/', views_spot_improved.spot_analysis_edit_improved, name='spot_analysis_edit_improved'),
     path('spot-analysis/<int:analysis_id>/detail/', views_spot_improved.spot_analysis_detail_improved, name='spot_analysis_detail_improved'),
+    
+    # Amostras Pontuais Agrupadas
+    path('spot-sample/', views_spot_grouped.spot_sample_list, name='spot_sample_list'),
+    path('spot-sample/create/', views_spot_grouped.spot_sample_create, name='spot_sample_create'),
+    path('spot-sample/<int:sample_id>/', views_spot_grouped.spot_sample_detail, name='spot_sample_detail'),
+    path('spot-sample/<int:sample_id>/edit/', views_spot_grouped.spot_sample_edit, name='spot_sample_edit'),
+    path('spot-sample/<int:sample_id>/delete/', views_spot_grouped.spot_sample_delete, name='spot_sample_delete'),
     
     # Amostras Compostas
     path('composite-sample/', views_composite.composite_sample_list, name='composite_sample_list'),

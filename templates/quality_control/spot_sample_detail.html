@@ -1,0 +1,175 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Detalhes da Amostra Pontual{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-flask"></i>
+                        Detalhes da Amostra Pontual
+                    </h3>
+                    <div class="card-tools">
+                        <a href="{% url 'quality_control:spot_sample_edit' sample.id %}" class="btn btn-warning">
+                            <i class="fas fa-edit"></i> Editar
+                        </a>
+                        <a href="{% url 'quality_control:spot_sample_list' %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Voltar
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Informações Básicas -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h5><i class="fas fa-info-circle"></i> Informações Básicas</h5>
+                            <table class="table table-sm">
+                                <tr>
+                                    <td><strong>Data:</strong></td>
+                                    <td>{{ sample.date|date:"d/m/Y" }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Horário:</strong></td>
+                                    <td>{{ sample.sample_time|date:"H:i" }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Produto:</strong></td>
+                                    <td>{{ sample.product.name }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Linha de Produção:</strong></td>
+                                    <td>{{ sample.production_line.name }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Turno:</strong></td>
+                                    <td>{{ sample.shift.name }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Sequência:</strong></td>
+                                    <td>{{ sample.sequence }}ª Amostra</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <h5><i class="fas fa-chart-pie"></i> Status e Operador</h5>
+                            <table class="table table-sm">
+                                <tr>
+                                    <td><strong>Status:</strong></td>
+                                    <td>
+                                        {% if sample.status == 'APPROVED' %}
+                                            <span class="badge badge-success">Aprovado</span>
+                                        {% elif sample.status == 'ALERT' %}
+                                            <span class="badge badge-warning">Alerta</span>
+                                        {% elif sample.status == 'REJECTED' %}
+                                            <span class="badge badge-danger">Reprovado</span>
+                                        {% else %}
+                                            <span class="badge badge-secondary">Pendente</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Operador:</strong></td>
+                                    <td>
+                                        {% if sample.operator %}
+                                            {{ sample.operator.get_full_name|default:sample.operator.username }}
+                                        {% else %}
+                                            <span class="text-muted">Não informado</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Criado em:</strong></td>
+                                    <td>{{ sample.created_at|date:"d/m/Y H:i" }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Atualizado em:</strong></td>
+                                    <td>{{ sample.updated_at|date:"d/m/Y H:i" }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    {% if sample.observations %}
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h5><i class="fas fa-sticky-note"></i> Observações</h5>
+                            <div class="alert alert-info">
+                                {{ sample.observations|linebreaks }}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Análises das Propriedades -->
+                    <div class="row">
+                        <div class="col-12">
+                            <h5><i class="fas fa-chart-line"></i> Análises das Propriedades</h5>
+                            
+                            {% if analyses %}
+                                <div class="table-responsive">
+                                    <table class="table table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th>Propriedade</th>
+                                                <th>Valor</th>
+                                                <th>Unidade</th>
+                                                <th>Método</th>
+                                                <th>Status</th>
+                                                <th>Ação Tomada</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for analysis in analyses %}
+                                            <tr>
+                                                <td>
+                                                    <strong>{{ analysis.property.name }}</strong>
+                                                    {% if analysis.property.description %}
+                                                        <br><small class="text-muted">{{ analysis.property.description }}</small>
+                                                    {% endif %}
+                                                </td>
+                                                <td>
+                                                    <span class="font-weight-bold">{{ analysis.value }}</span>
+                                                </td>
+                                                <td>{{ analysis.unit }}</td>
+                                                <td>{{ analysis.test_method|default:"-" }}</td>
+                                                <td>
+                                                    {% if analysis.status == 'APPROVED' %}
+                                                        <span class="badge badge-success">Aprovado</span>
+                                                    {% elif analysis.status == 'ALERT' %}
+                                                        <span class="badge badge-warning">Alerta</span>
+                                                    {% elif analysis.status == 'REJECTED' %}
+                                                        <span class="badge badge-danger">Reprovado</span>
+                                                    {% else %}
+                                                        <span class="badge badge-secondary">Pendente</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>
+                                                    {% if analysis.action_taken %}
+                                                        {{ analysis.action_taken|truncatechars:50 }}
+                                                    {% else %}
+                                                        <span class="text-muted">-</span>
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            {% else %}
+                                <div class="alert alert-warning">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    Nenhuma análise foi registrada para esta amostra.
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

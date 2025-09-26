@@ -66,3 +66,5 @@ def fix_spot_analysis_constraint():
 if __name__ == '__main__':
     fix_spot_analysis_constraint()
 
+
+

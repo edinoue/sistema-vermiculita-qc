@@ -197,3 +197,5 @@ def reports_list_view(request):
     }
     return render(request, 'quality_control/reports_list.html', context)
 
+
+

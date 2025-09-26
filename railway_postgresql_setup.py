@@ -68,3 +68,5 @@ def railway_postgresql_setup():
 if __name__ == '__main__':
     railway_postgresql_setup()
 
+
+

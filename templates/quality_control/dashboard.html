@@ -325,6 +325,14 @@
             <div class="action-description">Consultar histórico</div>
         </a>
         
+        <a href="{% url 'quality_control:spot_sample_list' %}" class="action-card">
+            <div class="action-icon">
+                <i class="fas fa-flask"></i>
+            </div>
+            <div class="action-title">Amostras Pontuais</div>
+            <div class="action-description">Análises agrupadas por amostra</div>
+        </a>
+        
         <a href="{% url 'quality_control:reports_list' %}" class="action-card">
             <div class="action-icon">
                 <i class="fas fa-chart-bar"></i>
@@ -455,7 +463,7 @@ document.addEventListener('DOMContentLoaded', function() {
     setInterval(updateTime, 1000);
     
     // Carregar dados da API
-    fetch('/qc/dashboard-data/')
+    fetch('/qc/api/dashboard-data/')
         .then(response => response.json())
         .then(data => {
             if (data.success) {

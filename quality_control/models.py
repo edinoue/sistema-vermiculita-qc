@@ -160,9 +160,9 @@ class Specification(AuditModel):
         return self.lsl is not None and self.usl is not None
 
 
-class SpotAnalysis(AuditModel):
+class SpotSample(AuditModel):
     """
-    Análises realizadas durante o turno (pontuais ou compostas)
+    Amostra pontual que agrupa múltiplas análises de propriedades
     """
     STATUS_CHOICES = [
         ('APPROVED', 'Aprovado'),
@@ -170,16 +170,73 @@ class SpotAnalysis(AuditModel):
         ('REJECTED', 'Reprovado'),
     ]
     
-    # Identificação
+    # Identificação da amostra
     analysis_type = models.ForeignKey(AnalysisType, on_delete=models.PROTECT, verbose_name='Tipo de Análise')
     date = models.DateField('Data')
     shift = models.ForeignKey(Shift, on_delete=models.PROTECT, verbose_name='Turno')
     production_line = models.ForeignKey(ProductionLine, on_delete=models.PROTECT, verbose_name='Linha de Produção')
     product = models.ForeignKey(Product, on_delete=models.PROTECT, verbose_name='Produto')
+    
+    # Dados da amostra
+    sequence = models.PositiveSmallIntegerField('Sequência', validators=[MinValueValidator(1), MaxValueValidator(3)])
+    sample_time = models.DateTimeField('Horário da Amostra', default=timezone.now)
+    operator = models.ForeignKey(User, on_delete=models.PROTECT, verbose_name='Operador', null=True, blank=True)
+    
+    # Status geral da amostra
+    status = models.CharField('Status', max_length=20, choices=STATUS_CHOICES, default='PENDENTE')
+    observations = models.TextField('Observações', blank=True)
+    
+    class Meta:
+        verbose_name = 'Amostra Pontual'
+        verbose_name_plural = 'Amostras Pontuais'
+        ordering = ['-date', '-sample_time']
+        unique_together = [['date', 'shift', 'production_line', 'product', 'sequence']]
+    
+    def __str__(self):
+        return f"{self.date} - {self.shift} - {self.production_line} - {self.product} #{self.sequence}"
+    
+    def calculate_overall_status(self):
+        """Calcula o status geral da amostra baseado nas análises"""
+        analyses = self.spotanalysis_set.all()
+        
+        if not analyses.exists():
+            return 'PENDENTE'
+        
+        # Se alguma análise foi rejeitada, a amostra é rejeitada
+        if analyses.filter(status='REJECTED').exists():
+            return 'REJECTED'
+        
+        # Se alguma análise está em alerta, a amostra está em alerta
+        if analyses.filter(status='ALERT').exists():
+            return 'ALERT'
+        
+        # Se todas as análises são aprovadas, a amostra é aprovada
+        if analyses.filter(status='APPROVED').exists() and not analyses.exclude(status='APPROVED').exists():
+            return 'APPROVED'
+        
+        return 'PENDENTE'
+    
+    def update_status(self):
+        """Atualiza o status da amostra baseado nas análises"""
+        self.status = self.calculate_overall_status()
+        self.save(update_fields=['status'])
+
+
+class SpotAnalysis(AuditModel):
+    """
+    Análises individuais de propriedades dentro de uma amostra pontual
+    """
+    STATUS_CHOICES = [
+        ('APPROVED', 'Aprovado'),
+        ('ALERT', 'Alerta'),
+        ('REJECTED', 'Reprovado'),
+    ]
+    
+    # Referência à amostra
+    spot_sample = models.ForeignKey(SpotSample, on_delete=models.CASCADE, verbose_name='Amostra Pontual')
     property = models.ForeignKey(Property, on_delete=models.PROTECT, verbose_name='Propriedade')
     
     # Dados da análise
-    sequence = models.PositiveSmallIntegerField('Sequência', validators=[MinValueValidator(1), MaxValueValidator(3)])
     value = models.DecimalField('Valor', max_digits=10, decimal_places=4)
     unit = models.CharField('Unidade', max_length=20)
     test_method = models.CharField('Método', max_length=100, blank=True)
@@ -188,47 +245,66 @@ class SpotAnalysis(AuditModel):
     status = models.CharField('Status', max_length=20, choices=STATUS_CHOICES)
     action_taken = models.TextField('Ação Tomada', blank=True)
     
-    # Metadados
-    sample_time = models.DateTimeField('Horário da Amostra', default=timezone.now)
-    operator = models.ForeignKey(User, on_delete=models.PROTECT, verbose_name='Operador', null=True, blank=True)
-    
     class Meta:
         verbose_name = 'Análise Pontual'
         verbose_name_plural = 'Análises Pontuais'
-        ordering = ['-date', '-sample_time']
-        # Removido unique_together para permitir múltiplas análises da mesma propriedade
+        ordering = ['property__display_order']
+        unique_together = [['spot_sample', 'property']]
     
     def __str__(self):
-        return f"{self.date} - {self.shift} - {self.production_line} - {self.property.identifier} #{self.sequence}"
+        return f"{self.spot_sample} - {self.property.identifier}: {self.value}"
     
     def save(self, *args, **kwargs):
         """Calcula o status automaticamente baseado nas especificações"""
         # Só recalcular o status se não foi definido manualmente
-        # Verificar se o status foi definido explicitamente
         if not hasattr(self, '_status_manually_set'):
             self.status = self.calculate_status()
         super().save(*args, **kwargs)
+        
+        # Atualizar o status da amostra após salvar a análise
+        if self.spot_sample:
+            self.spot_sample.update_status()
     
     def set_status_manually(self, status):
-        """Define o status manualmente, evitando recálculo automático"""
-        self.status = status
+        """Define o status manualmente sem recalcular"""
         self._status_manually_set = True
+        self.status = status
     
     def calculate_status(self):
-        """Calcula o status baseado nas especificações"""
+        """Calcula o status baseado nas especificações do produto e propriedade"""
         try:
-            spec = Specification.objects.get(product=self.product, property=self.property, is_active=True)
+            # Buscar especificação para o produto e propriedade
+            specification = Specification.objects.get(
+                product=self.spot_sample.product,
+                property=self.property,
+                is_active=True
+            )
             
-            if spec.lsl is not None and self.value < spec.lsl:
-                return 'REJECTED'
-            if spec.usl is not None and self.value > spec.usl:
+            value = float(self.value)
+            
+            # Verificar limites
+            if specification.lsl is not None and value < float(specification.lsl):
                 return 'REJECTED'
             
-            # Pode implementar lógica de alerta aqui (ex: próximo aos limites)
+            if specification.usl is not None and value > float(specification.usl):
+                return 'REJECTED'
+            
+            # Verificar alertas (se definidos)
+            if specification.alert_lsl is not None and value < float(specification.alert_lsl):
+                return 'ALERT'
+            
+            if specification.alert_usl is not None and value > float(specification.alert_usl):
+                return 'ALERT'
+            
             return 'APPROVED'
             
         except Specification.DoesNotExist:
+            # Se não há especificação, considerar aprovado
             return 'APPROVED'
+        except Exception:
+            # Em caso de erro, considerar pendente
+            return 'PENDENTE'
+    
 
 
 class CompositeSample(AuditModel):

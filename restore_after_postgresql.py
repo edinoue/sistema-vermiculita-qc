@@ -231,3 +231,5 @@ if __name__ == '__main__':
         print("❌ Uso: python restore_after_postgresql.py <backup_filename>")
         print("   Exemplo: python restore_after_postgresql.py backup_antes_postgresql_20241225_143022.json")
 
+
+

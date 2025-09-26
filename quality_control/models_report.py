@@ -127,3 +127,5 @@ class GeneratedReport(models.Model):
     def __str__(self):
         return f"{self.report_number} - {self.title}"
 
+
+

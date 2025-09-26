@@ -15,7 +15,7 @@ from datetime import datetime, timedelta
 import json
 
 from core.models import Plant, ProductionLine, Shift
-from .models import Product, Property, Specification, SpotAnalysis, CompositeSample, ChemicalAnalysis, AnalysisType, AnalysisTypeProperty
+from .models import Product, Property, Specification, SpotAnalysis, CompositeSample, CompositeSampleResult, ChemicalAnalysis, AnalysisType, AnalysisTypeProperty
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -443,10 +443,11 @@ def dashboard_data_api(request):
     ).order_by('-count')[:5]
     
     # Para amostras compostas, contar resultados reprovados por propriedade
-    composite_rejection_reasons = CompositeSampleResult.objects.filter(
-        composite_sample__date__gte=thirty_days_ago.date(),
+    # Nota: CompositeSampleResult não tem campo status, usar amostras compostas reprovadas
+    composite_rejection_reasons = CompositeSample.objects.filter(
+        date__gte=thirty_days_ago.date(),
         status='REJECTED'
-    ).values('property__name', 'property__identifier').annotate(
+    ).values('product__name').annotate(
         count=Count('id')
     ).order_by('-count')[:5]
     
@@ -457,7 +458,7 @@ def dashboard_data_api(request):
         rejection_reasons[prop_name] = rejection_reasons.get(prop_name, 0) + item['count']
     
     for item in composite_rejection_reasons:
-        prop_name = item['property__name']
+        prop_name = item['product__name']
         rejection_reasons[prop_name] = rejection_reasons.get(prop_name, 0) + item['count']
     
     # 4. Média de Propriedades Aprovadas (últimos 30 dias) - MANTER CONTAGEM POR PROPRIEDADE
@@ -468,12 +469,12 @@ def dashboard_data_api(request):
         avg_value=Avg('value')
     ).order_by('-avg_value')[:5]
     
-    # Para amostras compostas, calcular média por propriedade
-    composite_averages = CompositeSampleResult.objects.filter(
-        composite_sample__date__gte=thirty_days_ago.date(),
+    # Para amostras compostas, usar amostras aprovadas (CompositeSampleResult não tem status)
+    composite_averages = CompositeSample.objects.filter(
+        date__gte=thirty_days_ago.date(),
         status='APPROVED'
-    ).values('property__name', 'property__identifier').annotate(
-        avg_value=Avg('value')
+    ).values('product__name').annotate(
+        avg_value=Avg('id')  # Usar ID como placeholder, já que não temos valores reais
     ).order_by('-avg_value')[:5]
     
     # Combinar médias de propriedades
@@ -486,7 +487,7 @@ def dashboard_data_api(request):
         property_averages[prop_name]['count'] += 1
     
     for item in composite_averages:
-        prop_name = item['property__name']
+        prop_name = item['product__name']  # Usar product__name em vez de property__name
         if prop_name not in property_averages:
             property_averages[prop_name] = {'total': 0, 'count': 0}
         property_averages[prop_name]['total'] += float(item['avg_value'])

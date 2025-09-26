@@ -1,0 +1,159 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Criar Amostra Pontual{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-flask"></i>
+                        Criar Amostra Pontual
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <!-- Dados Básicos da Amostra -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="date">Data *</label>
+                                    <input type="date" class="form-control" id="date" name="date" 
+                                           value="{% now 'Y-m-d' %}" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="sample_time">Horário da Amostra *</label>
+                                    <input type="datetime-local" class="form-control" id="sample_time" name="sample_time" 
+                                           value="{% now 'Y-m-d\TH:i' %}" required>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="product">Produto *</label>
+                                    <select class="form-control" id="product" name="product" required>
+                                        <option value="">Selecione o produto</option>
+                                        {% for product in products %}
+                                            <option value="{{ product.id }}">{{ product.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="production_line">Linha de Produção *</label>
+                                    <select class="form-control" id="production_line" name="production_line" required>
+                                        <option value="">Selecione a linha</option>
+                                        {% for line in lines %}
+                                            <option value="{{ line.id }}">{{ line.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="shift">Turno *</label>
+                                    <select class="form-control" id="shift" name="shift" required>
+                                        <option value="">Selecione o turno</option>
+                                        {% for shift in shifts %}
+                                            <option value="{{ shift.id }}">{{ shift.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="sequence">Sequência *</label>
+                                    <select class="form-control" id="sequence" name="sequence" required>
+                                        <option value="">Selecione a sequência</option>
+                                        <option value="1">1ª Amostra</option>
+                                        <option value="2">2ª Amostra</option>
+                                        <option value="3">3ª Amostra</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="observations">Observações</label>
+                            <textarea class="form-control" id="observations" name="observations" rows="3" 
+                                      placeholder="Observações sobre a amostra..."></textarea>
+                        </div>
+                        
+                        <hr>
+                        
+                        <!-- Análises das Propriedades -->
+                        <h5><i class="fas fa-chart-line"></i> Análises das Propriedades</h5>
+                        <p class="text-muted">Preencha os valores das propriedades analisadas:</p>
+                        
+                        <div class="row">
+                            {% for property in properties %}
+                            <div class="col-md-6 col-lg-4">
+                                <div class="form-group">
+                                    <label for="property_{{ property.id }}_value">{{ property.name }} ({{ property.unit }})</label>
+                                    <div class="input-group">
+                                        <input type="number" 
+                                               class="form-control" 
+                                               id="property_{{ property.id }}_value" 
+                                               name="property_{{ property.id }}_value"
+                                               step="0.0001"
+                                               placeholder="Valor">
+                                        <div class="input-group-append">
+                                            <span class="input-group-text">{{ property.unit }}</span>
+                                        </div>
+                                    </div>
+                                    <input type="hidden" 
+                                           name="property_{{ property.id }}_method" 
+                                           value="{{ property.test_method|default:'Método padrão' }}">
+                                    {% if property.description %}
+                                        <small class="form-text text-muted">{{ property.description }}</small>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Criar Amostra
+                            </button>
+                            <a href="{% url 'quality_control:spot_sample_list' %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Cancelar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Auto-preenchimento de campos baseado na data/hora atual
+document.addEventListener('DOMContentLoaded', function() {
+    const now = new Date();
+    const dateInput = document.getElementById('date');
+    const timeInput = document.getElementById('sample_time');
+    
+    if (!dateInput.value) {
+        dateInput.value = now.toISOString().split('T')[0];
+    }
+    
+    if (!timeInput.value) {
+        timeInput.value = now.toISOString().slice(0, 16);
+    }
+});
+</script>
+{% endblock %}

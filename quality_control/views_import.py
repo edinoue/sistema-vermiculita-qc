@@ -265,3 +265,5 @@ def create_template(request):
     
     return render(request, 'quality_control/create_template.html')
 
+
+

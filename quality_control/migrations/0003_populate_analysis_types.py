@@ -43,3 +43,5 @@ class Migration(migrations.Migration):
         migrations.RunPython(populate_analysis_types, reverse_populate_analysis_types),
     ]
 
+
+

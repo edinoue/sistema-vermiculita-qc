@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Excluir Amostra Pontual{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title text-danger">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Excluir Amostra Pontual
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-danger">
+                        <h5><i class="fas fa-warning"></i> Atenção!</h5>
+                        <p>Você está prestes a excluir permanentemente esta amostra pontual e todas as suas análises associadas.</p>
+                        <p><strong>Esta ação não pode ser desfeita!</strong></p>
+                    </div>
+                    
+                    <!-- Informações da Amostra -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5>Informações da Amostra:</h5>
+                            <table class="table table-sm">
+                                <tr>
+                                    <td><strong>Data:</strong></td>
+                                    <td>{{ sample.date|date:"d/m/Y" }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Horário:</strong></td>
+                                    <td>{{ sample.sample_time|date:"H:i" }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Produto:</strong></td>
+                                    <td>{{ sample.product.name }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Linha:</strong></td>
+                                    <td>{{ sample.production_line.name }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Turno:</strong></td>
+                                    <td>{{ sample.shift.name }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Sequência:</strong></td>
+                                    <td>{{ sample.sequence }}ª</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>Status e Análises:</h5>
+                            <table class="table table-sm">
+                                <tr>
+                                    <td><strong>Status:</strong></td>
+                                    <td>
+                                        {% if sample.status == 'APPROVED' %}
+                                            <span class="badge badge-success">Aprovado</span>
+                                        {% elif sample.status == 'ALERT' %}
+                                            <span class="badge badge-warning">Alerta</span>
+                                        {% elif sample.status == 'REJECTED' %}
+                                            <span class="badge badge-danger">Reprovado</span>
+                                        {% else %}
+                                            <span class="badge badge-secondary">Pendente</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Análises:</strong></td>
+                                    <td>
+                                        <span class="badge badge-info">
+                                            {{ sample.spotanalysis_set.count }} análises
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Criado em:</strong></td>
+                                    <td>{{ sample.created_at|date:"d/m/Y H:i" }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    {% if sample.observations %}
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <h5>Observações:</h5>
+                            <div class="alert alert-info">
+                                {{ sample.observations|linebreaks }}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Confirmação -->
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <form method="post">
+                                {% csrf_token %}
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="confirm_delete" required>
+                                    <label class="form-check-label" for="confirm_delete">
+                                        <strong>Confirmo que desejo excluir permanentemente esta amostra pontual</strong>
+                                    </label>
+                                </div>
+                                
+                                <div class="form-actions mt-3">
+                                    <button type="submit" class="btn btn-danger" id="delete_btn" disabled>
+                                        <i class="fas fa-trash"></i> Excluir Definitivamente
+                                    </button>
+                                    <a href="{% url 'quality_control:spot_sample_detail' sample.id %}" class="btn btn-secondary">
+                                        <i class="fas fa-arrow-left"></i> Cancelar
+                                    </a>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const checkbox = document.getElementById('confirm_delete');
+    const deleteBtn = document.getElementById('delete_btn');
+    
+    checkbox.addEventListener('change', function() {
+        deleteBtn.disabled = !this.checked;
+    });
+    
+    deleteBtn.addEventListener('click', function(e) {
+        if (!confirm('Tem certeza absoluta que deseja excluir esta amostra? Esta ação é irreversível!')) {
+            e.preventDefault();
+        }
+    });
+});
+</script>
+{% endblock %}

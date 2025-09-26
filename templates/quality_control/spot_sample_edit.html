@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Editar Amostra Pontual{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-edit"></i>
+                        Editar Amostra Pontual
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <!-- Dados Básicos da Amostra -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="date">Data</label>
+                                    <input type="date" class="form-control" id="date" name="date" 
+                                           value="{{ sample.date|date:'Y-m-d' }}" readonly>
+                                    <small class="form-text text-muted">A data não pode ser alterada</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="sample_time">Horário da Amostra</label>
+                                    <input type="datetime-local" class="form-control" id="sample_time" name="sample_time" 
+                                           value="{{ sample.sample_time|date:'Y-m-d\TH:i' }}" readonly>
+                                    <small class="form-text text-muted">O horário não pode ser alterado</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>Produto</label>
+                                    <input type="text" class="form-control" value="{{ sample.product.name }}" readonly>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>Linha de Produção</label>
+                                    <input type="text" class="form-control" value="{{ sample.production_line.name }}" readonly>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>Turno</label>
+                                    <input type="text" class="form-control" value="{{ sample.shift.name }}" readonly>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="observations">Observações</label>
+                            <textarea class="form-control" id="observations" name="observations" rows="3" 
+                                      placeholder="Observações sobre a amostra...">{{ sample.observations }}</textarea>
+                        </div>
+                        
+                        <hr>
+                        
+                        <!-- Análises das Propriedades -->
+                        <h5><i class="fas fa-chart-line"></i> Análises das Propriedades</h5>
+                        <p class="text-muted">Atualize os valores das propriedades analisadas:</p>
+                        
+                        <div class="row">
+                            {% for property in properties %}
+                            <div class="col-md-6 col-lg-4">
+                                <div class="form-group">
+                                    <label for="property_{{ property.id }}_value">{{ property.name }} ({{ property.unit }})</label>
+                                    <div class="input-group">
+                                        <input type="number" 
+                                               class="form-control" 
+                                               id="property_{{ property.id }}_value" 
+                                               name="property_{{ property.id }}_value"
+                                               step="0.0001"
+                                               value="{% for analysis in sample.spotanalysis_set.all %}{% if analysis.property.id == property.id %}{{ analysis.value }}{% endif %}{% endfor %}"
+                                               placeholder="Valor">
+                                        <div class="input-group-append">
+                                            <span class="input-group-text">{{ property.unit }}</span>
+                                        </div>
+                                    </div>
+                                    <input type="hidden" 
+                                           name="property_{{ property.id }}_method" 
+                                           value="{% for analysis in sample.spotanalysis_set.all %}{% if analysis.property.id == property.id %}{{ analysis.test_method }}{% endif %}{% endfor %}">
+                                    {% if property.description %}
+                                        <small class="form-text text-muted">{{ property.description }}</small>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Salvar Alterações
+                            </button>
+                            <a href="{% url 'quality_control:spot_sample_detail' sample.id %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Cancelar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
