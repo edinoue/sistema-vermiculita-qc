@@ -164,6 +164,7 @@
         font-weight: 700;
         font-size: 0.7rem;
         line-height: 1.2;
+        color: #495057;
     }
     
     .analysis-unit {
@@ -304,8 +305,8 @@
                     <thead>
                         <tr>
                             <th>#</th>
-                            {% for property in properties %}
-                            <th>{{ property.identifier }}</th>
+                            {% for product in products %}
+                            <th>{{ product.code }}</th>
                             {% endfor %}
                         </tr>
                     </thead>
@@ -315,13 +316,14 @@
                             <td class="product-name-cell">
                                 <span class="sequence-badge">{{ sample_data.sequence }}</span>
                             </td>
-                            {% for property in properties %}
+                            {% for product in products %}
                             <td class="analysis-cell">
-                                {% if sample_data.property_analyses and property.id in sample_data.property_analyses %}
-                                    {% with analysis=sample_data.property_analyses|lookup:property.id %}
-                                        <div class="analysis-value">{{ analysis.value|floatformat:1 }}</div>
-                                        <div class="analysis-unit">{{ analysis.unit }}</div>
-                                        <div class="status-indicator status-{{ analysis.status|lower }}"></div>
+                                {% if sample_data.product_analyses and product.id in sample_data.product_analyses %}
+                                    {% with product_data=sample_data.product_analyses|lookup:product.id %}
+                                        {% for analysis in product_data.analyses %}
+                                            <div class="analysis-value">{{ analysis.value|floatformat:1 }} {{ analysis.unit }}</div>
+                                            <div class="status-indicator status-{{ analysis.status|lower }}"></div>
+                                        {% endfor %}
                                     {% endwith %}
                                 {% else %}
                                     <div style="color: #6c757d; font-size: 0.6rem;">-</div>
