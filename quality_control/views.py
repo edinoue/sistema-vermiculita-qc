@@ -567,9 +567,11 @@ def dashboard_data_api(request):
 def spot_dashboard_view(request):
     """
     Dashboard específico para análises pontuais
-    Mostra cards por local de produção com as últimas amostras sequenciais
+    Cada linha azul = linha de produção real
+    Cada linha da tabela = amostra pontual (1ª, 2ª, 3ª)
+    Colunas = produtos cadastrados
     """
-    # Obter turno atual (você pode ajustar a lógica conforme necessário)
+    # Obter turno atual
     current_time = timezone.now()
     current_shift = None
     
@@ -587,59 +589,64 @@ def spot_dashboard_view(request):
     # Obter todas as linhas de produção ativas
     production_lines = ProductionLine.objects.filter(is_active=True)
     
+    # Obter todos os produtos ativos
+    products = Product.objects.filter(is_active=True)
+    
     # Dados para cada linha de produção
     lines_data = []
     
     for line in production_lines:
-        # Buscar a última amostra sequencial para cada produto nesta linha
-        latest_samples = SpotSample.objects.filter(
+        # Buscar as 3 amostras mais recentes desta linha (1ª, 2ª, 3ª)
+        recent_samples = SpotSample.objects.filter(
             production_line=line,
             shift=current_shift,
             date=timezone.now().date()
-        ).values('product').annotate(
-            latest_sequence=Max('sample_sequence')
-        )
+        ).order_by('-sample_sequence')[:3]
         
-        # Para cada produto, buscar a amostra mais recente
-        products_data = []
+        # Organizar dados por amostra (1ª, 2ª, 3ª)
+        samples_data = []
         
-        for sample_data in latest_samples:
-            product_id = sample_data['product']
-            latest_sequence = sample_data['latest_sequence']
+        for i, sample in enumerate(recent_samples, 1):
+            # Buscar todas as análises desta amostra
+            analyses = SpotAnalysis.objects.filter(
+                spot_sample=sample
+            ).select_related('property')
             
-            # Buscar a amostra mais recente deste produto
-            latest_sample = SpotSample.objects.filter(
-                production_line=line,
-                shift=current_shift,
-                date=timezone.now().date(),
-                product_id=product_id,
-                sample_sequence=latest_sequence
-            ).first()
+            # Calcular status geral da amostra
+            sample_status = 'APPROVED'
+            if analyses.filter(status='REJECTED').exists():
+                sample_status = 'REJECTED'
+            elif analyses.filter(status='ALERT').exists():
+                sample_status = 'ALERT'
             
-            if latest_sample:
-                # Buscar todas as análises desta amostra
-                analyses = SpotAnalysis.objects.filter(
-                    spot_sample=latest_sample
-                ).select_related('property')
-                
-                # Calcular status geral da amostra
-                sample_status = 'APPROVED'
-                if analyses.filter(status='REJECTED').exists():
-                    sample_status = 'REJECTED'
-                elif analyses.filter(status='ALERT').exists():
-                    sample_status = 'ALERT'
-                
-                products_data.append({
-                    'product': latest_sample.product,
-                    'sample': latest_sample,
-                    'analyses': analyses,
-                    'status': sample_status,
-                    'sequence': latest_sample.sample_sequence
-                })
+            # Organizar análises por produto
+            product_analyses = {}
+            for analysis in analyses:
+                product_analyses[analysis.spot_sample.product_id] = analysis
+            
+            samples_data.append({
+                'sequence': sample.sample_sequence,
+                'sample': sample,
+                'analyses': analyses,
+                'product_analyses': product_analyses,
+                'status': sample_status,
+                'time': sample.sample_time
+            })
+        
+        # Garantir que sempre temos 3 linhas (1ª, 2ª, 3ª)
+        while len(samples_data) < 3:
+            samples_data.append({
+                'sequence': len(samples_data) + 1,
+                'sample': None,
+                'analyses': [],
+                'product_analyses': {},
+                'status': 'PENDENTE',
+                'time': None
+            })
         
         lines_data.append({
             'line': line,
-            'products': products_data
+            'samples': samples_data
         })
     
     # Estatísticas gerais
@@ -664,6 +671,7 @@ def spot_dashboard_view(request):
     
     context = {
         'lines_data': lines_data,
+        'products': products,
         'current_shift': current_shift,
         'current_date': timezone.now().date(),
         'stats': {
