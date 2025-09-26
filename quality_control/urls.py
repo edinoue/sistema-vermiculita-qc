@@ -11,6 +11,7 @@ urlpatterns = [
     # Views principais
     path('', views.dashboard_view, name='dashboard'),
     path('dashboard/', views.dashboard_view, name='dashboard_main'),
+    path('dashboard/spot/', views.spot_dashboard_view, name='spot_dashboard'),
     
     # Seleção de tipo de análise
     path('analysis-type-selection/', views.analysis_type_selection_view, name='analysis_type_selection'),

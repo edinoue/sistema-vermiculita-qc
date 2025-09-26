@@ -1,0 +1,365 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Dashboard - Análises Pontuais{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-header {
+        background: linear-gradient(135deg, #2c5530, #4a7c59);
+        color: white;
+        padding: 2rem;
+        border-radius: 15px;
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+    
+    .stats-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+    
+    .stat-card {
+        background: white;
+        border-radius: 10px;
+        padding: 1.5rem;
+        text-align: center;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        border-left: 4px solid #2c5530;
+    }
+    
+    .stat-number {
+        font-size: 2rem;
+        font-weight: bold;
+        color: #2c5530;
+        margin-bottom: 0.5rem;
+    }
+    
+    .stat-label {
+        color: #6c757d;
+        font-size: 0.9rem;
+    }
+    
+    .production-lines {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+    
+    .line-card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        overflow: hidden;
+    }
+    
+    .line-header {
+        background: linear-gradient(135deg, #2c5530, #4a7c59);
+        color: white;
+        padding: 1rem 1.5rem;
+        font-weight: 600;
+        font-size: 1.1rem;
+    }
+    
+    .line-content {
+        padding: 1.5rem;
+    }
+    
+    .product-section {
+        margin-bottom: 1.5rem;
+        padding: 1rem;
+        border: 1px solid #e9ecef;
+        border-radius: 10px;
+        background: #f8f9fa;
+    }
+    
+    .product-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+    
+    .product-name {
+        font-weight: 600;
+        color: #2c5530;
+        font-size: 1.1rem;
+    }
+    
+    .sample-info {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+    }
+    
+    .sample-sequence {
+        background: #2c5530;
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+    
+    .sample-time {
+        color: #6c757d;
+        font-size: 0.9rem;
+    }
+    
+    .status-badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+    
+    .status-approved {
+        background-color: #d4edda;
+        color: #155724;
+    }
+    
+    .status-rejected {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+    
+    .status-alert {
+        background-color: #fff3cd;
+        color: #856404;
+    }
+    
+    .analyses-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+    }
+    
+    .analysis-item {
+        background: white;
+        padding: 1rem;
+        border-radius: 8px;
+        border: 1px solid #dee2e6;
+        text-align: center;
+    }
+    
+    .analysis-property {
+        font-weight: 600;
+        color: #2c5530;
+        margin-bottom: 0.5rem;
+    }
+    
+    .analysis-value {
+        font-size: 1.2rem;
+        font-weight: bold;
+        color: #495057;
+        margin-bottom: 0.25rem;
+    }
+    
+    .analysis-unit {
+        color: #6c757d;
+        font-size: 0.9rem;
+    }
+    
+    .analysis-status {
+        margin-top: 0.5rem;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 3rem;
+        color: #6c757d;
+    }
+    
+    .empty-state i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        color: #dee2e6;
+    }
+    
+    .shift-info {
+        background: #e9ecef;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        color: #495057;
+        display: inline-block;
+        margin-bottom: 1rem;
+    }
+    
+    @media (max-width: 768px) {
+        .dashboard-header {
+            padding: 1rem;
+        }
+        
+        .stats-cards {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .production-lines {
+            grid-template-columns: 1fr;
+        }
+        
+        .analyses-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .product-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.5rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="dashboard-header">
+        <h2 class="mb-2">
+            <i class="bi bi-speedometer2"></i> Dashboard - Análises Pontuais
+        </h2>
+        <p class="mb-0">Resultados das últimas amostras sequenciais por local de produção</p>
+        <div class="shift-info">
+            <i class="bi bi-clock"></i> 
+            Turno: {{ current_shift.name }} | 
+            Data: {{ current_date|date:"d/m/Y" }}
+        </div>
+    </div>
+    
+    <!-- Estatísticas Gerais -->
+    <div class="stats-cards">
+        <div class="stat-card">
+            <div class="stat-number">{{ stats.total_samples }}</div>
+            <div class="stat-label">Total de Amostras</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ stats.approved_samples }}</div>
+            <div class="stat-label">Aprovadas</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ stats.rejected_samples }}</div>
+            <div class="stat-label">Reprovadas</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ stats.approval_rate|floatformat:1 }}%</div>
+            <div class="stat-label">Taxa de Aprovação</div>
+        </div>
+    </div>
+    
+    <!-- Cards por Linha de Produção -->
+    <div class="production-lines">
+        {% for line_data in lines_data %}
+        <div class="line-card">
+            <div class="line-header">
+                <i class="bi bi-gear"></i> {{ line_data.line.name }}
+                <small class="d-block">{{ line_data.line.code }}</small>
+            </div>
+            <div class="line-content">
+                {% if line_data.products %}
+                    {% for product_data in line_data.products %}
+                    <div class="product-section">
+                        <div class="product-header">
+                            <div class="product-name">
+                                {{ product_data.product.name }}
+                                <small class="d-block text-muted">{{ product_data.product.code }}</small>
+                            </div>
+                            <div class="sample-info">
+                                <span class="sample-sequence">Amostra {{ product_data.sequence }}</span>
+                                <span class="sample-time">{{ product_data.sample.sample_time|time:"H:i" }}</span>
+                                <span class="status-badge status-{{ product_data.status|lower }}">
+                                    {% if product_data.status == 'APPROVED' %}
+                                        <i class="bi bi-check-circle"></i> Aprovado
+                                    {% elif product_data.status == 'REJECTED' %}
+                                        <i class="bi bi-x-circle"></i> Reprovado
+                                    {% else %}
+                                        <i class="bi bi-exclamation-triangle"></i> Alerta
+                                    {% endif %}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        {% if product_data.analyses %}
+                        <div class="analyses-grid">
+                            {% for analysis in product_data.analyses %}
+                            <div class="analysis-item">
+                                <div class="analysis-property">{{ analysis.property.identifier }}</div>
+                                <div class="analysis-value">{{ analysis.value }}</div>
+                                <div class="analysis-unit">{{ analysis.unit }}</div>
+                                <div class="analysis-status">
+                                    <span class="status-badge status-{{ analysis.status|lower }}">
+                                        {% if analysis.status == 'APPROVED' %}
+                                            <i class="bi bi-check-circle"></i> Aprovado
+                                        {% elif analysis.status == 'REJECTED' %}
+                                            <i class="bi bi-x-circle"></i> Reprovado
+                                        {% else %}
+                                            <i class="bi bi-exclamation-triangle"></i> Alerta
+                                        {% endif %}
+                                    </span>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <div class="empty-state">
+                            <i class="bi bi-inbox"></i>
+                            <p class="mb-0">Nenhuma análise encontrada</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                {% else %}
+                <div class="empty-state">
+                    <i class="bi bi-inbox"></i>
+                    <h5>Nenhuma amostra encontrada</h5>
+                    <p>Não há amostras para esta linha de produção no turno atual.</p>
+                    <a href="{% url 'quality_control:spot_analysis_create_improved' %}" class="btn btn-primary">
+                        <i class="bi bi-plus-circle"></i> Criar Primeira Análise
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    {% if not lines_data %}
+    <div class="empty-state">
+        <i class="bi bi-inbox"></i>
+        <h5>Nenhuma linha de produção ativa</h5>
+        <p>Configure as linhas de produção no sistema para visualizar o dashboard.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Animação de entrada
+    const cards = document.querySelectorAll('.stat-card, .line-card');
+    cards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        
+        setTimeout(() => {
+            card.style.transition = 'all 0.5s ease';
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, index * 100);
+    });
+    
+    // Auto-refresh a cada 5 minutos
+    setTimeout(() => {
+        location.reload();
+    }, 300000); // 5 minutos
+    
+    console.log('📊 Dashboard de análises pontuais carregado com sucesso!');
+});
+</script>
+{% endblock %}

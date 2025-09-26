@@ -9,7 +9,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.db.models import Count, Avg, Avg, Q
+from django.db.models import Count, Avg, Q, Max
 from django.utils import timezone
 from datetime import datetime, timedelta
 import json
@@ -561,3 +561,117 @@ def dashboard_data_api(request):
             ).count()
         }
     })
+
+
+@login_required
+def spot_dashboard_view(request):
+    """
+    Dashboard específico para análises pontuais
+    Mostra cards por local de produção com as últimas amostras sequenciais
+    """
+    # Obter turno atual (você pode ajustar a lógica conforme necessário)
+    current_time = timezone.now()
+    current_shift = None
+    
+    # Lógica para determinar o turno atual baseado no horário
+    if 6 <= current_time.hour < 14:
+        current_shift = Shift.objects.filter(name__icontains='manhã').first()
+    elif 14 <= current_time.hour < 22:
+        current_shift = Shift.objects.filter(name__icontains='tarde').first()
+    else:
+        current_shift = Shift.objects.filter(name__icontains='noite').first()
+    
+    if not current_shift:
+        current_shift = Shift.objects.first()
+    
+    # Obter todas as linhas de produção ativas
+    production_lines = ProductionLine.objects.filter(is_active=True)
+    
+    # Dados para cada linha de produção
+    lines_data = []
+    
+    for line in production_lines:
+        # Buscar a última amostra sequencial para cada produto nesta linha
+        latest_samples = SpotSample.objects.filter(
+            production_line=line,
+            shift=current_shift,
+            date=timezone.now().date()
+        ).values('product').annotate(
+            latest_sequence=Max('sample_sequence')
+        )
+        
+        # Para cada produto, buscar a amostra mais recente
+        products_data = []
+        
+        for sample_data in latest_samples:
+            product_id = sample_data['product']
+            latest_sequence = sample_data['latest_sequence']
+            
+            # Buscar a amostra mais recente deste produto
+            latest_sample = SpotSample.objects.filter(
+                production_line=line,
+                shift=current_shift,
+                date=timezone.now().date(),
+                product_id=product_id,
+                sample_sequence=latest_sequence
+            ).first()
+            
+            if latest_sample:
+                # Buscar todas as análises desta amostra
+                analyses = SpotAnalysis.objects.filter(
+                    spot_sample=latest_sample
+                ).select_related('property')
+                
+                # Calcular status geral da amostra
+                sample_status = 'APPROVED'
+                if analyses.filter(status='REJECTED').exists():
+                    sample_status = 'REJECTED'
+                elif analyses.filter(status='ALERT').exists():
+                    sample_status = 'ALERT'
+                
+                products_data.append({
+                    'product': latest_sample.product,
+                    'sample': latest_sample,
+                    'analyses': analyses,
+                    'status': sample_status,
+                    'sequence': latest_sample.sample_sequence
+                })
+        
+        lines_data.append({
+            'line': line,
+            'products': products_data
+        })
+    
+    # Estatísticas gerais
+    total_samples_today = SpotSample.objects.filter(
+        date=timezone.now().date(),
+        shift=current_shift
+    ).count()
+    
+    approved_samples = SpotSample.objects.filter(
+        date=timezone.now().date(),
+        shift=current_shift
+    ).annotate(
+        has_rejected=Count('spotanalysis', filter=Q(spotanalysis__status='REJECTED'))
+    ).filter(has_rejected=0).count()
+    
+    rejected_samples = SpotSample.objects.filter(
+        date=timezone.now().date(),
+        shift=current_shift
+    ).annotate(
+        has_rejected=Count('spotanalysis', filter=Q(spotanalysis__status='REJECTED'))
+    ).filter(has_rejected__gt=0).count()
+    
+    context = {
+        'lines_data': lines_data,
+        'current_shift': current_shift,
+        'current_date': timezone.now().date(),
+        'stats': {
+            'total_samples': total_samples_today,
+            'approved_samples': approved_samples,
+            'rejected_samples': rejected_samples,
+            'approval_rate': (approved_samples / total_samples_today * 100) if total_samples_today > 0 else 0
+        }
+    }
+    
+    return render(request, 'quality_control/spot_dashboard.html', context)
