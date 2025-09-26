@@ -227,7 +227,7 @@ def dashboard_view(request):
     seven_days_ago = timezone.now() - timedelta(days=7)
     analyses_by_line = SpotAnalysis.objects.filter(
         spot_sample__sample_time__gte=seven_days_ago
-    ).values('production_line__name').annotate(
+    ).values('spot_sample__production_line__name').annotate(
         count=Count('id')
     ).order_by('-count')
     
@@ -437,7 +437,7 @@ def dashboard_data_api(request):
     spot_rejections_by_line = SpotAnalysis.objects.filter(
         spot_sample__sample_time__gte=thirty_days_ago,
         status='REJECTED'
-    ).values('production_line__name').annotate(
+    ).values('spot_sample__production_line__name').annotate(
         count=Count('id')
     ).order_by('-count')[:5]
     
@@ -452,11 +452,11 @@ def dashboard_data_api(request):
     # Combinar reprovações por linha
     line_rejections = {}
     for item in spot_rejections_by_line:
-        line_name = item['production_line__name']
+        line_name = item['spot_sample__production_line__name']
         line_rejections[line_name] = line_rejections.get(line_name, 0) + item['count']
     
     for item in composite_rejections_by_line:
-        line_name = item['production_line__name']
+        line_name = item['spot_sample__production_line__name']
         line_rejections[line_name] = line_rejections.get(line_name, 0) + item['count']
     
     # 3. Motivos de Reprovação (por propriedade) - MANTER CONTAGEM POR PROPRIEDADE
@@ -531,7 +531,7 @@ def dashboard_data_api(request):
     return JsonResponse({
         'success': True,
         'rejection_status': [{'status': k, 'count': v} for k, v in all_status_data.items()],
-        'rejection_by_line': [{'production_line__name': k, 'count': v} for k, v in line_rejections.items()],
+        'rejection_by_line': [{'spot_sample__production_line__name': k, 'count': v} for k, v in line_rejections.items()],
         'rejection_reasons': [{'property__name': k, 'count': v} for k, v in rejection_reasons.items()],
         'property_averages': final_averages[:5],
         'totals': {
