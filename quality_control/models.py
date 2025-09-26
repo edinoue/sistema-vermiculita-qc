@@ -194,7 +194,7 @@ class SpotSample(models.Model):
         verbose_name = 'Amostra Pontual'
         verbose_name_plural = 'Amostras Pontuais'
         ordering = ['-date', '-sample_time']
-        # unique_together = [['date', 'shift', 'production_line', 'product', 'sample_sequence']]
+        # unique_together = [['date', 'shift', 'production_line', 'product', 'sequence']]
     
     def __str__(self):
         return f"{self.date} - {self.shift} - {self.production_line} - {self.product} - Amostra {self.sample_sequence}"
