@@ -42,131 +42,137 @@
         font-size: 0.9rem;
     }
     
-    .production-lines {
+    .modules-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-        gap: 2rem;
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: 1fr 1fr;
+        gap: 1rem;
         margin-bottom: 2rem;
+        height: 80vh;
     }
     
-    .line-card {
+    .module-card {
         background: white;
-        border-radius: 15px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        overflow: hidden;
-    }
-    
-    .line-header {
-        background: linear-gradient(135deg, #2c5530, #4a7c59);
-        color: white;
-        padding: 1rem 1.5rem;
-        font-weight: 600;
-        font-size: 1.1rem;
-    }
-    
-    .line-content {
-        padding: 1.5rem;
-    }
-    
-    .product-section {
-        margin-bottom: 1.5rem;
-        padding: 1rem;
-        border: 1px solid #e9ecef;
-        border-radius: 10px;
-        background: #f8f9fa;
-    }
-    
-    .product-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 1rem;
-    }
-    
-    .product-name {
-        font-weight: 600;
-        color: #2c5530;
-        font-size: 1.1rem;
-    }
-    
-    .sample-info {
-        display: flex;
-        gap: 1rem;
-        align-items: center;
-    }
-    
-    .sample-sequence {
-        background: #2c5530;
-        color: white;
-        padding: 0.25rem 0.75rem;
-        border-radius: 15px;
-        font-size: 0.8rem;
-        font-weight: 600;
-    }
-    
-    .sample-time {
-        color: #6c757d;
-        font-size: 0.9rem;
-    }
-    
-    .status-badge {
-        display: inline-block;
-        padding: 0.25rem 0.75rem;
-        border-radius: 20px;
-        font-size: 0.8rem;
-        font-weight: 600;
-        text-transform: uppercase;
-    }
-    
-    .status-approved {
-        background-color: #d4edda;
-        color: #155724;
-    }
-    
-    .status-rejected {
-        background-color: #f8d7da;
-        color: #721c24;
-    }
-    
-    .status-alert {
-        background-color: #fff3cd;
-        color: #856404;
-    }
-    
-    .analyses-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 1rem;
-    }
-    
-    .analysis-item {
-        background: white;
-        padding: 1rem;
         border-radius: 8px;
-        border: 1px solid #dee2e6;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .module-header {
+        background: #007bff;
+        color: white;
+        padding: 0.5rem 1rem;
+        font-weight: 600;
+        font-size: 0.9rem;
         text-align: center;
     }
     
-    .analysis-property {
+    .module-content {
+        flex: 1;
+        padding: 0.5rem;
+        overflow-y: auto;
+    }
+    
+    .products-table {
+        width: 100%;
+        font-size: 0.75rem;
+        border-collapse: collapse;
+    }
+    
+    .products-table th {
+        background: #f8f9fa;
+        color: #495057;
+        font-weight: 600;
+        padding: 0.25rem 0.5rem;
+        border: 1px solid #dee2e6;
+        text-align: center;
+        font-size: 0.7rem;
+    }
+    
+    .products-table td {
+        padding: 0.25rem 0.5rem;
+        border: 1px solid #dee2e6;
+        text-align: center;
+        vertical-align: middle;
+    }
+    
+    .product-row {
+        height: 2rem;
+    }
+    
+    .product-name-cell {
         font-weight: 600;
         color: #2c5530;
-        margin-bottom: 0.5rem;
+        font-size: 0.7rem;
+        max-width: 60px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
     
-    .analysis-value {
-        font-size: 1.2rem;
-        font-weight: bold;
+    .analysis-cell {
+        font-size: 0.65rem;
+        font-weight: 600;
         color: #495057;
-        margin-bottom: 0.25rem;
     }
     
-    .analysis-unit {
-        color: #6c757d;
-        font-size: 0.9rem;
+    .status-indicator {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        display: inline-block;
+        margin: 0 2px;
     }
     
-    .analysis-status {
-        margin-top: 0.5rem;
+    .status-approved {
+        background-color: #28a745;
+    }
+    
+    .status-rejected {
+        background-color: #dc3545;
+    }
+    
+    .status-alert {
+        background-color: #ffc107;
+    }
+    
+    .sequence-badge {
+        background: #2c5530;
+        color: white;
+        padding: 0.1rem 0.3rem;
+        border-radius: 8px;
+        font-size: 0.6rem;
+        font-weight: 600;
+    }
+    
+    .module-iv-v {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .module-iv, .module-v {
+        flex: 1;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        overflow: hidden;
+    }
+    
+    .module-iv-header, .module-v-header {
+        background: #007bff;
+        color: white;
+        padding: 0.4rem 0.8rem;
+        font-weight: 600;
+        font-size: 0.8rem;
+        text-align: center;
+    }
+    
+    .module-iv-content, .module-v-content {
+        padding: 0.4rem;
+        overflow-y: auto;
     }
     
     .empty-state {
@@ -200,18 +206,23 @@
             grid-template-columns: repeat(2, 1fr);
         }
         
-        .production-lines {
+        .modules-grid {
             grid-template-columns: 1fr;
+            grid-template-rows: auto;
+            height: auto;
         }
         
-        .analyses-grid {
-            grid-template-columns: 1fr;
-        }
-        
-        .product-header {
+        .module-iv-v {
             flex-direction: column;
-            align-items: flex-start;
-            gap: 0.5rem;
+        }
+        
+        .products-table {
+            font-size: 0.7rem;
+        }
+        
+        .products-table th,
+        .products-table td {
+            padding: 0.2rem 0.3rem;
         }
     }
 </style>
@@ -273,80 +284,278 @@
         </div>
     </div>
     
-    <!-- Cards por Linha de Produção -->
-    <div class="production-lines">
-        {% for line_data in lines_data %}
-        <div class="line-card">
-            <div class="line-header">
-                <i class="bi bi-gear"></i> {{ line_data.line.name }}
-                <small class="d-block">{{ line_data.line.code }}</small>
-            </div>
-            <div class="line-content">
-                {% if line_data.products %}
-                    {% for product_data in line_data.products %}
-                    <div class="product-section">
-                        <div class="product-header">
-                            <div class="product-name">
-                                {{ product_data.product.name }}
-                                <small class="d-block text-muted">{{ product_data.product.code }}</small>
-                            </div>
-                            <div class="sample-info">
-                                <span class="sample-sequence">Amostra {{ product_data.sequence }}</span>
-                                <span class="sample-time">{{ product_data.sample.sample_time|time:"H:i" }}</span>
-                                <span class="status-badge status-{{ product_data.status|lower }}">
-                                    {% if product_data.status == 'APPROVED' %}
-                                        <i class="bi bi-check-circle"></i> Aprovado
-                                    {% elif product_data.status == 'REJECTED' %}
-                                        <i class="bi bi-x-circle"></i> Reprovado
-                                    {% else %}
-                                        <i class="bi bi-exclamation-triangle"></i> Alerta
-                                    {% endif %}
-                                </span>
-                            </div>
-                        </div>
-                        
-                        {% if product_data.analyses %}
-                        <div class="analyses-grid">
-                            {% for analysis in product_data.analyses %}
-                            <div class="analysis-item">
-                                <div class="analysis-property">{{ analysis.property.identifier }}</div>
-                                <div class="analysis-value">{{ analysis.value }}</div>
-                                <div class="analysis-unit">{{ analysis.unit }}</div>
-                                <div class="analysis-status">
-                                    <span class="status-badge status-{{ analysis.status|lower }}">
-                                        {% if analysis.status == 'APPROVED' %}
-                                            <i class="bi bi-check-circle"></i> Aprovado
-                                        {% elif analysis.status == 'REJECTED' %}
-                                            <i class="bi bi-x-circle"></i> Reprovado
-                                        {% else %}
-                                            <i class="bi bi-exclamation-triangle"></i> Alerta
+    <!-- Módulos de Análises -->
+    <div class="modules-grid">
+        <!-- Módulo I - Top Left -->
+        <div class="module-card">
+            <div class="module-header">Módulo I</div>
+            <div class="module-content">
+                <table class="products-table">
+                    <thead>
+                        <tr>
+                            <th>P</th>
+                            <th>Médio</th>
+                            <th>Fino</th>
+                            <th>AM30</th>
+                            <th>Micron</th>
+                            <th>Obs</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for line_data in lines_data|slice:":1" %}
+                            {% for product_data in line_data.products|slice:":3" %}
+                            <tr class="product-row">
+                                <td class="product-name-cell">
+                                    <span class="sequence-badge">{{ product_data.sequence }}</span>
+                                    <div class="status-indicator status-{{ product_data.status|lower }}"></div>
+                                </td>
+                                <td class="analysis-cell">
+                                    {% for analysis in product_data.analyses %}
+                                        {% if 'médio' in analysis.property.name|lower %}
+                                            {{ analysis.value }}{{ analysis.unit }}
                                         {% endif %}
-                                    </span>
-                                </div>
-                            </div>
+                                    {% endfor %}
+                                </td>
+                                <td class="analysis-cell">
+                                    {% for analysis in product_data.analyses %}
+                                        {% if 'fino' in analysis.property.name|lower %}
+                                            {{ analysis.value }}{{ analysis.unit }}
+                                        {% endif %}
+                                    {% endfor %}
+                                </td>
+                                <td class="analysis-cell">
+                                    {% for analysis in product_data.analyses %}
+                                        {% if 'am30' in analysis.property.name|lower %}
+                                            {{ analysis.value }}{{ analysis.unit }}
+                                        {% endif %}
+                                    {% endfor %}
+                                </td>
+                                <td class="analysis-cell">
+                                    {% for analysis in product_data.analyses %}
+                                        {% if 'micron' in analysis.property.name|lower %}
+                                            {{ analysis.value }}{{ analysis.unit }}
+                                        {% endif %}
+                                    {% endfor %}
+                                </td>
+                                <td class="analysis-cell">S.F.#</td>
+                            </tr>
                             {% endfor %}
-                        </div>
-                        {% else %}
-                        <div class="empty-state">
-                            <i class="bi bi-inbox"></i>
-                            <p class="mb-0">Nenhuma análise encontrada</p>
-                        </div>
-                        {% endif %}
-                    </div>
-                    {% endfor %}
-                {% else %}
-                <div class="empty-state">
-                    <i class="bi bi-inbox"></i>
-                    <h5>Nenhuma amostra encontrada</h5>
-                    <p>Não há amostras para esta linha de produção no turno atual.</p>
-                    <a href="{% url 'quality_control:spot_analysis_create_improved' %}" class="btn btn-primary">
-                        <i class="bi bi-plus-circle"></i> Criar Primeira Análise
-                    </a>
-                </div>
-                {% endif %}
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
         </div>
-        {% endfor %}
+
+        <!-- Módulo III - Top Right -->
+        <div class="module-card">
+            <div class="module-header">Módulo III</div>
+            <div class="module-content">
+                <table class="products-table">
+                    <thead>
+                        <tr>
+                            <th>P</th>
+                            <th>Médio</th>
+                            <th>CB5</th>
+                            <th>X</th>
+                            <th>Micron</th>
+                            <th>Obs</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for line_data in lines_data|slice:":1" %}
+                            {% for product_data in line_data.products|slice:"3:6" %}
+                            <tr class="product-row">
+                                <td class="product-name-cell">
+                                    <span class="sequence-badge">{{ product_data.sequence }}</span>
+                                    <div class="status-indicator status-{{ product_data.status|lower }}"></div>
+                                </td>
+                                <td class="analysis-cell">
+                                    {% for analysis in product_data.analyses %}
+                                        {% if 'médio' in analysis.property.name|lower %}
+                                            {{ analysis.value }}{{ analysis.unit }}
+                                        {% endif %}
+                                    {% endfor %}
+                                </td>
+                                <td class="analysis-cell">
+                                    {% for analysis in product_data.analyses %}
+                                        {% if 'cb5' in analysis.property.name|lower %}
+                                            {{ analysis.value }}{{ analysis.unit }}
+                                        {% endif %}
+                                    {% endfor %}
+                                </td>
+                                <td class="analysis-cell">
+                                    {% for analysis in product_data.analyses %}
+                                        {% if 'x' in analysis.property.name|lower %}
+                                            {{ analysis.value }}{{ analysis.unit }}
+                                        {% endif %}
+                                    {% endfor %}
+                                </td>
+                                <td class="analysis-cell">
+                                    {% for analysis in product_data.analyses %}
+                                        {% if 'micron' in analysis.property.name|lower %}
+                                            {{ analysis.value }}{{ analysis.unit }}
+                                        {% endif %}
+                                    {% endfor %}
+                                </td>
+                                <td class="analysis-cell">CB5#</td>
+                            </tr>
+                            {% endfor %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Módulo II - Bottom Left -->
+        <div class="module-card">
+            <div class="module-header">Módulo II</div>
+            <div class="module-content">
+                <table class="products-table">
+                    <thead>
+                        <tr>
+                            <th>P</th>
+                            <th>Médio</th>
+                            <th>FINO</th>
+                            <th>Super Fino</th>
+                            <th>Micron</th>
+                            <th>Obs</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for line_data in lines_data|slice:":1" %}
+                            {% for product_data in line_data.products|slice:"6:9" %}
+                            <tr class="product-row">
+                                <td class="product-name-cell">
+                                    <span class="sequence-badge">{{ product_data.sequence }}</span>
+                                    <div class="status-indicator status-{{ product_data.status|lower }}"></div>
+                                </td>
+                                <td class="analysis-cell">
+                                    {% for analysis in product_data.analyses %}
+                                        {% if 'médio' in analysis.property.name|lower %}
+                                            {{ analysis.value }}{{ analysis.unit }}
+                                        {% endif %}
+                                    {% endfor %}
+                                </td>
+                                <td class="analysis-cell">
+                                    {% for analysis in product_data.analyses %}
+                                        {% if 'fino' in analysis.property.name|lower %}
+                                            {{ analysis.value }}{{ analysis.unit }}
+                                        {% endif %}
+                                    {% endfor %}
+                                </td>
+                                <td class="analysis-cell">
+                                    {% for analysis in product_data.analyses %}
+                                        {% if 'super fino' in analysis.property.name|lower %}
+                                            {{ analysis.value }}{{ analysis.unit }}
+                                        {% endif %}
+                                    {% endfor %}
+                                </td>
+                                <td class="analysis-cell">
+                                    {% for analysis in product_data.analyses %}
+                                        {% if 'micron' in analysis.property.name|lower %}
+                                            {{ analysis.value }}{{ analysis.unit }}
+                                        {% endif %}
+                                    {% endfor %}
+                                </td>
+                                <td class="analysis-cell">S.F.#</td>
+                            </tr>
+                            {% endfor %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Módulos IV e V - Bottom Right -->
+        <div class="module-iv-v">
+            <!-- Módulo IV -->
+            <div class="module-iv">
+                <div class="module-iv-header">Módulo IV</div>
+                <div class="module-iv-content">
+                    <table class="products-table">
+                        <thead>
+                            <tr>
+                                <th>P</th>
+                                <th>Super Fino IV</th>
+                                <th>Micron IV</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for line_data in lines_data|slice:":1" %}
+                                {% for product_data in line_data.products|slice:"9:12" %}
+                                <tr class="product-row">
+                                    <td class="product-name-cell">
+                                        <span class="sequence-badge">{{ product_data.sequence }}</span>
+                                        <div class="status-indicator status-{{ product_data.status|lower }}"></div>
+                                    </td>
+                                    <td class="analysis-cell">
+                                        {% for analysis in product_data.analyses %}
+                                            {% if 'super fino iv' in analysis.property.name|lower %}
+                                                {{ analysis.value }}{{ analysis.unit }}
+                                            {% endif %}
+                                        {% endfor %}
+                                    </td>
+                                    <td class="analysis-cell">
+                                        {% for analysis in product_data.analyses %}
+                                            {% if 'micron iv' in analysis.property.name|lower %}
+                                                {{ analysis.value }}{{ analysis.unit }}
+                                            {% endif %}
+                                        {% endfor %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Módulo V -->
+            <div class="module-v">
+                <div class="module-v-header">Módulo V</div>
+                <div class="module-v-content">
+                    <table class="products-table">
+                        <thead>
+                            <tr>
+                                <th>P</th>
+                                <th>Super Fino</th>
+                                <th>Micron</th>
+                                <th>MOD-4</th>
+                                <th>MOD-5</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for line_data in lines_data|slice:":1" %}
+                                {% for product_data in line_data.products|slice:"12:15" %}
+                                <tr class="product-row">
+                                    <td class="product-name-cell">
+                                        <span class="sequence-badge">{{ product_data.sequence }}</span>
+                                        <div class="status-indicator status-{{ product_data.status|lower }}"></div>
+                                    </td>
+                                    <td class="analysis-cell">
+                                        {% for analysis in product_data.analyses %}
+                                            {% if 'super fino' in analysis.property.name|lower %}
+                                                {{ analysis.value }}{{ analysis.unit }}
+                                            {% endif %}
+                                        {% endfor %}
+                                    </td>
+                                    <td class="analysis-cell">
+                                        {% for analysis in product_data.analyses %}
+                                            {% if 'micron' in analysis.property.name|lower %}
+                                                {{ analysis.value }}{{ analysis.unit }}
+                                            {% endif %}
+                                        {% endfor %}
+                                    </td>
+                                    <td class="analysis-cell">S.F.#</td>
+                                    <td class="analysis-cell">MC#</td>
+                                </tr>
+                                {% endfor %}
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </div>
     
     {% if not lines_data %}
