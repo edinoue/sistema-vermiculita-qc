@@ -240,9 +240,14 @@
                 </p>
             </div>
             <div class="col-md-4 text-md-end">
-                <div class="text-white">
-                    <small>Última atualização:</small><br>
-                    <strong id="last-update">{{ 'now'|date:"H:i:s" }}</strong>
+                <div class="d-flex flex-column align-items-end gap-2">
+                    <a href="{% url 'quality_control:spot_dashboard' %}" class="btn btn-light btn-sm">
+                        <i class="bi bi-speedometer2"></i> Dashboard Pontual
+                    </a>
+                    <div class="text-white">
+                        <small>Última atualização:</small><br>
+                        <strong id="last-update">{{ 'now'|date:"H:i:s" }}</strong>
+                    </div>
                 </div>
             </div>
         </div>
