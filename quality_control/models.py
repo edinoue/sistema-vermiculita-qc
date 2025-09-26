@@ -160,7 +160,7 @@ class Specification(AuditModel):
         return self.lsl is not None and self.usl is not None
 
 
-class SpotSample(AuditModel):
+class SpotSample(models.Model):
     """
     Amostra pontual que agrupa múltiplas análises de propriedades
     """
@@ -185,6 +185,10 @@ class SpotSample(AuditModel):
     # Status geral da amostra
     status = models.CharField('Status', max_length=20, choices=STATUS_CHOICES, default='PENDENTE')
     observations = models.TextField('Observações', blank=True)
+    
+    # Campos de timestamp simples
+    created_at = models.DateTimeField('Criado em', auto_now_add=True)
+    updated_at = models.DateTimeField('Atualizado em', auto_now=True)
     
     class Meta:
         verbose_name = 'Amostra Pontual'
