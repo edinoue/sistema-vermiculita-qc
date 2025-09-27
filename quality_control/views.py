@@ -586,6 +586,16 @@ def spot_dashboard_view(request):
     if not current_shift:
         current_shift = Shift.objects.first()
     
+    # Garantir que temos um turno válido
+    if not current_shift:
+        # Se não encontrou nenhum turno, criar um padrão
+        current_shift = Shift.objects.create(
+            name='Manhã',
+            start_time='06:00',
+            end_time='14:00'
+        )
+    
+    
     # Obter todas as linhas de produção ativas
     production_lines = ProductionLine.objects.filter(is_active=True)
     
@@ -604,20 +614,14 @@ def spot_dashboard_view(request):
         
         for product in products:
             # Buscar a amostra mais recente deste produto nesta linha
-            # Primeiro: busca apenas no dia atual, ordenando por sequência e depois por data
+            # Apenas do turno atual e dia atual
             latest_sample = SpotSample.objects.filter(
                 production_line=line,
                 product=product,
-                date=timezone.now().date()
+                date=timezone.now().date(),
+                shift=current_shift
             ).order_by('-sample_sequence', '-created_at').first()
             
-            # Se não encontrou no dia atual, busca nos últimos 3 dias
-            if not latest_sample:
-                latest_sample = SpotSample.objects.filter(
-                    production_line=line,
-                    product=product,
-                    date__gte=timezone.now().date() - timedelta(days=3)
-                ).order_by('-date', '-sample_sequence', '-created_at').first()
             
             
             
