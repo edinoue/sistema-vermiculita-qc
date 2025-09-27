@@ -354,8 +354,7 @@
                         {% for product_data in line_data.products %}
                         <tr class="product-row">
                             <td class="product-name-cell">
-                                <div class="fw-bold">{{ product_data.product.name }}</div>
-                                <small class="text-muted">{{ product_data.product.code }}</small>
+                                <div class="fw-bold">{{ product_data.product.code }}</div>
                             </td>
                             {% for property in properties %}
                             <td class="analysis-cell">
@@ -371,16 +370,10 @@
                             </td>
                             {% endfor %}
                             <td class="sequence-cell">
-                                {% if product_data.sample and product_data.sample.sample_sequence %}
+                                {% if product_data.sample %}
                                     <span class="sequence-badge">{{ product_data.sample.sample_sequence }}ª</span>
                                     <div class="status-indicator status-{{ product_data.status|lower }}"></div>
-                                    {% if product_data.sample and product_data.sample.sample_time %}
-                                        <div class="analysis-time">{{ product_data.sample.sample_time|date:"H:i" }}</div>
-                                    {% endif %}
-                                {% elif product_data.sequence %}
-                                    <span class="sequence-badge">{{ product_data.sequence }}ª</span>
-                                    <div class="status-indicator status-{{ product_data.status|lower }}"></div>
-                                    {% if product_data.sample and product_data.sample.sample_time %}
+                                    {% if product_data.sample.sample_time %}
                                         <div class="analysis-time">{{ product_data.sample.sample_time|date:"H:i" }}</div>
                                     {% endif %}
                                 {% else %}
