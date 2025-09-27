@@ -268,18 +268,23 @@
                     </div>
                 </div>
                 <div class="col-md-4 text-md-end">
-                    <div class="dropdown">
-                        <button class="btn btn-light btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="bi bi-speedometer2"></i> Dashboards
+                    <div class="d-flex gap-2 justify-content-end">
+                        <button class="btn btn-outline-light btn-sm" onclick="location.reload()" title="Atualizar Dashboard">
+                            <i class="bi bi-arrow-clockwise"></i> Atualizar
                         </button>
-                        <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="{% url 'quality_control:dashboard' %}">
-                                <i class="bi bi-graph-up"></i> Dashboard Geral
-                            </a></li>
-                            <li><a class="dropdown-item active" href="{% url 'quality_control:spot_dashboard' %}">
-                                <i class="bi bi-clipboard-data"></i> Dashboard Pontual
-                            </a></li>
-                        </ul>
+                        <div class="dropdown">
+                            <button class="btn btn-light btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-speedometer2"></i> Dashboards
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="{% url 'quality_control:dashboard' %}">
+                                    <i class="bi bi-graph-up"></i> Dashboard Geral
+                                </a></li>
+                                <li><a class="dropdown-item active" href="{% url 'quality_control:spot_dashboard' %}">
+                                    <i class="bi bi-clipboard-data"></i> Dashboard Pontual
+                                </a></li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -394,10 +399,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }, index * 100);
     });
     
-    // Auto-refresh a cada 5 minutos
+    // Auto-refresh a cada 30 segundos para testes
     setTimeout(() => {
         location.reload();
-    }, 300000); // 5 minutos
+    }, 30000); // 30 segundos
     
     console.log('📊 Dashboard de análises pontuais carregado com sucesso!');
 });

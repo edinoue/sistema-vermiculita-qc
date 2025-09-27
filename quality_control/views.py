@@ -604,12 +604,21 @@ def spot_dashboard_view(request):
         
         for product in products:
             # Buscar a amostra mais recente deste produto nesta linha
-            # Busca apenas no dia atual, ordenando por sequência e depois por data
+            # Primeiro: busca apenas no dia atual, ordenando por sequência e depois por data
             latest_sample = SpotSample.objects.filter(
                 production_line=line,
                 product=product,
                 date=timezone.now().date()
             ).order_by('-sample_sequence', '-created_at').first()
+            
+            # Se não encontrou no dia atual, busca nos últimos 3 dias
+            if not latest_sample:
+                latest_sample = SpotSample.objects.filter(
+                    production_line=line,
+                    product=product,
+                    date__gte=timezone.now().date() - timedelta(days=3)
+                ).order_by('-date', '-sample_sequence', '-created_at').first()
+            
             
             
             if latest_sample:
