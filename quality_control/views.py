@@ -611,6 +611,7 @@ def spot_dashboard_view(request):
                 date=timezone.now().date()
             ).order_by('-sample_sequence', '-created_at').first()
             
+            
             if latest_sample:
                 # Buscar todas as análises desta amostra, ordenadas por data de criação
                 analyses = SpotAnalysis.objects.filter(

@@ -73,7 +73,7 @@
                                 {% if current_shift %}
                                     <div class="text-center">
                                         <h4 class="text-primary">{{ current_shift.get_name_display }}</h4>
-                                        <p class="mb-1">{{ current_shift.start_time|time:"H:i" }} - {{ current_shift.end_time|time:"H:i" }}</p>
+                                        <p class="mb-1">{{ current_shift.start_time|date:"H:i" }} - {{ current_shift.end_time|date:"H:i" }}</p>
                                         <small class="text-muted">{{ today|date:"d/m/Y" }}</small>
                                     </div>
                                 {% else %}
@@ -150,7 +150,7 @@
                             <tbody>
                                 {% for analysis in last_analyses %}
                                     <tr>
-                                        <td>{{ analysis.sample_time|time:"H:i" }}</td>
+                                        <td>{{ analysis.sample_time|date:"H:i" }}</td>
                                         <td>{{ analysis.product.name }}</td>
                                         <td>{{ analysis.property.identifier }}</td>
                                         <td>{{ analysis.value }} {{ analysis.property.unit|default:"" }}</td>

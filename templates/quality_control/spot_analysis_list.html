@@ -341,7 +341,7 @@
                         <td>
                             {% if analysis.spot_sample %}
                                 <div class="fw-bold">{{ analysis.spot_sample.sample_time|date:"d/m/Y" }}</div>
-                                <small class="text-muted">{{ analysis.spot_sample.sample_time|time:"H:i" }}</small>
+                                <small class="text-muted">{{ analysis.spot_sample.sample_time|date:"H:i" }}</small>
                             {% else %}
                                 <div class="fw-bold text-muted">N/A</div>
                                 <small class="text-muted">Sem amostra</small>

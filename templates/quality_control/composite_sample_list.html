@@ -106,7 +106,7 @@
                                     {% for sample in samples %}
                                         <tr>
                                             <td>{{ sample.date|date:"d/m/Y" }}</td>
-                                            <td>{{ sample.collection_time|time:"H:i" }}</td>
+                                            <td>{{ sample.collection_time|date:"H:i" }}</td>
                                             <td>
                                                 <span class="badge bg-info">{{ sample.product.code }}</span>
                                                 {{ sample.product.name }}

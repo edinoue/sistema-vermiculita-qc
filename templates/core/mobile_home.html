@@ -185,7 +185,7 @@
                     <i class="bi bi-clock"></i> {{ current_shift.name }}
                 </div>
                 <div class="shift-description">
-                    {{ current_shift.start_time|time:"H:i" }} - {{ current_shift.end_time|time:"H:i" }}
+                    {{ current_shift.start_time|date:"H:i" }} - {{ current_shift.end_time|date:"H:i" }}
                 </div>
             </div>
             <div class="col-4 text-end">

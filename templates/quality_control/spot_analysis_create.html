@@ -188,7 +188,7 @@
                         <i class="bi bi-clock"></i> Turno Atual: {{ current_shift.name }}
                     </div>
                     <div class="shift-time">
-                        {{ current_shift.start_time|time:"H:i" }} - {{ current_shift.end_time|time:"H:i" }}
+                        {{ current_shift.start_time|date:"H:i" }} - {{ current_shift.end_time|date:"H:i" }}
                     </div>
                 </div>
                 {% endif %}
@@ -234,7 +234,7 @@
                                 <option value="">Selecione um turno</option>
                                 {% for shift in shifts %}
                                 <option value="{{ shift.id }}" {% if current_shift and shift.id == current_shift.id %}selected{% endif %}>
-                                    {{ shift.name }} ({{ shift.start_time|time:"H:i" }} - {{ shift.end_time|time:"H:i" }})
+                                    {{ shift.name }} ({{ shift.start_time|date:"H:i" }} - {{ shift.end_time|date:"H:i" }})
                                 </option>
                                 {% endfor %}
                             </select>
