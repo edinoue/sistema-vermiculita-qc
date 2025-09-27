@@ -157,7 +157,6 @@
                                         <td>
                                             {% if analysis.status == 'APPROVED' %}
                                                 <span class="badge bg-success">{{ analysis.get_status_display }}</span>
-                                            {% elif analysis.status == 'ALERT' %}
                                                 <span class="badge bg-warning">{{ analysis.get_status_display }}</span>
                                             {% else %}
                                                 <span class="badge bg-danger">{{ analysis.get_status_display }}</span>
@@ -231,7 +230,7 @@
             .then(data => {
                 if (data.results) {
                     const approved = data.results.filter(a => a.status === 'APPROVED').length;
-                    const alert = data.results.filter(a => a.status === 'ALERT').length;
+                    const alert = 0;
                     
                     document.getElementById('approvedCount').textContent = approved;
                     document.getElementById('alertCount').textContent = alert;

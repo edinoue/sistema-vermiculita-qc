@@ -167,7 +167,7 @@
                     let html = '';
                     data.results.forEach(analysis => {
                         const statusClass = analysis.status === 'APPROVED' ? 'text-success' : 
-                                          analysis.status === 'ALERT' ? 'text-warning' : 'text-danger';
+                                          'text-danger';
                         
                         html += `
                             <div class="border-bottom pb-2 mb-2">

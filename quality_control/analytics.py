@@ -324,7 +324,7 @@ class DashboardMetrics:
             'spot_analyses': {
                 'total': spot_analyses.count(),
                 'approved': spot_analyses.filter(status='APPROVED').count(),
-                'alert': spot_analyses.filter(status='ALERT').count(),
+                'alert': 0,
                 'rejected': spot_analyses.filter(status='REJECTED').count()
             },
             'composite_samples': {
