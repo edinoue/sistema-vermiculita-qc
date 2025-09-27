@@ -604,25 +604,27 @@ def spot_dashboard_view(request):
         
         for product in products:
             # Buscar a amostra mais recente deste produto nesta linha
+            # Busca apenas no dia atual, ordenando por sequência e depois por data
             latest_sample = SpotSample.objects.filter(
                 production_line=line,
                 product=product,
-                shift=current_shift,
                 date=timezone.now().date()
-            ).order_by('-sample_sequence').first()
+            ).order_by('-sample_sequence', '-created_at').first()
             
             if latest_sample:
-                # Buscar todas as análises desta amostra
+                # Buscar todas as análises desta amostra, ordenadas por data de criação
                 analyses = SpotAnalysis.objects.filter(
                     spot_sample=latest_sample
-                ).select_related('property')
+                ).select_related('property').order_by('-created_at')
                 
                 # Só incluir o produto se tiver análises registradas
                 if analyses.exists():
-                    # Organizar análises por propriedade
+                    # Organizar análises por propriedade, pegando a mais recente para cada propriedade
                     property_analyses = {}
                     for analysis in analyses:
-                        property_analyses[analysis.property_id] = analysis
+                        # Só adiciona se não existe ou se é mais recente
+                        if analysis.property_id not in property_analyses or analysis.created_at > property_analyses[analysis.property_id].created_at:
+                            property_analyses[analysis.property_id] = analysis
                     
                     # Calcular status geral da amostra
                     sample_status = 'APPROVED'
@@ -640,10 +642,12 @@ def spot_dashboard_view(request):
                         'sequence': latest_sample.sample_sequence
                     })
         
-        lines_data.append({
-            'line': line,
-            'products': products_data
-        })
+        # Só incluir a linha se tiver pelo menos um produto com resultados
+        if products_data:
+            lines_data.append({
+                'line': line,
+                'products': products_data
+            })
     
     # Estatísticas gerais
     total_samples_today = SpotSample.objects.filter(
