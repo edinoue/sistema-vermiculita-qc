@@ -631,37 +631,44 @@ def spot_dashboard_view(request):
                     spot_sample=latest_sample
                 ).select_related('property').order_by('-created_at')
                 
-                # Só incluir o produto se tiver análises registradas
-                if analyses.exists():
-                    # Organizar análises por propriedade, pegando a mais recente para cada propriedade
-                    property_analyses = {}
-                    for analysis in analyses:
-                        # Só adiciona se não existe ou se é mais recente
-                        if analysis.property_id not in property_analyses or analysis.created_at > property_analyses[analysis.property_id].created_at:
-                            property_analyses[analysis.property_id] = analysis
-                    
-                    # Calcular status geral da amostra
-                    sample_status = 'APPROVED'
-                    if analyses.filter(status='REJECTED').exists():
-                        sample_status = 'REJECTED'
-                    elif analyses.filter(status='ALERT').exists():
-                        sample_status = 'ALERT'
-                    
-                    products_data.append({
-                        'product': product,
-                        'sample': latest_sample,
-                        'analyses': analyses,
-                        'property_analyses': property_analyses,
-                        'status': sample_status,
-                        'sequence': latest_sample.sample_sequence
-                    })
+                # Organizar análises por propriedade, pegando a mais recente para cada propriedade
+                property_analyses = {}
+                for analysis in analyses:
+                    # Só adiciona se não existe ou se é mais recente
+                    if analysis.property_id not in property_analyses or analysis.created_at > property_analyses[analysis.property_id].created_at:
+                        property_analyses[analysis.property_id] = analysis
+                
+                # Calcular status geral da amostra
+                sample_status = 'APPROVED'
+                if analyses.filter(status='REJECTED').exists():
+                    sample_status = 'REJECTED'
+                elif analyses.filter(status='ALERT').exists():
+                    sample_status = 'ALERT'
+                
+                products_data.append({
+                    'product': product,
+                    'sample': latest_sample,
+                    'analyses': analyses,
+                    'property_analyses': property_analyses,
+                    'status': sample_status,
+                    'sequence': latest_sample.sample_sequence
+                })
+            else:
+                # Incluir produto mesmo sem amostra
+                products_data.append({
+                    'product': product,
+                    'sample': None,
+                    'analyses': None,
+                    'property_analyses': {},
+                    'status': 'PENDENTE',
+                    'sequence': None
+                })
         
-        # Só incluir a linha se tiver pelo menos um produto com resultados
-        if products_data:
-            lines_data.append({
-                'line': line,
-                'products': products_data
-            })
+        # Incluir a linha mesmo que não tenha produtos com resultados
+        lines_data.append({
+            'line': line,
+            'products': products_data
+        })
     
     # Estatísticas gerais
     total_samples_today = SpotSample.objects.filter(
