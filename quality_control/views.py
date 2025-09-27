@@ -634,7 +634,10 @@ def spot_dashboard_view(request):
                 # Calcular status geral da amostra
                 sample_status = 'APPROVED'
                 has_out_of_spec = False
-                if analyses.filter(status='REJECTED').exists():
+                
+                # Usar apenas as análises mais recentes por propriedade (property_analyses)
+                rejected_analyses = [analysis for analysis in property_analyses.values() if analysis.status == 'REJECTED']
+                if rejected_analyses:
                     sample_status = 'REJECTED'
                     has_out_of_spec = True
                 
