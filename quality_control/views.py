@@ -541,8 +541,7 @@ def dashboard_data_api(request):
             # CONTAR AMOSTRAS REPROVADAS, NÃO ANÁLISES INDIVIDUAIS
             'total_rejections': SpotAnalysis.objects.filter(status='REJECTED').count() + 
                               CompositeSample.objects.filter(status='REJECTED').count(),
-            'total_alerts': SpotAnalysis.objects.filter(status='ALERT').count() + 
-                          CompositeSample.objects.filter(status='ALERT').count(),
+            'total_alerts': 0,
             'total_approved': SpotAnalysis.objects.filter(status='APPROVED').count() + 
                             CompositeSample.objects.filter(status='APPROVED').count(),
             'today_rejections': SpotAnalysis.objects.filter(
@@ -552,13 +551,7 @@ def dashboard_data_api(request):
                 date=timezone.now().date(),
                 status='REJECTED'
             ).count(),
-            'today_alerts': SpotAnalysis.objects.filter(
-                spot_sample__sample_time__date=timezone.now().date(),
-                status='ALERT'
-            ).count() + CompositeSample.objects.filter(
-                date=timezone.now().date(),
-                status='ALERT'
-            ).count()
+            'today_alerts': 0
         }
     })
 
@@ -640,10 +633,10 @@ def spot_dashboard_view(request):
                 
                 # Calcular status geral da amostra
                 sample_status = 'APPROVED'
+                has_out_of_spec = False
                 if analyses.filter(status='REJECTED').exists():
                     sample_status = 'REJECTED'
-                elif analyses.filter(status='ALERT').exists():
-                    sample_status = 'ALERT'
+                    has_out_of_spec = True
                 
                 products_data.append({
                     'product': product,
@@ -651,7 +644,8 @@ def spot_dashboard_view(request):
                     'analyses': analyses,
                     'property_analyses': property_analyses,
                     'status': sample_status,
-                    'sequence': latest_sample.sample_sequence
+                    'sequence': latest_sample.sample_sequence,
+                    'has_out_of_spec': has_out_of_spec
                 })
             else:
                 # Incluir produto mesmo sem amostra

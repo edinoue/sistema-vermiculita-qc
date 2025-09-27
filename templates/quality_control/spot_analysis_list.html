@@ -337,7 +337,7 @@
                 </thead>
                 <tbody>
                     {% for analysis in analyses %}
-                    <tr class="{% if analysis.status == 'REJECTED' %}table-danger{% elif analysis.status == 'ALERT' %}table-warning{% endif %}">
+                    <tr class="{% if analysis.status == 'REJECTED' %}table-danger{% endif %}">
                         <td>
                             {% if analysis.spot_sample %}
                                 <div class="fw-bold">{{ analysis.spot_sample.sample_time|date:"d/m/Y" }}</div>

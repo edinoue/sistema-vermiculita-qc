@@ -511,13 +511,11 @@ document.addEventListener('DOMContentLoaded', function() {
         const statusLabels = {
             'APPROVED': 'Aprovadas',
             'REJECTED': 'Reprovadas',
-            'ALERT': 'Alertas'
         };
         
         const statusColors = {
             'APPROVED': '#28a745',
-            'REJECTED': '#dc3545',
-            'ALERT': '#ffc107'
+            'REJECTED': '#dc3545'
         };
         
         const labels = data.map(item => statusLabels[item.status] || item.status);

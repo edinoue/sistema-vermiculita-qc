@@ -53,7 +53,6 @@
                                 <span class="badge bg-danger">
                                     <i class="bi bi-x-circle"></i> Rejeitada
                                 </span>
-                            {% elif sample.status == 'ALERT' %}
                                 <span class="badge bg-warning">
                                     <i class="bi bi-exclamation-triangle"></i> Alerta
                                 </span>
@@ -99,7 +98,7 @@
                                 </thead>
                                 <tbody>
                                     {% for result in results %}
-                                        <tr class="{% if result.status == 'REJECTED' %}table-danger{% elif result.status == 'ALERT' %}table-warning{% endif %}">
+                                        <tr class="{% if result.status == 'REJECTED' %}table-danger{% endif %}">
                                             <td>
                                                 <strong>{{ result.property.name }}</strong><br>
                                                 <small class="text-muted">{{ result.property.identifier }}</small>
@@ -118,7 +117,6 @@
                                                     <span class="badge bg-danger">
                                                         <i class="bi bi-x-circle"></i> Reprovado
                                                     </span>
-                                                {% elif result.status == 'ALERT' %}
                                                     <span class="badge bg-warning">
                                                         <i class="bi bi-exclamation-triangle"></i> Alerta
                                                     </span>
