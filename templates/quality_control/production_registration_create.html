@@ -143,25 +143,17 @@
             <h5 class="section-title">
                 <i class="bi bi-box"></i> Produtos a serem Produzidos
             </h5>
-            <p class="text-muted">Selecione os produtos e informe o tipo de cada um:</p>
+            <p class="text-muted">Selecione os produtos que serão produzidos neste turno:</p>
             
             <div class="checkbox-group">
                 {% for product in products %}
                 <div class="checkbox-item">
-                    <div class="d-flex align-items-start">
-                        <input type="checkbox" id="product_{{ product.id }}" name="products" 
-                               value="{{ product.id }}" class="form-check-input me-2">
-                        <div class="flex-grow-1">
-                            <label for="product_{{ product.id }}" class="form-check-label">
-                                <strong>{{ product.name }}</strong>
-                                <br><small class="text-muted">{{ product.code }}</small>
-                            </label>
-                            <input type="text" class="form-control product-type-input" 
-                                   name="product_type_{{ product.id }}" 
-                                   placeholder="Tipo do produto (ex: Granulado, Pó, etc.)"
-                                   style="display: none;">
-                        </div>
-                    </div>
+                    <input type="checkbox" id="product_{{ product.id }}" name="products" 
+                           value="{{ product.id }}" class="form-check-input">
+                    <label for="product_{{ product.id }}" class="form-check-label">
+                        <strong>{{ product.name }}</strong>
+                        <br><small class="text-muted">{{ product.code }}</small>
+                    </label>
                 </div>
                 {% endfor %}
             </div>
@@ -186,23 +178,6 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Mostrar/ocultar campo de tipo do produto
-    const productCheckboxes = document.querySelectorAll('input[name="products"]');
-    productCheckboxes.forEach(checkbox => {
-        checkbox.addEventListener('change', function() {
-            const productId = this.value;
-            const typeInput = document.querySelector(`input[name="product_type_${productId}"]`);
-            if (this.checked) {
-                typeInput.style.display = 'block';
-                typeInput.required = true;
-            } else {
-                typeInput.style.display = 'none';
-                typeInput.required = false;
-                typeInput.value = '';
-            }
-        });
-    });
-    
     // Validação do formulário
     document.getElementById('productionForm').addEventListener('submit', function(e) {
         const selectedLines = document.querySelectorAll('input[name="production_lines"]:checked');
@@ -217,22 +192,6 @@ document.addEventListener('DOMContentLoaded', function() {
         if (selectedProducts.length === 0) {
             e.preventDefault();
             alert('Selecione pelo menos um produto.');
-            return;
-        }
-        
-        // Verificar se todos os produtos selecionados têm tipo
-        let allProductsHaveType = true;
-        selectedProducts.forEach(checkbox => {
-            const productId = checkbox.value;
-            const typeInput = document.querySelector(`input[name="product_type_${productId}"]`);
-            if (!typeInput.value.trim()) {
-                allProductsHaveType = false;
-            }
-        });
-        
-        if (!allProductsHaveType) {
-            e.preventDefault();
-            alert('Todos os produtos selecionados devem ter um tipo definido.');
             return;
         }
     });
