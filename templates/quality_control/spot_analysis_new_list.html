@@ -1,0 +1,215 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Análises Pontuais{% endblock %}
+
+{% block extra_css %}
+<style>
+    .analysis-header {
+        background: linear-gradient(135deg, #2c5530, #4a7c59);
+        color: white;
+        padding: 1.5rem;
+        border-radius: 8px;
+        margin-bottom: 2rem;
+    }
+    
+    .analysis-card {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        margin-bottom: 1rem;
+        overflow: hidden;
+    }
+    
+    .analysis-card-header {
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid #e9ecef;
+        display: flex;
+        justify-content: between;
+        align-items: center;
+    }
+    
+    .analysis-card-body {
+        padding: 1.5rem;
+    }
+    
+    .status-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+    
+    .status-approved {
+        background-color: #d4edda;
+        color: #155724;
+    }
+    
+    .status-rejected {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+    
+    .status-pending {
+        background-color: #fff3cd;
+        color: #856404;
+    }
+    
+    .pontual-badge {
+        background: #2c5530;
+        color: white;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+    
+    .property-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 0.5rem;
+        margin-top: 1rem;
+    }
+    
+    .property-item {
+        background: #f8f9fa;
+        padding: 0.5rem;
+        border-radius: 4px;
+        font-size: 0.9rem;
+    }
+    
+    .property-name {
+        font-weight: 600;
+        color: #2c5530;
+    }
+    
+    .property-value {
+        color: #495057;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 3rem;
+        color: #6c757d;
+    }
+    
+    .empty-state i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        color: #dee2e6;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="analysis-header">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h3 class="mb-1">
+                    <i class="bi bi-clipboard-data"></i> Análises Pontuais
+                </h3>
+                <p class="mb-0">Registros de análises pontuais do sistema</p>
+            </div>
+            <div class="col-md-4 text-md-end">
+                <a href="{% url 'quality_control:spot_analysis_new_create' %}" class="btn btn-light">
+                    <i class="bi bi-plus-circle"></i> Nova Análise
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Lista de Análises -->
+    {% if analyses %}
+        {% for analysis in analyses %}
+        <div class="analysis-card">
+            <div class="analysis-card-header">
+                <div class="d-flex align-items-center">
+                    <span class="pontual-badge">{{ analysis.pontual_number }}ª Pontual</span>
+                    <div class="ms-3">
+                        <h6 class="mb-0">{{ analysis.product.name }}</h6>
+                        <small class="text-muted">{{ analysis.production_line.name }}</small>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="status-badge status-{{ analysis.analysis_result|lower }}">
+                        {{ analysis.get_analysis_result_display }}
+                    </span>
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" 
+                                type="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-three-dots"></i>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a class="dropdown-item" href="{% url 'quality_control:spot_analysis_new_detail' analysis.id %}">
+                                    <i class="bi bi-eye"></i> Ver Detalhes
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'quality_control:spot_analysis_new_edit' analysis.id %}">
+                                    <i class="bi bi-pencil"></i> Editar
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="analysis-card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="row">
+                            <div class="col-6">
+                                <strong>Data:</strong><br>
+                                {{ analysis.date|date:"d/m/Y" }}
+                            </div>
+                            <div class="col-6">
+                                <strong>Turno:</strong><br>
+                                {{ analysis.shift.name }}
+                            </div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-6">
+                                <strong>Operador:</strong><br>
+                                {{ analysis.operator.get_full_name|default:analysis.operator.username }}
+                            </div>
+                            <div class="col-6">
+                                <strong>Criado em:</strong><br>
+                                {{ analysis.created_at|date:"H:i" }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        {% if analysis.property_results.exists %}
+                        <strong>Propriedades Analisadas:</strong>
+                        <div class="property-list">
+                            {% for result in analysis.property_results.all %}
+                            <div class="property-item">
+                                <div class="property-name">{{ result.property.name }}</div>
+                                <div class="property-value">{{ result.value }} {{ result.unit }}</div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <div class="text-muted">
+                            <i class="bi bi-exclamation-triangle"></i> Nenhuma propriedade analisada
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="empty-state">
+            <i class="bi bi-inbox"></i>
+            <h5>Nenhuma análise encontrada</h5>
+            <p>Comece criando uma nova análise pontual.</p>
+            <a href="{% url 'quality_control:spot_analysis_new_create' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Nova Análise
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

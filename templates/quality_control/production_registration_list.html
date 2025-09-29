@@ -1,0 +1,235 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Cadastros de Produção{% endblock %}
+
+{% block extra_css %}
+<style>
+    .production-header {
+        background: linear-gradient(135deg, #2c5530, #4a7c59);
+        color: white;
+        padding: 1.5rem;
+        border-radius: 8px;
+        margin-bottom: 2rem;
+    }
+    
+    .production-card {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        margin-bottom: 1rem;
+        overflow: hidden;
+    }
+    
+    .production-card-header {
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid #e9ecef;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .production-card-body {
+        padding: 1.5rem;
+    }
+    
+    .status-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+    
+    .status-active {
+        background-color: #d4edda;
+        color: #155724;
+    }
+    
+    .status-completed {
+        background-color: #cce5ff;
+        color: #004085;
+    }
+    
+    .status-cancelled {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+    
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+    
+    .info-item {
+        padding: 0.75rem;
+        background: #f8f9fa;
+        border-radius: 6px;
+        border-left: 4px solid #2c5530;
+    }
+    
+    .info-label {
+        font-size: 0.8rem;
+        color: #6c757d;
+        text-transform: uppercase;
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+    }
+    
+    .info-value {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #2c5530;
+    }
+    
+    .lines-list, .products-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-top: 0.5rem;
+    }
+    
+    .line-badge, .product-badge {
+        background: #e9ecef;
+        color: #495057;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.8rem;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 3rem;
+        color: #6c757d;
+    }
+    
+    .empty-state i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        color: #dee2e6;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="production-header">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h3 class="mb-1">
+                    <i class="bi bi-gear-fill"></i> Cadastros de Produção
+                </h3>
+                <p class="mb-0">Controle dos módulos e produtos por turno</p>
+            </div>
+            <div class="col-md-4 text-md-end">
+                <a href="{% url 'quality_control:production_registration_create' %}" class="btn btn-light">
+                    <i class="bi bi-plus-circle"></i> Novo Cadastro
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Lista de Cadastros -->
+    {% if productions %}
+        {% for production in productions %}
+        <div class="production-card">
+            <div class="production-card-header">
+                <div>
+                    <h6 class="mb-0">{{ production.date|date:"d/m/Y" }} - {{ production.shift.name }}</h6>
+                    <small class="text-muted">Operador: {{ production.operator.get_full_name|default:production.operator.username }}</small>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="status-badge status-{{ production.status|lower }}">
+                        {{ production.get_status_display }}
+                    </span>
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" 
+                                type="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-three-dots"></i>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a class="dropdown-item" href="{% url 'quality_control:production_registration_detail' production.id %}">
+                                    <i class="bi bi-eye"></i> Ver Detalhes
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'quality_control:production_registration_edit' production.id %}">
+                                    <i class="bi bi-pencil"></i> Editar
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="production-card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <div class="info-label">Data</div>
+                                <div class="info-value">{{ production.date|date:"d/m/Y" }}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Turno</div>
+                                <div class="info-value">{{ production.shift.name }}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Status</div>
+                                <div class="info-value">
+                                    <span class="status-badge status-{{ production.status|lower }}">
+                                        {{ production.get_status_display }}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Criado em</div>
+                                <div class="info-value">{{ production.created_at|date:"H:i" }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="info-item">
+                            <div class="info-label">Linhas de Produção</div>
+                            <div class="info-value">
+                                {% for line in production.productionlines.all %}
+                                <span class="line-badge">{{ line.production_line.name }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Produtos</div>
+                            <div class="info-value">
+                                {% for product in production.products.all %}
+                                <span class="product-badge">
+                                    {{ product.product.name }}
+                                    {% if product.product_type %}({{ product.product_type }}){% endif %}
+                                </span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% if production.observations %}
+                        <div class="info-item">
+                            <div class="info-label">Observações</div>
+                            <div class="info-value">{{ production.observations }}</div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="empty-state">
+            <i class="bi bi-inbox"></i>
+            <h5>Nenhum cadastro encontrado</h5>
+            <p>Comece criando um novo cadastro de produção.</p>
+            <a href="{% url 'quality_control:production_registration_create' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Novo Cadastro
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

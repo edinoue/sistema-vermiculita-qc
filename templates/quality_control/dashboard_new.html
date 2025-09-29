@@ -1,0 +1,295 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Dashboard - Sistema de Qualidade{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-header {
+        background: linear-gradient(135deg, #2c5530, #4a7c59);
+        color: white;
+        padding: 2rem;
+        border-radius: 8px;
+        margin-bottom: 2rem;
+    }
+    
+    .module-card {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        margin-bottom: 1.5rem;
+        overflow: hidden;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    
+    .module-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+    
+    .module-card-header {
+        background: #f8f9fa;
+        padding: 1.5rem;
+        border-bottom: 1px solid #e9ecef;
+    }
+    
+    .module-card-body {
+        padding: 1.5rem;
+    }
+    
+    .module-icon {
+        font-size: 2rem;
+        color: #2c5530;
+        margin-bottom: 1rem;
+    }
+    
+    .module-title {
+        color: #2c5530;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+    
+    .module-description {
+        color: #6c757d;
+        font-size: 0.9rem;
+        margin-bottom: 1rem;
+    }
+    
+    .module-actions {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+    
+    .btn-module {
+        background: #2c5530;
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        text-decoration: none;
+        font-size: 0.9rem;
+        transition: background 0.2s;
+    }
+    
+    .btn-module:hover {
+        background: #1e3a21;
+        color: white;
+    }
+    
+    .btn-module-secondary {
+        background: #6c757d;
+        color: white;
+    }
+    
+    .btn-module-secondary:hover {
+        background: #545b62;
+        color: white;
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+    
+    .stat-card {
+        background: white;
+        border-radius: 8px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        text-align: center;
+    }
+    
+    .stat-number {
+        font-size: 2rem;
+        font-weight: bold;
+        color: #2c5530;
+        margin-bottom: 0.5rem;
+    }
+    
+    .stat-label {
+        color: #6c757d;
+        font-size: 0.9rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="dashboard-header">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h2 class="mb-1">
+                    <i class="bi bi-speedometer2"></i> Sistema de Controle de Qualidade
+                </h2>
+                <p class="mb-0">Gerencie a produção e análises de qualidade de forma integrada</p>
+            </div>
+            <div class="col-md-4 text-md-end">
+                <div class="text-white">
+                    <i class="bi bi-calendar"></i> {{ today|date:"d/m/Y" }}
+                    <br><small>Bem-vindo ao sistema!</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Estatísticas Rápidas -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-number">{{ stats.total_productions|default:0 }}</div>
+            <div class="stat-label">Produções Cadastradas</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ stats.total_analyses|default:0 }}</div>
+            <div class="stat-label">Análises Realizadas</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ stats.approved_analyses|default:0 }}</div>
+            <div class="stat-label">Análises Aprovadas</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ stats.rejected_analyses|default:0 }}</div>
+            <div class="stat-label">Análises Reprovadas</div>
+        </div>
+    </div>
+    
+    <!-- Módulos do Sistema -->
+    <div class="row">
+        <!-- Cadastro de Produção -->
+        <div class="col-md-6">
+            <div class="module-card">
+                <div class="module-card-header">
+                    <div class="module-icon">
+                        <i class="bi bi-gear-fill"></i>
+                    </div>
+                    <h4 class="module-title">Cadastro de Produção</h4>
+                    <p class="module-description">
+                        Configure os módulos e produtos que estarão funcionando no turno. 
+                        Defina quais linhas de produção estarão ativas e quais produtos serão fabricados.
+                    </p>
+                </div>
+                <div class="module-card-body">
+                    <div class="module-actions">
+                        <a href="{% url 'quality_control:production_registration_create' %}" class="btn-module">
+                            <i class="bi bi-plus-circle"></i> Nova Produção
+                        </a>
+                        <a href="{% url 'quality_control:production_registration_list' %}" class="btn-module btn-module-secondary">
+                            <i class="bi bi-list"></i> Ver Cadastros
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Análise Pontual -->
+        <div class="col-md-6">
+            <div class="module-card">
+                <div class="module-card-header">
+                    <div class="module-icon">
+                        <i class="bi bi-clipboard-data"></i>
+                    </div>
+                    <h4 class="module-title">Análise Pontual</h4>
+                    <p class="module-description">
+                        Registre as análises pontuais (1ª, 2ª ou 3ª) dos produtos em produção. 
+                        O sistema utiliza os dados cadastrados na produção para facilitar o registro.
+                    </p>
+                </div>
+                <div class="module-card-body">
+                    <div class="module-actions">
+                        <a href="{% url 'quality_control:spot_analysis_new_create' %}" class="btn-module">
+                            <i class="bi bi-plus-circle"></i> Nova Análise
+                        </a>
+                        <a href="{% url 'quality_control:spot_analysis_new_list' %}" class="btn-module btn-module-secondary">
+                            <i class="bi bi-list"></i> Ver Análises
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Dashboard Pontual -->
+        <div class="col-md-6">
+            <div class="module-card">
+                <div class="module-card-header">
+                    <div class="module-icon">
+                        <i class="bi bi-graph-up"></i>
+                    </div>
+                    <h4 class="module-title">Dashboard Pontual</h4>
+                    <p class="module-description">
+                        Visualize os resultados das análises pontuais em tempo real. 
+                        Acompanhe o status das análises por linha de produção e produto.
+                    </p>
+                </div>
+                <div class="module-card-body">
+                    <div class="module-actions">
+                        <a href="{% url 'quality_control:spot_dashboard' %}" class="btn-module">
+                            <i class="bi bi-eye"></i> Ver Dashboard
+                        </a>
+                        <a href="{% url 'quality_control:debug_sequence' %}" class="btn-module btn-module-secondary">
+                            <i class="bi bi-bug"></i> Debug
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sistema Legado -->
+        <div class="col-md-6">
+            <div class="module-card">
+                <div class="module-card-header">
+                    <div class="module-icon">
+                        <i class="bi bi-archive"></i>
+                    </div>
+                    <h4 class="module-title">Sistema Legado</h4>
+                    <p class="module-description">
+                        Acesse as funcionalidades do sistema anterior para compatibilidade. 
+                        Use apenas se necessário para consultas ou migração de dados.
+                    </p>
+                </div>
+                <div class="module-card-body">
+                    <div class="module-actions">
+                        <a href="{% url 'quality_control:spot_analysis_list' %}" class="btn-module">
+                            <i class="bi bi-list"></i> Análises Legado
+                        </a>
+                        <a href="{% url 'quality_control:dashboard' %}" class="btn-module btn-module-secondary">
+                            <i class="bi bi-graph-up"></i> Dashboard Legado
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Informações do Sistema -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="module-card">
+                <div class="module-card-header">
+                    <h4 class="module-title">
+                        <i class="bi bi-info-circle"></i> Como Usar o Sistema
+                    </h4>
+                </div>
+                <div class="module-card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <h6><i class="bi bi-1-circle"></i> 1. Cadastre a Produção</h6>
+                            <p class="text-muted">Primeiro, cadastre quais módulos estarão funcionando e quais produtos serão produzidos no turno.</p>
+                        </div>
+                        <div class="col-md-4">
+                            <h6><i class="bi bi-2-circle"></i> 2. Registre as Análises</h6>
+                            <p class="text-muted">Após o cadastro da produção, registre as análises pontuais (1ª, 2ª ou 3ª) dos produtos.</p>
+                        </div>
+                        <div class="col-md-4">
+                            <h6><i class="bi bi-3-circle"></i> 3. Acompanhe os Resultados</h6>
+                            <p class="text-muted">Use o dashboard para visualizar os resultados e acompanhar o status das análises.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

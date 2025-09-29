@@ -1,0 +1,246 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Editar Cadastro de Produção{% endblock %}
+
+{% block extra_css %}
+<style>
+    .production-header {
+        background: linear-gradient(135deg, #2c5530, #4a7c59);
+        color: white;
+        padding: 1.5rem;
+        border-radius: 8px;
+        margin-bottom: 2rem;
+    }
+    
+    .form-section {
+        background: white;
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .section-title {
+        color: #2c5530;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #e9ecef;
+    }
+    
+    .checkbox-group {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+    
+    .checkbox-item {
+        display: flex;
+        align-items: center;
+        padding: 0.75rem;
+        border: 1px solid #dee2e6;
+        border-radius: 6px;
+        transition: all 0.2s;
+    }
+    
+    .checkbox-item:hover {
+        background-color: #f8f9fa;
+        border-color: #2c5530;
+    }
+    
+    .checkbox-item input[type="checkbox"] {
+        margin-right: 0.75rem;
+        transform: scale(1.2);
+    }
+    
+    .product-type-input {
+        margin-top: 0.5rem;
+        width: 100%;
+    }
+    
+    .required-field::after {
+        content: " *";
+        color: #dc3545;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="production-header">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h3 class="mb-1">
+                    <i class="bi bi-gear-fill"></i> Editar Cadastro de Produção
+                </h3>
+                <p class="mb-0">{{ production.date|date:"d/m/Y" }} - {{ production.shift.name }}</p>
+            </div>
+            <div class="col-md-4 text-md-end">
+                <a href="{% url 'quality_control:production_registration_detail' production.id %}" class="btn btn-outline-light">
+                    <i class="bi bi-eye"></i> Ver Detalhes
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <form method="post" id="productionForm">
+        {% csrf_token %}
+        
+        <!-- Dados Básicos -->
+        <div class="form-section">
+            <h5 class="section-title">
+                <i class="bi bi-info-circle"></i> Dados Básicos
+            </h5>
+            <div class="row">
+                <div class="col-md-4">
+                    <label for="date" class="form-label required-field">Data</label>
+                    <input type="date" class="form-control" id="date" name="date" 
+                           value="{{ production.date|date:'Y-m-d' }}" required>
+                </div>
+                <div class="col-md-4">
+                    <label for="shift" class="form-label required-field">Turno</label>
+                    <select class="form-select" id="shift" name="shift" required>
+                        <option value="">Selecione o turno</option>
+                        {% for shift in shifts %}
+                        <option value="{{ shift.id }}" {% if shift.id == production.shift.id %}selected{% endif %}>
+                            {{ shift.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="observations" class="form-label">Observações</label>
+                    <textarea class="form-control" id="observations" name="observations" 
+                              rows="2" placeholder="Observações sobre a produção...">{{ production.observations }}</textarea>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Linhas de Produção -->
+        <div class="form-section">
+            <h5 class="section-title">
+                <i class="bi bi-diagram-3"></i> Módulos de Produção
+            </h5>
+            <p class="text-muted">Selecione quais módulos estarão funcionando neste turno:</p>
+            
+            <div class="checkbox-group">
+                {% for line in production_lines %}
+                <div class="checkbox-item">
+                    <input type="checkbox" id="line_{{ line.id }}" name="production_lines" 
+                           value="{{ line.id }}" class="form-check-input"
+                           {% if line.id in selected_lines %}checked{% endif %}>
+                    <label for="line_{{ line.id }}" class="form-check-label">
+                        <strong>{{ line.name }}</strong>
+                        <br><small class="text-muted">{{ line.code }}</small>
+                    </label>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- Produtos -->
+        <div class="form-section">
+            <h5 class="section-title">
+                <i class="bi bi-box"></i> Produtos a serem Produzidos
+            </h5>
+            <p class="text-muted">Selecione os produtos e informe o tipo de cada um:</p>
+            
+            <div class="checkbox-group">
+                {% for product in products %}
+                <div class="checkbox-item">
+                    <div class="d-flex align-items-start">
+                        <input type="checkbox" id="product_{{ product.id }}" name="products" 
+                               value="{{ product.id }}" class="form-check-input me-2"
+                               {% if product.id in selected_products %}checked{% endif %}>
+                        <div class="flex-grow-1">
+                            <label for="product_{{ product.id }}" class="form-check-label">
+                                <strong>{{ product.name }}</strong>
+                                <br><small class="text-muted">{{ product.code }}</small>
+                            </label>
+                            <input type="text" class="form-control product-type-input" 
+                                   name="product_type_{{ product.id }}" 
+                                   placeholder="Tipo do produto (ex: Granulado, Pó, etc.)"
+                                   value="{% for selected_product in selected_products %}{% if selected_product.product.id == product.id %}{{ selected_product.product_type }}{% endif %}{% endfor %}"
+                                   style="{% if product.id not in selected_products %}display: none;{% endif %}">
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- Botões -->
+        <div class="form-section">
+            <div class="d-flex justify-content-between">
+                <a href="{% url 'quality_control:production_registration_detail' production.id %}" 
+                   class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Cancelar
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-circle"></i> Salvar Alterações
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Mostrar/ocultar campo de tipo do produto
+    const productCheckboxes = document.querySelectorAll('input[name="products"]');
+    productCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const productId = this.value;
+            const typeInput = document.querySelector(`input[name="product_type_${productId}"]`);
+            if (this.checked) {
+                typeInput.style.display = 'block';
+                typeInput.required = true;
+            } else {
+                typeInput.style.display = 'none';
+                typeInput.required = false;
+                typeInput.value = '';
+            }
+        });
+    });
+    
+    // Validação do formulário
+    document.getElementById('productionForm').addEventListener('submit', function(e) {
+        const selectedLines = document.querySelectorAll('input[name="production_lines"]:checked');
+        const selectedProducts = document.querySelectorAll('input[name="products"]:checked');
+        
+        if (selectedLines.length === 0) {
+            e.preventDefault();
+            alert('Selecione pelo menos uma linha de produção.');
+            return;
+        }
+        
+        if (selectedProducts.length === 0) {
+            e.preventDefault();
+            alert('Selecione pelo menos um produto.');
+            return;
+        }
+        
+        // Verificar se todos os produtos selecionados têm tipo
+        let allProductsHaveType = true;
+        selectedProducts.forEach(checkbox => {
+            const productId = checkbox.value;
+            const typeInput = document.querySelector(`input[name="product_type_${productId}"]`);
+            if (!typeInput.value.trim()) {
+                allProductsHaveType = false;
+            }
+        });
+        
+        if (!allProductsHaveType) {
+            e.preventDefault();
+            alert('Todos os produtos selecionados devem ter um tipo definido.');
+            return;
+        }
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,264 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Detalhes da Análise Pontual{% endblock %}
+
+{% block extra_css %}
+<style>
+    .analysis-header {
+        background: linear-gradient(135deg, #2c5530, #4a7c59);
+        color: white;
+        padding: 1.5rem;
+        border-radius: 8px;
+        margin-bottom: 2rem;
+    }
+    
+    .info-card {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        margin-bottom: 1.5rem;
+        overflow: hidden;
+    }
+    
+    .info-card-header {
+        background: #f8f9fa;
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid #e9ecef;
+        font-weight: 600;
+        color: #2c5530;
+    }
+    
+    .info-card-body {
+        padding: 1.5rem;
+    }
+    
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+    }
+    
+    .info-item {
+        padding: 0.75rem;
+        background: #f8f9fa;
+        border-radius: 6px;
+        border-left: 4px solid #2c5530;
+    }
+    
+    .info-label {
+        font-size: 0.8rem;
+        color: #6c757d;
+        text-transform: uppercase;
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+    }
+    
+    .info-value {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #2c5530;
+    }
+    
+    .status-badge {
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-weight: 600;
+        display: inline-block;
+    }
+    
+    .status-approved {
+        background-color: #d4edda;
+        color: #155724;
+    }
+    
+    .status-rejected {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+    
+    .status-pending {
+        background-color: #fff3cd;
+        color: #856404;
+    }
+    
+    .pontual-badge {
+        background: #2c5530;
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        display: inline-block;
+    }
+    
+    .property-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    .property-table th,
+    .property-table td {
+        padding: 0.75rem;
+        text-align: left;
+        border-bottom: 1px solid #e9ecef;
+    }
+    
+    .property-table th {
+        background: #f8f9fa;
+        font-weight: 600;
+        color: #2c5530;
+    }
+    
+    .property-table tr:hover {
+        background-color: #f8f9fa;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="analysis-header">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h3 class="mb-1">
+                    <i class="bi bi-clipboard-data"></i> Detalhes da Análise Pontual
+                </h3>
+                <p class="mb-0">{{ analysis.product.name }} - {{ analysis.production_line.name }}</p>
+            </div>
+            <div class="col-md-4 text-md-end">
+                <a href="{% url 'quality_control:spot_analysis_new_edit' analysis.id %}" class="btn btn-light me-2">
+                    <i class="bi bi-pencil"></i> Editar
+                </a>
+                <a href="{% url 'quality_control:spot_analysis_new_list' %}" class="btn btn-outline-light">
+                    <i class="bi bi-arrow-left"></i> Voltar
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Informações Básicas -->
+    <div class="info-card">
+        <div class="info-card-header">
+            <i class="bi bi-info-circle"></i> Informações Básicas
+        </div>
+        <div class="info-card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-label">Pontual</div>
+                            <div class="info-value">
+                                <span class="pontual-badge">{{ analysis.pontual_number }}ª Pontual</span>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Data</div>
+                            <div class="info-value">{{ analysis.date|date:"d/m/Y" }}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Turno</div>
+                            <div class="info-value">{{ analysis.shift.name }}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Local de Produção</div>
+                            <div class="info-value">{{ analysis.production_line.name }}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-label">Produto</div>
+                            <div class="info-value">{{ analysis.product.name }}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Tipo de Análise</div>
+                            <div class="info-value">{{ analysis.analysis_type.name }}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Resultado</div>
+                            <div class="info-value">
+                                <span class="status-badge status-{{ analysis.analysis_result|lower }}">
+                                    {{ analysis.get_analysis_result_display }}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Operador</div>
+                            <div class="info-value">{{ analysis.operator.get_full_name|default:analysis.operator.username }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Resultados das Propriedades -->
+    <div class="info-card">
+        <div class="info-card-header">
+            <i class="bi bi-clipboard-check"></i> Resultados das Propriedades
+        </div>
+        <div class="info-card-body">
+            {% if property_results %}
+                <table class="property-table">
+                    <thead>
+                        <tr>
+                            <th>Propriedade</th>
+                            <th>Valor</th>
+                            <th>Unidade</th>
+                            <th>Método de Teste</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for result in property_results %}
+                        <tr>
+                            <td>
+                                <strong>{{ result.property.name }}</strong>
+                                {% if result.property.identifier %}
+                                    <br><small class="text-muted">{{ result.property.identifier }}</small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="badge bg-primary">{{ result.value }}</span>
+                            </td>
+                            <td>{{ result.unit }}</td>
+                            <td>{{ result.test_method|default:"-" }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <div class="text-center text-muted py-4">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    <p class="mb-0">Nenhuma propriedade foi analisada para esta amostra.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Informações de Controle -->
+    <div class="info-card">
+        <div class="info-card-header">
+            <i class="bi bi-clock"></i> Informações de Controle
+        </div>
+        <div class="info-card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="info-item">
+                        <div class="info-label">Criado em</div>
+                        <div class="info-value">{{ analysis.created_at|date:"d/m/Y H:i" }}</div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="info-item">
+                        <div class="info-label">Atualizado em</div>
+                        <div class="info-value">{{ analysis.updated_at|date:"d/m/Y H:i" }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

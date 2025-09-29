@@ -1,0 +1,249 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Detalhes do Cadastro de Produção{% endblock %}
+
+{% block extra_css %}
+<style>
+    .production-header {
+        background: linear-gradient(135deg, #2c5530, #4a7c59);
+        color: white;
+        padding: 1.5rem;
+        border-radius: 8px;
+        margin-bottom: 2rem;
+    }
+    
+    .info-card {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        margin-bottom: 1.5rem;
+        overflow: hidden;
+    }
+    
+    .info-card-header {
+        background: #f8f9fa;
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid #e9ecef;
+        font-weight: 600;
+        color: #2c5530;
+    }
+    
+    .info-card-body {
+        padding: 1.5rem;
+    }
+    
+    .status-badge {
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-weight: 600;
+        display: inline-block;
+    }
+    
+    .status-active {
+        background-color: #d4edda;
+        color: #155724;
+    }
+    
+    .status-completed {
+        background-color: #cce5ff;
+        color: #004085;
+    }
+    
+    .status-cancelled {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+    
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+    }
+    
+    .info-item {
+        padding: 0.75rem;
+        background: #f8f9fa;
+        border-radius: 6px;
+        border-left: 4px solid #2c5530;
+    }
+    
+    .info-label {
+        font-size: 0.8rem;
+        color: #6c757d;
+        text-transform: uppercase;
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+    }
+    
+    .info-value {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #2c5530;
+    }
+    
+    .lines-grid, .products-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+    
+    .line-item, .product-item {
+        background: #f8f9fa;
+        border-radius: 6px;
+        padding: 1rem;
+        border: 1px solid #e9ecef;
+    }
+    
+    .line-name, .product-name {
+        font-weight: 600;
+        color: #2c5530;
+        margin-bottom: 0.25rem;
+    }
+    
+    .line-code, .product-code {
+        font-size: 0.9rem;
+        color: #6c757d;
+    }
+    
+    .product-type {
+        font-size: 0.8rem;
+        color: #495057;
+        background: #e9ecef;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        margin-top: 0.5rem;
+        display: inline-block;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="production-header">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h3 class="mb-1">
+                    <i class="bi bi-gear-fill"></i> Detalhes do Cadastro de Produção
+                </h3>
+                <p class="mb-0">{{ production.date|date:"d/m/Y" }} - {{ production.shift.name }}</p>
+            </div>
+            <div class="col-md-4 text-md-end">
+                <a href="{% url 'quality_control:production_registration_edit' production.id %}" class="btn btn-light me-2">
+                    <i class="bi bi-pencil"></i> Editar
+                </a>
+                <a href="{% url 'quality_control:production_registration_list' %}" class="btn btn-outline-light">
+                    <i class="bi bi-arrow-left"></i> Voltar
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Informações Básicas -->
+    <div class="info-card">
+        <div class="info-card-header">
+            <i class="bi bi-info-circle"></i> Informações Básicas
+        </div>
+        <div class="info-card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-label">Data</div>
+                            <div class="info-value">{{ production.date|date:"d/m/Y" }}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Turno</div>
+                            <div class="info-value">{{ production.shift.name }}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Status</div>
+                            <div class="info-value">
+                                <span class="status-badge status-{{ production.status|lower }}">
+                                    {{ production.get_status_display }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-label">Operador</div>
+                            <div class="info-value">{{ production.operator.get_full_name|default:production.operator.username }}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Criado em</div>
+                            <div class="info-value">{{ production.created_at|date:"d/m/Y H:i" }}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Atualizado em</div>
+                            <div class="info-value">{{ production.updated_at|date:"d/m/Y H:i" }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            {% if production.observations %}
+            <div class="info-item mt-3">
+                <div class="info-label">Observações</div>
+                <div class="info-value">{{ production.observations }}</div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Linhas de Produção -->
+    <div class="info-card">
+        <div class="info-card-header">
+            <i class="bi bi-diagram-3"></i> Módulos de Produção
+        </div>
+        <div class="info-card-body">
+            {% if lines %}
+                <div class="lines-grid">
+                    {% for line in lines %}
+                    <div class="line-item">
+                        <div class="line-name">{{ line.production_line.name }}</div>
+                        <div class="line-code">{{ line.production_line.code }}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center text-muted py-4">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    <p class="mb-0">Nenhuma linha de produção cadastrada.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Produtos -->
+    <div class="info-card">
+        <div class="info-card-header">
+            <i class="bi bi-box"></i> Produtos a serem Produzidos
+        </div>
+        <div class="info-card-body">
+            {% if products %}
+                <div class="products-grid">
+                    {% for product in products %}
+                    <div class="product-item">
+                        <div class="product-name">{{ product.product.name }}</div>
+                        <div class="product-code">{{ product.product.code }}</div>
+                        {% if product.product_type %}
+                        <div class="product-type">{{ product.product_type }}</div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center text-muted py-4">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    <p class="mb-0">Nenhum produto cadastrado.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
