@@ -3,7 +3,7 @@ URLs do app quality_control
 """
 
 from django.urls import path
-from . import views, views_import, views_composite, views_spot_fixed, views_spot_improved, views_spot_grouped, views_reports, views_debug, views_production, views_spot_new, views_spot_final, views_dashboard_new
+from . import views, views_import, views_composite, views_spot_fixed, views_spot_improved, views_spot_grouped, views_reports, views_debug, views_production, views_spot_final, views_dashboard_new
 
 app_name = 'quality_control'
 
@@ -18,22 +18,6 @@ urlpatterns = [
     # Seleção de tipo de análise
     path('analysis-type-selection/', views.analysis_type_selection_view, name='analysis_type_selection'),
     
-    # Análises
-    path('spot-analysis/', views.SpotAnalysisListView.as_view(), name='spot_analysis_list'),
-    path('spot-analysis/create/', views.SpotAnalysisCreateView.as_view(), name='spot_analysis_create'),
-    path('spot-analysis/create-simple/', views_simple.spot_analysis_create_simple, name='spot_analysis_create_simple'),
-    path('spot-analysis/create-fixed/', views_spot_fixed.spot_analysis_create_fixed, name='spot_analysis_create_fixed'),
-    path('spot-analysis/create-improved/', views_spot_improved.spot_analysis_create_improved, name='spot_analysis_create_improved'),
-    path('spot-analysis/<int:analysis_id>/edit/', views_spot_improved.spot_analysis_edit_improved, name='spot_analysis_edit_improved'),
-    path('spot-analysis/<int:analysis_id>/detail/', views_spot_improved.spot_analysis_detail_improved, name='spot_analysis_detail_improved'),
-    
-    # Amostras Pontuais Agrupadas
-    path('spot-sample/', views_spot_grouped.spot_sample_list, name='spot_sample_list'),
-    path('spot-sample/create/', views_spot_grouped.spot_sample_create, name='spot_sample_create'),
-    path('spot-sample/<int:sample_id>/', views_spot_grouped.spot_sample_detail, name='spot_sample_detail'),
-    path('spot-sample/<int:sample_id>/edit/', views_spot_grouped.spot_sample_edit, name='spot_sample_edit'),
-    path('spot-sample/<int:sample_id>/delete/', views_spot_grouped.spot_sample_delete, name='spot_sample_delete'),
-    
     # Cadastro de Produção
     path('production-registration/', views_production.production_registration_list, name='production_registration_list'),
     path('production-registration/create/', views_production.production_registration_create, name='production_registration_create'),
@@ -46,6 +30,21 @@ urlpatterns = [
     path('spot-analysis/create/', views_spot_final.spot_analysis_final_create, name='spot_analysis_create'),
     path('spot-analysis/<int:analysis_id>/', views_spot_final.spot_analysis_final_detail, name='spot_analysis_detail'),
     path('spot-analysis/<int:analysis_id>/edit/', views_spot_final.spot_analysis_final_edit, name='spot_analysis_edit'),
+    
+    # Sistema Legado (para compatibilidade)
+    path('spot-analysis-legacy/', views.SpotAnalysisListView.as_view(), name='spot_analysis_legacy_list'),
+    path('spot-analysis-legacy/create/', views.SpotAnalysisCreateView.as_view(), name='spot_analysis_legacy_create'),
+    path('spot-analysis-legacy/create-fixed/', views_spot_fixed.spot_analysis_create_fixed, name='spot_analysis_create_fixed'),
+    path('spot-analysis-legacy/create-improved/', views_spot_improved.spot_analysis_create_improved, name='spot_analysis_create_improved'),
+    path('spot-analysis-legacy/<int:analysis_id>/edit/', views_spot_improved.spot_analysis_edit_improved, name='spot_analysis_edit_improved'),
+    path('spot-analysis-legacy/<int:analysis_id>/detail/', views_spot_improved.spot_analysis_detail_improved, name='spot_analysis_detail_improved'),
+    
+    # Amostras Pontuais Agrupadas (Legado)
+    path('spot-sample/', views_spot_grouped.spot_sample_list, name='spot_sample_list'),
+    path('spot-sample/create/', views_spot_grouped.spot_sample_create, name='spot_sample_create'),
+    path('spot-sample/<int:sample_id>/', views_spot_grouped.spot_sample_detail, name='spot_sample_detail'),
+    path('spot-sample/<int:sample_id>/edit/', views_spot_grouped.spot_sample_edit, name='spot_sample_edit'),
+    path('spot-sample/<int:sample_id>/delete/', views_spot_grouped.spot_sample_delete, name='spot_sample_delete'),
     
     # Amostras Compostas
     path('composite-sample/', views_composite.composite_sample_list, name='composite_sample_list'),
