@@ -199,11 +199,14 @@
                 </div>
                 <div class="module-card-body">
                     <div class="module-actions">
-                        <a href="{% url 'quality_control:spot_analysis_new_create' %}" class="btn-module">
-                            <i class="bi bi-plus-circle"></i> Nova Análise
+                        <a href="{% url 'quality_control:spot_analysis_final_create' %}" class="btn-module">
+                            <i class="bi bi-plus-circle"></i> Nova Análise (Final)
                         </a>
                         <a href="{% url 'quality_control:spot_analysis_new_list' %}" class="btn-module btn-module-secondary">
                             <i class="bi bi-list"></i> Ver Análises
+                        </a>
+                        <a href="{% url 'quality_control:spot_analysis_test_create' %}" class="btn-module btn-module-secondary">
+                            <i class="bi bi-bug"></i> Versão Teste
                         </a>
                     </div>
                 </div>
