@@ -363,7 +363,7 @@
                             {% for property in properties %}
                             <th>{{ property.identifier }}</th>
                             {% endfor %}
-                            <th>Amostra</th>
+                            <th>Pontual</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -387,7 +387,7 @@
                             {% endfor %}
                             <td class="sequence-cell">
                                 {% if product_data.sample %}
-                                    <span class="sequence-badge">{{ product_data.sample.sample_sequence }}ª</span>
+                                    <span class="sequence-badge">{{ product_data.sample.sample_sequence }}</span>
                                     <div class="status-indicator status-{{ product_data.status|lower }}"></div>
                                     {% if product_data.sample.sample_time %}
                                         <div class="analysis-time">{{ product_data.sample.sample_time|date:"H:i" }}</div>
