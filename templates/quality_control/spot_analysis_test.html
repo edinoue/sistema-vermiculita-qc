@@ -1,0 +1,322 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Teste - Análise Pontual{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="page-header">
+                <h1><i class="bi bi-clipboard-check"></i> Teste - Análise Pontual</h1>
+                <p class="text-muted">Layout de teste com seleção de local e cards de produtos</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Formulário de Teste -->
+    <form method="post" id="testForm">
+        {% csrf_token %}
+        
+        <!-- Seleção da Pontual -->
+        <div class="form-section mb-4">
+            <h5 class="section-title">
+                <i class="bi bi-hash"></i> Seleção da Pontual
+            </h5>
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="pontual_number" value="1" id="pontual_1" required>
+                        <label class="form-check-label" for="pontual_1">
+                            <strong>1ª Pontual</strong>
+                        </label>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="pontual_number" value="2" id="pontual_2" required>
+                        <label class="form-check-label" for="pontual_2">
+                            <strong>2ª Pontual</strong>
+                        </label>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="pontual_number" value="3" id="pontual_3" required>
+                        <label class="form-check-label" for="pontual_3">
+                            <strong>3ª Pontual</strong>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Seleção do Local de Produção -->
+        <div class="form-section mb-4">
+            <h5 class="section-title">
+                <i class="bi bi-geo-alt"></i> Local de Produção
+            </h5>
+            <div class="row">
+                <div class="col-md-6">
+                    <label for="production_line" class="form-label required-field">Local de Produção</label>
+                    <select class="form-select" id="production_line" name="production_line" required onchange="loadProducts()">
+                        <option value="">Selecione o local</option>
+                        {% for line in lines %}
+                        <option value="{{ line.production_line.id }}">{{ line.production_line.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Produtos e Propriedades -->
+        <div class="form-section mb-4" id="products-section" style="display: none;">
+            <h5 class="section-title">
+                <i class="bi bi-box"></i> Produtos e Resultados das Propriedades
+            </h5>
+            <p class="text-muted">Preencha os valores obtidos para cada produto:</p>
+            
+            <div id="products-container">
+                <!-- Produtos serão carregados dinamicamente -->
+            </div>
+        </div>
+        
+        <!-- Botões -->
+        <div class="d-flex justify-content-between">
+            <a href="{% url 'quality_control:spot_analysis_new_list' %}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Voltar
+            </a>
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check-circle"></i> Salvar Análise
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Dados dos produtos por linha de produção
+const productsData = {
+    {% for line in lines %}
+    {{ line.production_line.id }}: [
+        {% for product in products %}
+        {% if product.production_line.id == line.production_line.id %}
+        {
+            id: {{ product.product.id }},
+            name: "{{ product.product.name }}",
+            code: "{{ product.product.code }}"
+        },
+        {% endif %}
+        {% endfor %}
+    ],
+    {% endfor %}
+};
+
+// Dados das propriedades
+const propertiesData = [
+    {% for property in properties %}
+    {
+        id: {{ property.id }},
+        name: "{{ property.name }}",
+        unit: "{{ property.unit }}",
+        test_method: "{{ property.test_method|default:'' }}"
+    },
+    {% endfor %}
+];
+
+function loadProducts() {
+    const productionLineId = document.getElementById('production_line').value;
+    const productsSection = document.getElementById('products-section');
+    const productsContainer = document.getElementById('products-container');
+    
+    console.log('Carregando produtos para linha:', productionLineId);
+    
+    if (!productionLineId) {
+        productsSection.style.display = 'none';
+        return;
+    }
+    
+    const products = productsData[productionLineId] || [];
+    console.log('Produtos encontrados:', products);
+    
+    if (products.length === 0) {
+        productsContainer.innerHTML = '<div class="alert alert-warning">Nenhum produto cadastrado para esta linha de produção.</div>';
+        productsSection.style.display = 'block';
+        return;
+    }
+    
+    let html = '';
+    
+    products.forEach(product => {
+        html += `
+            <div class="product-card mb-4">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h6 class="mb-0">
+                            <i class="bi bi-box"></i> ${product.name}
+                            <small>(${product.code})</small>
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <input type="hidden" name="product_${product.id}" value="${product.id}">
+                        <div class="row">
+        `;
+        
+        propertiesData.forEach(property => {
+            html += `
+                <div class="col-md-6 mb-3">
+                    <div class="property-item">
+                        <label class="form-label required-field">${property.name}</label>
+                        <div class="row">
+                            <div class="col-8">
+                                <input type="number" class="form-control" 
+                                       name="property_${property.id}_${product.id}_value" 
+                                       step="0.0001" required
+                                       placeholder="Valor">
+                            </div>
+                            <div class="col-4">
+                                <input type="text" class="form-control" 
+                                       name="property_${property.id}_${product.id}_method" 
+                                       value="${property.test_method}"
+                                       placeholder="Método">
+                            </div>
+                        </div>
+                        <small class="text-muted">Unidade: ${property.unit}</small>
+                    </div>
+                </div>
+            `;
+        });
+        
+        html += `
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    
+    productsContainer.innerHTML = html;
+    productsSection.style.display = 'block';
+    
+    console.log('Produtos carregados com sucesso');
+}
+
+// Validação do formulário
+document.getElementById('testForm').addEventListener('submit', function(e) {
+    const pontualNumber = document.querySelector('input[name="pontual_number"]:checked');
+    const productionLine = document.getElementById('production_line').value;
+    
+    if (!pontualNumber) {
+        e.preventDefault();
+        alert('Selecione uma pontual.');
+        return;
+    }
+    
+    if (!productionLine) {
+        e.preventDefault();
+        alert('Selecione um local de produção.');
+        return;
+    }
+    
+    // Verificar se pelo menos uma propriedade foi preenchida
+    const propertyInputs = document.querySelectorAll('input[name$="_value"]');
+    let hasValue = false;
+    propertyInputs.forEach(input => {
+        if (input.value.trim() !== '') {
+            hasValue = true;
+        }
+    });
+    
+    if (!hasValue) {
+        e.preventDefault();
+        alert('Preencha pelo menos uma propriedade.');
+        return;
+    }
+});
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.page-header {
+    background: linear-gradient(135deg, #2c5530, #4a7c59);
+    color: white;
+    padding: 2rem;
+    border-radius: 10px;
+    margin-bottom: 2rem;
+}
+
+.form-section {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    margin-bottom: 1rem;
+}
+
+.section-title {
+    color: #2c5530;
+    margin-bottom: 1rem;
+    font-weight: 600;
+}
+
+.required-field::after {
+    content: " *";
+    color: red;
+}
+
+.form-check {
+    padding: 1rem;
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    margin-bottom: 1rem;
+    transition: all 0.3s ease;
+}
+
+.form-check:hover {
+    border-color: #2c5530;
+    background-color: #f8f9fa;
+}
+
+.product-card .card {
+    border: 2px solid #e9ecef;
+    border-radius: 15px;
+    transition: all 0.3s ease;
+}
+
+.product-card .card:hover {
+    border-color: #2c5530;
+    box-shadow: 0 4px 15px rgba(44, 85, 48, 0.1);
+}
+
+.property-item {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 10px;
+    border: 1px solid #e9ecef;
+    transition: all 0.3s ease;
+}
+
+.property-item:hover {
+    background: #e9ecef;
+    border-color: #2c5530;
+}
+
+.property-item label {
+    color: #2c5530;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.btn-primary {
+    background: #2c5530;
+    border-color: #2c5530;
+}
+
+.btn-primary:hover {
+    background: #1e3a21;
+    border-color: #1e3a21;
+}
+</style>
+{% endblock %}
