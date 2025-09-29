@@ -65,6 +65,7 @@
                         <option value="{{ line.production_line.id }}">{{ line.production_line.name }}</option>
                         {% endfor %}
                     </select>
+                    <div class="form-text">Selecione o local de produção para ver os produtos ativos do turno</div>
                 </div>
             </div>
         </div>
@@ -96,7 +97,7 @@
 
 {% block extra_js %}
 <script>
-// Dados dos produtos por linha de produção
+// Dados dos produtos por linha de produção (baseado no cadastro de produção)
 const productsData = {
     {% for line in lines %}
     {{ line.production_line.id }}: [
@@ -105,7 +106,8 @@ const productsData = {
         {
             id: {{ product.product.id }},
             name: "{{ product.product.name }}",
-            code: "{{ product.product.code }}"
+            code: "{{ product.product.code }}",
+            description: "{{ product.product.description|default:'' }}"
         },
         {% endif %}
         {% endfor %}
@@ -141,22 +143,36 @@ function loadProducts() {
     console.log('Produtos encontrados:', products);
     
     if (products.length === 0) {
-        productsContainer.innerHTML = '<div class="alert alert-warning">Nenhum produto cadastrado para esta linha de produção.</div>';
+        productsContainer.innerHTML = `
+            <div class="alert alert-warning">
+                <i class="bi bi-exclamation-triangle"></i>
+                Nenhum produto cadastrado para esta linha de produção no turno atual.
+            </div>
+        `;
         productsSection.style.display = 'block';
         return;
     }
     
-    let html = '';
+    let html = `
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i>
+            <strong>Produtos ativos encontrados:</strong> ${products.length} produto(s) cadastrado(s) para esta linha de produção.
+        </div>
+    `;
     
-    products.forEach(product => {
+    products.forEach((product, index) => {
         html += `
             <div class="product-card mb-4">
-                <div class="card">
-                    <div class="card-header bg-primary text-white">
-                        <h6 class="mb-0">
-                            <i class="bi bi-box"></i> ${product.name}
-                            <small>(${product.code})</small>
-                        </h6>
+                <div class="card product-card-custom">
+                    <div class="card-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0">
+                                <i class="bi bi-box"></i> ${product.name}
+                                <small class="text-muted">(${product.code})</small>
+                            </h6>
+                            <span class="badge bg-primary">Produto ${index + 1}</span>
+                        </div>
+                        ${product.description ? `<small class="text-muted">${product.description}</small>` : ''}
                     </div>
                     <div class="card-body">
                         <input type="hidden" name="product_${product.id}" value="${product.id}">
@@ -173,7 +189,7 @@ function loadProducts() {
                                 <input type="number" class="form-control" 
                                        name="property_${property.id}_${product.id}_value" 
                                        step="0.0001" required
-                                       placeholder="Valor">
+                                       placeholder="Digite o valor">
                             </div>
                             <div class="col-4">
                                 <input type="text" class="form-control" 
@@ -288,6 +304,37 @@ document.getElementById('testForm').addEventListener('submit', function(e) {
 .product-card .card:hover {
     border-color: #2c5530;
     box-shadow: 0 4px 15px rgba(44, 85, 48, 0.1);
+}
+
+.product-card-custom {
+    border: 2px solid #2c5530;
+    border-radius: 15px;
+    transition: all 0.3s ease;
+    margin-bottom: 1rem;
+}
+
+.product-card-custom:hover {
+    border-color: #1e3a21;
+    box-shadow: 0 6px 20px rgba(44, 85, 48, 0.15);
+    transform: translateY(-2px);
+}
+
+.product-card-custom .card-header {
+    background: linear-gradient(135deg, #2c5530, #4a7c59);
+    color: white;
+    border-radius: 15px 15px 0 0 !important;
+    padding: 1rem 1.5rem;
+}
+
+.product-card-custom .card-header h6 {
+    color: white;
+    font-weight: 600;
+    margin-bottom: 0;
+}
+
+.product-card-custom .card-body {
+    padding: 1.5rem;
+    background: #f8f9fa;
 }
 
 .property-item {
