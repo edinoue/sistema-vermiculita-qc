@@ -139,3 +139,79 @@ def spot_analysis_final_create(request):
     }
     
     return render(request, 'quality_control/spot_analysis_final.html', context)
+
+@login_required
+def spot_analysis_final_list(request):
+    """Listar análises pontuais"""
+    analyses = SpotAnalysisRegistration.objects.all().order_by('-created_at')
+    
+    context = {
+        'analyses': analyses
+    }
+    return render(request, 'quality_control/spot_analysis_final_list.html', context)
+
+@login_required
+def spot_analysis_final_detail(request, analysis_id):
+    """Detalhar análise pontual"""
+    analysis = get_object_or_404(SpotAnalysisRegistration, id=analysis_id)
+    
+    context = {
+        'analysis': analysis
+    }
+    return render(request, 'quality_control/spot_analysis_final_detail.html', context)
+
+@login_required
+def spot_analysis_final_edit(request, analysis_id):
+    """Editar análise pontual"""
+    analysis = get_object_or_404(SpotAnalysisRegistration, id=analysis_id)
+    
+    if request.method == 'POST':
+        try:
+            with transaction.atomic():
+                # Atualizar dados básicos
+                analysis.pontual_number = int(request.POST.get('pontual_number'))
+                analysis.production_line_id = request.POST.get('production_line')
+                analysis.product_id = request.POST.get('product')
+                
+                # Atualizar resultados das propriedades
+                for property_result in analysis.property_results.all():
+                    value_key = f'property_{property_result.property.id}_value'
+                    method_key = f'property_{property_result.property.id}_method'
+                    
+                    if value_key in request.POST and request.POST[value_key]:
+                        try:
+                            property_result.value = float(request.POST[value_key])
+                            property_result.test_method = request.POST.get(method_key, property_result.test_method)
+                            property_result.save()
+                        except ValueError:
+                            messages.warning(request, f'Valor inválido para {property_result.property.name}. Ignorando.')
+                            continue
+                
+                analysis.save()
+                messages.success(request, 'Análise pontual atualizada com sucesso!')
+                return redirect('quality_control:spot_analysis_detail', analysis_id=analysis.id)
+                
+        except Exception as e:
+            messages.error(request, f'Erro ao atualizar análise pontual: {str(e)}')
+    
+    # Obter dados para o formulário
+    production = analysis.production
+    lines = ProductionLineRegistration.objects.filter(production=production, is_active=True)
+    products = ProductionProductRegistration.objects.filter(production=production, is_active=True)
+    
+    # Obter propriedades
+    analysis_type = AnalysisType.objects.get(code='PONTUAL')
+    properties = Property.objects.filter(
+        is_active=True,
+        analysistypeproperty__analysis_type=analysis_type
+    ).order_by('display_order')
+    
+    context = {
+        'analysis': analysis,
+        'production': production,
+        'lines': lines,
+        'products': products,
+        'properties': properties,
+        'current_shift': analysis.shift
+    }
+    return render(request, 'quality_control/spot_analysis_final_edit.html', context)

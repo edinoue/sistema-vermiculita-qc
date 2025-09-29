@@ -134,16 +134,15 @@
                             <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
                                 <i class="bi bi-clipboard-data"></i> Análises
                             </a>
-                            <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="{% url 'quality_control:spot_analysis_final_create' %}">Nova Análise (Final)</a></li>
-                                <li><a class="dropdown-item" href="{% url 'quality_control:spot_analysis_test_create' %}">Nova Análise (Teste)</a></li>
-                                <li><a class="dropdown-item" href="{% url 'quality_control:spot_analysis_new_list' %}">Análises Pontuais</a></li>
-                                <li><a class="dropdown-item" href="{% url 'quality_control:composite_sample_list' %}">Amostras Compostas</a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="{% url 'quality_control:production_registration_create' %}">Cadastro de Produção</a></li>
-                                <li><a class="dropdown-item" href="{% url 'quality_control:reports_list' %}">Relatórios</a></li>
-                                <li><a class="dropdown-item" href="{% url 'quality_control:import_dashboard' %}">Importar Dados</a></li>
-                            </ul>
+            <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="{% url 'quality_control:spot_analysis_create' %}">Nova Análise Pontual</a></li>
+                <li><a class="dropdown-item" href="{% url 'quality_control:spot_analysis_list' %}">Análises Pontuais</a></li>
+                <li><a class="dropdown-item" href="{% url 'quality_control:composite_sample_list' %}">Amostras Compostas</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="{% url 'quality_control:production_registration_create' %}">Cadastro de Produção</a></li>
+                <li><a class="dropdown-item" href="{% url 'quality_control:reports_list' %}">Relatórios</a></li>
+                <li><a class="dropdown-item" href="{% url 'quality_control:import_dashboard' %}">Importar Dados</a></li>
+            </ul>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="/mobile/">

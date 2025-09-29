@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Editar Análise Pontual{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="page-header mb-4">
+        <h2 class="mb-1">
+            <i class="bi bi-pencil-square"></i> Editar Análise Pontual
+        </h2>
+        <p class="text-white-50">Edite os dados da análise pontual.</p>
+    </div>
+
+    <form method="post" id="editForm">
+        {% csrf_token %}
+        
+        <!-- Seleção da Pontual -->
+        <div class="form-section mb-4">
+            <h5 class="section-title">
+                <i class="bi bi-hash"></i> Seleção da Pontual
+            </h5>
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="pontual_number" value="1" id="pontual_1" 
+                               {% if analysis.pontual_number == 1 %}checked{% endif %} required>
+                        <label class="form-check-label" for="pontual_1">
+                            <strong>1ª Pontual</strong>
+                            <br><small>Primeira análise do turno</small>
+                        </label>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="pontual_number" value="2" id="pontual_2" 
+                               {% if analysis.pontual_number == 2 %}checked{% endif %} required>
+                        <label class="form-check-label" for="pontual_2">
+                            <strong>2ª Pontual</strong>
+                            <br><small>Segunda análise do turno</small>
+                        </label>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="pontual_number" value="3" id="pontual_3" 
+                               {% if analysis.pontual_number == 3 %}checked{% endif %} required>
+                        <label class="form-check-label" for="pontual_3">
+                            <strong>3ª Pontual</strong>
+                            <br><small>Terceira análise do turno</small>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Local de Produção e Produto -->
+        <div class="form-section mb-4">
+            <h5 class="section-title">
+                <i class="bi bi-geo-alt"></i> Local de Produção e Produto
+            </h5>
+            <div class="row">
+                <div class="col-md-6">
+                    <label for="production_line" class="form-label required-field">Local de Produção</label>
+                    <select class="form-select" id="production_line" name="production_line" required>
+                        <option value="">Selecione o local</option>
+                        {% for line in lines %}
+                        <option value="{{ line.production_line.id }}" 
+                                {% if line.production_line.id == analysis.production_line.id %}selected{% endif %}>
+                            {{ line.production_line.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label for="product" class="form-label required-field">Produto</label>
+                    <select class="form-select" id="product" name="product" required>
+                        <option value="">Selecione o produto</option>
+                        {% for product in products %}
+                        <option value="{{ product.product.id }}" 
+                                {% if product.product.id == analysis.product.id %}selected{% endif %}>
+                            {{ product.product.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Propriedades -->
+        <div class="form-section mb-4">
+            <h5 class="section-title">
+                <i class="bi bi-list-check"></i> Resultados das Propriedades
+            </h5>
+            <p class="text-muted">Edite os valores obtidos para cada propriedade:</p>
+            
+            <div class="property-grid">
+                {% for property in properties %}
+                <div class="property-item">
+                    <div class="property-name">{{ property.name }}</div>
+                    <div class="property-unit">Unidade: {{ property.unit }}</div>
+                    
+                    <div class="row">
+                        <div class="col-8">
+                            <label for="property_{{ property.id }}_value" class="form-label required-field">Valor</label>
+                            {% for result in analysis.property_results.all %}
+                                {% if result.property.id == property.id %}
+                                    <input type="number" class="form-control" 
+                                           id="property_{{ property.id }}_value" 
+                                           name="property_{{ property.id }}_value" 
+                                           step="0.0001" 
+                                           value="{{ result.value }}" required>
+                                {% endif %}
+                            {% empty %}
+                                <input type="number" class="form-control" 
+                                       id="property_{{ property.id }}_value" 
+                                       name="property_{{ property.id }}_value" 
+                                       step="0.0001" required>
+                            {% endfor %}
+                        </div>
+                        <div class="col-4">
+                            <label for="property_{{ property.id }}_method" class="form-label">Método</label>
+                            {% for result in analysis.property_results.all %}
+                                {% if result.property.id == property.id %}
+                                    <input type="text" class="form-control" 
+                                           id="property_{{ property.id }}_method" 
+                                           name="property_{{ property.id }}_method" 
+                                           value="{{ result.test_method|default:property.test_method|default:'' }}"
+                                           placeholder="Método">
+                                {% endif %}
+                            {% empty %}
+                                <input type="text" class="form-control" 
+                                       id="property_{{ property.id }}_method" 
+                                       name="property_{{ property.id }}_method" 
+                                       value="{{ property.test_method|default:'' }}"
+                                       placeholder="Método">
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- Botões -->
+        <div class="d-flex justify-content-between">
+            <a href="{% url 'quality_control:spot_analysis_detail' analysis.id %}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Cancelar
+            </a>
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check-circle"></i> Salvar Alterações
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Validação do formulário
+document.getElementById('editForm').addEventListener('submit', function(e) {
+    const pontualNumber = document.querySelector('input[name="pontual_number"]:checked');
+    const productionLine = document.getElementById('production_line').value;
+    const product = document.getElementById('product').value;
+    
+    if (!pontualNumber) {
+        e.preventDefault();
+        alert('Selecione uma pontual.');
+        return;
+    }
+    
+    if (!productionLine) {
+        e.preventDefault();
+        alert('Selecione um local de produção.');
+        return;
+    }
+    
+    if (!product) {
+        e.preventDefault();
+        alert('Selecione um produto.');
+        return;
+    }
+    
+    // Verificar se pelo menos uma propriedade foi preenchida
+    const propertyInputs = document.querySelectorAll('input[name$="_value"]');
+    let hasValue = false;
+    propertyInputs.forEach(input => {
+        if (input.value.trim() !== '') {
+            hasValue = true;
+        }
+    });
+    
+    if (!hasValue) {
+        e.preventDefault();
+        alert('Preencha pelo menos uma propriedade.');
+        return;
+    }
+});
+</script>
+{% endblock %}

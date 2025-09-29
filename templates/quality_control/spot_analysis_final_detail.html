@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Detalhes da Análise Pontual{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="page-header mb-4">
+        <h2 class="mb-1">
+            <i class="bi bi-clipboard-data"></i> Detalhes da Análise Pontual
+        </h2>
+        <p class="text-white-50">Informações completas da análise pontual.</p>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Informações da Análise</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="info-item mb-3">
+                                <div class="info-label">Data</div>
+                                <div class="info-value">{{ analysis.date|date:"d/m/Y" }}</div>
+                            </div>
+                            <div class="info-item mb-3">
+                                <div class="info-label">Turno</div>
+                                <div class="info-value">{{ analysis.shift.name }}</div>
+                            </div>
+                            <div class="info-item mb-3">
+                                <div class="info-label">Local de Produção</div>
+                                <div class="info-value">{{ analysis.production_line.name }}</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-item mb-3">
+                                <div class="info-label">Produto</div>
+                                <div class="info-value">{{ analysis.product.name }}</div>
+                            </div>
+                            <div class="info-item mb-3">
+                                <div class="info-label">Pontual</div>
+                                <div class="info-value">
+                                    <span class="badge bg-primary">{{ analysis.pontual_number }}ª Pontual</span>
+                                </div>
+                            </div>
+                            <div class="info-item mb-3">
+                                <div class="info-label">Status</div>
+                                <div class="info-value">
+                                    {% if analysis.analysis_result == 'APPROVED' %}
+                                        <span class="badge bg-success">Aprovado</span>
+                                    {% elif analysis.analysis_result == 'REJECTED' %}
+                                        <span class="badge bg-danger">Reprovado</span>
+                                    {% else %}
+                                        <span class="badge bg-warning">Pendente</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {% if analysis.property_results.all %}
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Resultados das Propriedades</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Propriedade</th>
+                                    <th>Valor</th>
+                                    <th>Unidade</th>
+                                    <th>Método</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for result in analysis.property_results.all %}
+                                <tr>
+                                    <td>{{ result.property.name }}</td>
+                                    <td><strong>{{ result.value }}</strong></td>
+                                    <td>{{ result.unit }}</td>
+                                    <td>{{ result.test_method|default:"-" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Informações do Sistema</h5>
+                </div>
+                <div class="card-body">
+                    <div class="info-item mb-3">
+                        <div class="info-label">Operador</div>
+                        <div class="info-value">{{ analysis.operator.get_full_name|default:analysis.operator.username }}</div>
+                    </div>
+                    <div class="info-item mb-3">
+                        <div class="info-label">Criado em</div>
+                        <div class="info-value">{{ analysis.created_at|date:"d/m/Y H:i" }}</div>
+                    </div>
+                    <div class="info-item mb-3">
+                        <div class="info-label">Atualizado em</div>
+                        <div class="info-value">{{ analysis.updated_at|date:"d/m/Y H:i" }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'quality_control:spot_analysis_edit' analysis.id %}" 
+                           class="btn btn-outline-primary">
+                            <i class="bi bi-pencil"></i> Editar Análise
+                        </a>
+                        <a href="{% url 'quality_control:spot_analysis_list' %}" 
+                           class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left"></i> Voltar à Lista
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
