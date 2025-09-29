@@ -641,13 +641,34 @@ def spot_dashboard_view(request):
                     sample_status = 'REJECTED'
                     has_out_of_spec = True
                 
+                # Calcular sequência de forma mais robusta
+                sequence_value = latest_sample.sample_sequence
+                if not sequence_value or sequence_value == 0:
+                    # Se não há sequência, tentar calcular baseado na ordem de criação
+                    same_day_samples = SpotSample.objects.filter(
+                        production_line=line,
+                        product=product,
+                        date=timezone.now().date(),
+                        shift=current_shift
+                    ).order_by('created_at')
+                    try:
+                        sequence_value = list(same_day_samples).index(latest_sample) + 1
+                    except ValueError:
+                        sequence_value = 1
+                
+                # Garantir que sempre temos um valor válido
+                if not sequence_value or sequence_value < 1:
+                    sequence_value = 1
+                elif sequence_value > 3:
+                    sequence_value = 3
+                
                 products_data.append({
                     'product': product,
                     'sample': latest_sample,
                     'analyses': analyses,
                     'property_analyses': property_analyses,
                     'status': sample_status,
-                    'sequence': latest_sample.sample_sequence,
+                    'sequence': sequence_value,
                     'has_out_of_spec': has_out_of_spec
                 })
             else:

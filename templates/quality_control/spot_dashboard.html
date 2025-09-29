@@ -311,6 +311,9 @@
                         <button class="btn btn-outline-light btn-sm" onclick="location.reload()" title="Atualizar Dashboard">
                             <i class="bi bi-arrow-clockwise"></i> Atualizar
                         </button>
+                        <a href="{% url 'quality_control:debug_sequence' %}" class="btn btn-outline-warning btn-sm" title="Debug Sequência">
+                            <i class="bi bi-bug"></i> Debug
+                        </a>
                         <div class="dropdown">
                             <button class="btn btn-light btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="bi bi-speedometer2"></i> Dashboards
@@ -387,11 +390,17 @@
                             {% endfor %}
                             <td class="sequence-cell">
                                 {% if product_data.sample %}
-                                    <span class="sequence-badge">{{ product_data.sample.sample_sequence }}</span>
+                                    <span class="sequence-badge">{{ product_data.sequence|default:"-" }}</span>
                                     <div class="status-indicator status-{{ product_data.status|lower }}"></div>
                                     {% if product_data.sample.sample_time %}
                                         <div class="analysis-time">{{ product_data.sample.sample_time|date:"H:i" }}</div>
                                     {% endif %}
+                                    <!-- Debug info -->
+                                    <div style="font-size: 0.5rem; color: #999;">
+                                        ID: {{ product_data.sample.id }} | 
+                                        Seq: {{ product_data.sample.sample_sequence|default:"N/A" }} | 
+                                        Calc: {{ product_data.sequence }}
+                                    </div>
                                 {% else %}
                                     <div style="color: #6c757d; font-size: 0.6rem;">-</div>
                                 {% endif %}

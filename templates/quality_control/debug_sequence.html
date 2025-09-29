@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Debug - Sequência das Amostras{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title">
+                        <i class="bi bi-bug"></i> Debug - Sequência das Amostras
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <!-- Estatísticas Gerais -->
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <div class="card bg-primary text-white">
+                                <div class="card-body">
+                                    <h5>{{ stats.total_samples_today }}</h5>
+                                    <p class="mb-0">Total de Amostras Hoje</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-success text-white">
+                                <div class="card-body">
+                                    <h5>{{ stats.samples_with_sequence }}</h5>
+                                    <p class="mb-0">Com Sequência</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-warning text-white">
+                                <div class="card-body">
+                                    <h5>{{ stats.samples_without_sequence }}</h5>
+                                    <p class="mb-0">Sem Sequência</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-info text-white">
+                                <div class="card-body">
+                                    <h5>{{ stats.current_shift.name }}</h5>
+                                    <p class="mb-0">Turno Atual</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Dados Detalhados -->
+                    {% for line_data in debug_data %}
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5>{{ line_data.line.name }}</h5>
+                        </div>
+                        <div class="card-body">
+                            {% for product_data in line_data.products %}
+                            <div class="mb-3">
+                                <h6>{{ product_data.product.name }}</h6>
+                                
+                                {% if product_data.latest_sample %}
+                                <div class="alert alert-info">
+                                    <strong>Amostra Mais Recente:</strong><br>
+                                    ID: {{ product_data.latest_sample.id }}<br>
+                                    Sequência: {{ product_data.latest_sample.sequence|default:"N/A" }}<br>
+                                    Horário: {{ product_data.latest_sample.time|date:"H:i" }}<br>
+                                    Tem Sequência: {{ product_data.latest_sample.has_sequence|yesno:"Sim,Não" }}
+                                </div>
+                                {% else %}
+                                <div class="alert alert-warning">
+                                    Nenhuma amostra encontrada para este produto
+                                </div>
+                                {% endif %}
+                                
+                                {% if product_data.sequence_issues %}
+                                <div class="alert alert-danger">
+                                    <strong>Problemas Encontrados:</strong>
+                                    <ul class="mb-0">
+                                        {% for issue in product_data.sequence_issues %}
+                                        <li>{{ issue }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                                {% endif %}
+                                
+                                {% if product_data.samples %}
+                                <h6>Todas as Amostras:</h6>
+                                <div class="table-responsive">
+                                    <table class="table table-sm">
+                                        <thead>
+                                            <tr>
+                                                <th>ID</th>
+                                                <th>Sequência</th>
+                                                <th>Horário</th>
+                                                <th>Criado em</th>
+                                                <th>Status</th>
+                                                <th>Análises</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for sample in product_data.samples %}
+                                            <tr>
+                                                <td>{{ sample.id }}</td>
+                                                <td>
+                                                    {% if sample.sample_sequence %}
+                                                        <span class="badge bg-success">{{ sample.sample_sequence }}</span>
+                                                    {% else %}
+                                                        <span class="badge bg-danger">N/A</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>{{ sample.sample_time|date:"H:i" }}</td>
+                                                <td>{{ sample.created_at|date:"H:i" }}</td>
+                                                <td>{{ sample.status }}</td>
+                                                <td>{{ sample.analyses_count }}</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                {% endif %}
+                            </div>
+                            <hr>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                    
+                    <!-- Ações -->
+                    <div class="text-center">
+                        <a href="{% url 'quality_control:spot_dashboard' %}" class="btn btn-primary">
+                            <i class="bi bi-arrow-left"></i> Voltar ao Dashboard
+                        </a>
+                        <button onclick="location.reload()" class="btn btn-secondary">
+                            <i class="bi bi-arrow-clockwise"></i> Atualizar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

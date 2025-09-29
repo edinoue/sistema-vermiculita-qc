@@ -3,7 +3,7 @@ URLs do app quality_control
 """
 
 from django.urls import path
-from . import views, views_simple, views_import, views_composite, views_spot_fixed, views_spot_improved, views_spot_grouped, views_reports
+from . import views, views_simple, views_import, views_composite, views_spot_fixed, views_spot_improved, views_spot_grouped, views_reports, views_debug
 
 app_name = 'quality_control'
 
@@ -12,6 +12,7 @@ urlpatterns = [
     path('', views.dashboard_view, name='dashboard'),
     path('dashboard/', views.dashboard_view, name='dashboard_main'),
     path('dashboard/spot/', views.spot_dashboard_view, name='spot_dashboard'),
+    path('debug/sequence/', views_debug.debug_sequence_view, name='debug_sequence'),
     
     # Seleção de tipo de análise
     path('analysis-type-selection/', views.analysis_type_selection_view, name='analysis_type_selection'),
