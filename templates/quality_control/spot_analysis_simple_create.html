@@ -77,69 +77,33 @@
             </div>
         </div>
         
-        <!-- Dados da Análise -->
+        <!-- Seleção do Local de Produção -->
         <div class="form-section mb-4">
             <h5 class="section-title">
-                <i class="bi bi-geo-alt"></i> Local de Produção e Produto
+                <i class="bi bi-geo-alt"></i> Local de Produção
             </h5>
             <div class="row">
                 <div class="col-md-6">
                     <label for="production_line" class="form-label required-field">Local de Produção</label>
-                    <select class="form-select" id="production_line" name="production_line" required>
+                    <select class="form-select" id="production_line" name="production_line" required onchange="loadProducts()">
                         <option value="">Selecione o local</option>
                         {% for line in lines %}
                         <option value="{{ line.production_line.id }}">{{ line.production_line.name }}</option>
                         {% endfor %}
                     </select>
                 </div>
-                <div class="col-md-6">
-                    <label for="product" class="form-label required-field">Produto</label>
-                    <select class="form-select" id="product" name="product" required>
-                        <option value="">Selecione o produto</option>
-                        {% for product in products %}
-                        <option value="{{ product.product.id }}">{{ product.product.name }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
             </div>
         </div>
         
-        <!-- Propriedades -->
-        <div class="form-section mb-4">
+        <!-- Produtos e Propriedades -->
+        <div class="form-section mb-4" id="products-section" style="display: none;">
             <h5 class="section-title">
-                <i class="bi bi-graph-up"></i> Resultados das Propriedades
+                <i class="bi bi-box"></i> Produtos e Resultados das Propriedades
             </h5>
-            <p class="text-muted">Preencha os valores obtidos para cada propriedade:</p>
+            <p class="text-muted">Preencha os valores obtidos para cada produto:</p>
             
-            <div class="row">
-                {% for property in properties %}
-                <div class="col-md-6 mb-3">
-                    <div class="card">
-                        <div class="card-body">
-                            <h6 class="card-title">{{ property.name }}</h6>
-                            <p class="card-text text-muted">Unidade: {{ property.unit }}</p>
-                            
-                            <div class="row">
-                                <div class="col-8">
-                                    <label for="property_{{ property.id }}_value" class="form-label required-field">Valor</label>
-                                    <input type="number" class="form-control" 
-                                           id="property_{{ property.id }}_value" 
-                                           name="property_{{ property.id }}_value" 
-                                           step="0.0001" required>
-                                </div>
-                                <div class="col-4">
-                                    <label for="property_{{ property.id }}_method" class="form-label">Método</label>
-                                    <input type="text" class="form-control" 
-                                           id="property_{{ property.id }}_method" 
-                                           name="property_{{ property.id }}_method" 
-                                           value="{{ property.test_method|default:'' }}"
-                                           placeholder="Método">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                {% endfor %}
+            <div id="products-container">
+                <!-- Produtos serão carregados dinamicamente -->
             </div>
         </div>
         
@@ -154,6 +118,144 @@
         </div>
     </form>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Dados dos produtos por linha de produção
+const productsData = {
+    {% for line in lines %}
+    {{ line.production_line.id }}: [
+        {% for product in products %}
+        {% if product.production_line.id == line.production_line.id %}
+        {
+            id: {{ product.product.id }},
+            name: "{{ product.product.name }}",
+            code: "{{ product.product.code }}"
+        },
+        {% endif %}
+        {% endfor %}
+    ],
+    {% endfor %}
+};
+
+// Dados das propriedades
+const propertiesData = [
+    {% for property in properties %}
+    {
+        id: {{ property.id }},
+        name: "{{ property.name }}",
+        unit: "{{ property.unit }}",
+        test_method: "{{ property.test_method|default:'' }}"
+    },
+    {% endfor %}
+];
+
+function loadProducts() {
+    const productionLineId = document.getElementById('production_line').value;
+    const productsSection = document.getElementById('products-section');
+    const productsContainer = document.getElementById('products-container');
+    
+    if (!productionLineId) {
+        productsSection.style.display = 'none';
+        return;
+    }
+    
+    const products = productsData[productionLineId] || [];
+    
+    if (products.length === 0) {
+        productsContainer.innerHTML = '<div class="alert alert-warning">Nenhum produto cadastrado para esta linha de produção.</div>';
+        productsSection.style.display = 'block';
+        return;
+    }
+    
+    let html = '';
+    
+    products.forEach(product => {
+        html += `
+            <div class="product-card mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="bi bi-box"></i> ${product.name}
+                            <small class="text-muted">(${product.code})</small>
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <input type="hidden" name="product_${product.id}" value="${product.id}">
+                        <div class="row">
+        `;
+        
+        propertiesData.forEach(property => {
+            html += `
+                <div class="col-md-6 mb-3">
+                    <div class="property-item">
+                        <label class="form-label required-field">${property.name}</label>
+                        <div class="row">
+                            <div class="col-8">
+                                <input type="number" class="form-control" 
+                                       name="property_${property.id}_${product.id}_value" 
+                                       step="0.0001" required
+                                       placeholder="Valor">
+                            </div>
+                            <div class="col-4">
+                                <input type="text" class="form-control" 
+                                       name="property_${property.id}_${product.id}_method" 
+                                       value="${property.test_method}"
+                                       placeholder="Método">
+                            </div>
+                        </div>
+                        <small class="text-muted">Unidade: ${property.unit}</small>
+                    </div>
+                </div>
+            `;
+        });
+        
+        html += `
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    
+    productsContainer.innerHTML = html;
+    productsSection.style.display = 'block';
+}
+
+// Validação do formulário
+document.getElementById('analysisForm').addEventListener('submit', function(e) {
+    const pontualNumber = document.querySelector('input[name="pontual_number"]:checked');
+    const productionLine = document.getElementById('production_line').value;
+    
+    if (!pontualNumber) {
+        e.preventDefault();
+        alert('Selecione uma pontual.');
+        return;
+    }
+    
+    if (!productionLine) {
+        e.preventDefault();
+        alert('Selecione um local de produção.');
+        return;
+    }
+    
+    // Verificar se pelo menos uma propriedade foi preenchida
+    const propertyInputs = document.querySelectorAll('input[name$="_value"]');
+    let hasValue = false;
+    propertyInputs.forEach(input => {
+        if (input.value.trim() !== '') {
+            hasValue = true;
+        }
+    });
+    
+    if (!hasValue) {
+        e.preventDefault();
+        alert('Preencha pelo menos uma propriedade.');
+        return;
+    }
+});
+</script>
 {% endblock %}
 
 {% block extra_css %}
@@ -238,6 +340,52 @@
 .btn-primary:hover {
     background: #1e3a21;
     border-color: #1e3a21;
+}
+
+.product-card .card {
+    border: 2px solid #e9ecef;
+    border-radius: 15px;
+    transition: all 0.3s ease;
+}
+
+.product-card .card:hover {
+    border-color: #2c5530;
+    box-shadow: 0 4px 15px rgba(44, 85, 48, 0.1);
+}
+
+.product-card .card-header {
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    border-bottom: 2px solid #2c5530;
+    border-radius: 15px 15px 0 0 !important;
+}
+
+.product-card .card-header h6 {
+    color: #2c5530;
+    font-weight: 600;
+}
+
+.property-item {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 10px;
+    border: 1px solid #e9ecef;
+    transition: all 0.3s ease;
+}
+
+.property-item:hover {
+    background: #e9ecef;
+    border-color: #2c5530;
+}
+
+.property-item label {
+    color: #2c5530;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.required-field::after {
+    content: " *";
+    color: red;
 }
 </style>
 {% endblock %}
