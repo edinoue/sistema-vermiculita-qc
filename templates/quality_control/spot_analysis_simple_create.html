@@ -1,0 +1,243 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Análise Pontual - Versão Simplificada{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="page-header">
+                <h1><i class="bi bi-clipboard-check"></i> Análise Pontual - Versão Simplificada</h1>
+                <p class="text-muted">Registre os resultados das análises pontuais</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Informações da Produção -->
+    <div class="info-card mb-4">
+        <div class="info-card-header">
+            <h5><i class="bi bi-info-circle"></i> Informações da Produção</h5>
+        </div>
+        <div class="info-card-body">
+            <div class="row">
+                <div class="col-md-3">
+                    <strong>Data:</strong> {{ production.date|date:"d/m/Y" }}
+                </div>
+                <div class="col-md-3">
+                    <strong>Turno:</strong> {{ production.shift.name }}
+                </div>
+                <div class="col-md-3">
+                    <strong>Status:</strong> {{ production.get_status_display }}
+                </div>
+                <div class="col-md-3">
+                    <strong>Linhas Ativas:</strong> {{ lines.count }}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Formulário de Análise -->
+    <form method="post" id="analysisForm">
+        {% csrf_token %}
+        
+        <!-- Seleção da Pontual -->
+        <div class="form-section mb-4">
+            <h5 class="section-title">
+                <i class="bi bi-hash"></i> Seleção da Pontual
+            </h5>
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="pontual_number" value="1" id="pontual_1" required>
+                        <label class="form-check-label" for="pontual_1">
+                            <strong>1ª Pontual</strong>
+                            <br><small>Primeira análise do turno</small>
+                        </label>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="pontual_number" value="2" id="pontual_2" required>
+                        <label class="form-check-label" for="pontual_2">
+                            <strong>2ª Pontual</strong>
+                            <br><small>Segunda análise do turno</small>
+                        </label>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="pontual_number" value="3" id="pontual_3" required>
+                        <label class="form-check-label" for="pontual_3">
+                            <strong>3ª Pontual</strong>
+                            <br><small>Terceira análise do turno</small>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Dados da Análise -->
+        <div class="form-section mb-4">
+            <h5 class="section-title">
+                <i class="bi bi-geo-alt"></i> Local de Produção e Produto
+            </h5>
+            <div class="row">
+                <div class="col-md-6">
+                    <label for="production_line" class="form-label required-field">Local de Produção</label>
+                    <select class="form-select" id="production_line" name="production_line" required>
+                        <option value="">Selecione o local</option>
+                        {% for line in lines %}
+                        <option value="{{ line.production_line.id }}">{{ line.production_line.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label for="product" class="form-label required-field">Produto</label>
+                    <select class="form-select" id="product" name="product" required>
+                        <option value="">Selecione o produto</option>
+                        {% for product in products %}
+                        <option value="{{ product.product.id }}">{{ product.product.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Propriedades -->
+        <div class="form-section mb-4">
+            <h5 class="section-title">
+                <i class="bi bi-graph-up"></i> Resultados das Propriedades
+            </h5>
+            <p class="text-muted">Preencha os valores obtidos para cada propriedade:</p>
+            
+            <div class="row">
+                {% for property in properties %}
+                <div class="col-md-6 mb-3">
+                    <div class="card">
+                        <div class="card-body">
+                            <h6 class="card-title">{{ property.name }}</h6>
+                            <p class="card-text text-muted">Unidade: {{ property.unit }}</p>
+                            
+                            <div class="row">
+                                <div class="col-8">
+                                    <label for="property_{{ property.id }}_value" class="form-label required-field">Valor</label>
+                                    <input type="number" class="form-control" 
+                                           id="property_{{ property.id }}_value" 
+                                           name="property_{{ property.id }}_value" 
+                                           step="0.0001" required>
+                                </div>
+                                <div class="col-4">
+                                    <label for="property_{{ property.id }}_method" class="form-label">Método</label>
+                                    <input type="text" class="form-control" 
+                                           id="property_{{ property.id }}_method" 
+                                           name="property_{{ property.id }}_method" 
+                                           value="{{ property.test_method|default:'' }}"
+                                           placeholder="Método">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- Botões -->
+        <div class="d-flex justify-content-between">
+            <a href="{% url 'quality_control:spot_analysis_new_list' %}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Voltar
+            </a>
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check-circle"></i> Salvar Análise
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.page-header {
+    background: linear-gradient(135deg, #2c5530, #4a7c59);
+    color: white;
+    padding: 2rem;
+    border-radius: 10px;
+    margin-bottom: 2rem;
+}
+
+.info-card {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.info-card-header {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.info-card-body {
+    padding: 1.5rem;
+}
+
+.form-section {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    margin-bottom: 1rem;
+}
+
+.section-title {
+    color: #2c5530;
+    margin-bottom: 1rem;
+    font-weight: 600;
+}
+
+.required-field::after {
+    content: " *";
+    color: red;
+}
+
+.form-check {
+    padding: 1rem;
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    margin-bottom: 1rem;
+    transition: all 0.3s ease;
+}
+
+.form-check:hover {
+    border-color: #2c5530;
+    background-color: #f8f9fa;
+}
+
+.form-check-input:checked + .form-check-label {
+    color: #2c5530;
+    font-weight: 600;
+}
+
+.card {
+    border: 1px solid #e9ecef;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.btn-primary {
+    background: #2c5530;
+    border-color: #2c5530;
+}
+
+.btn-primary:hover {
+    background: #1e3a21;
+    border-color: #1e3a21;
+}
+</style>
+{% endblock %}

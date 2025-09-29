@@ -3,7 +3,7 @@ URLs do app quality_control
 """
 
 from django.urls import path
-from . import views, views_simple, views_import, views_composite, views_spot_fixed, views_spot_improved, views_spot_grouped, views_reports, views_debug, views_production, views_spot_new, views_dashboard_new
+from . import views, views_simple, views_import, views_composite, views_spot_fixed, views_spot_improved, views_spot_grouped, views_reports, views_debug, views_production, views_spot_new, views_spot_simple, views_dashboard_new
 
 app_name = 'quality_control'
 
@@ -41,11 +41,14 @@ urlpatterns = [
     path('production-registration/<int:production_id>/edit/', views_production.production_registration_edit, name='production_registration_edit'),
     path('api/active-production/', views_production.get_active_production, name='get_active_production'),
     
-    # Novo Sistema de Análise Pontual
-    path('spot-analysis-new/', views_spot_new.spot_analysis_new_list, name='spot_analysis_new_list'),
-    path('spot-analysis-new/create/', views_spot_new.spot_analysis_new_create, name='spot_analysis_new_create'),
-    path('spot-analysis-new/<int:analysis_id>/', views_spot_new.spot_analysis_new_detail, name='spot_analysis_new_detail'),
-    path('spot-analysis-new/<int:analysis_id>/edit/', views_spot_new.spot_analysis_new_edit, name='spot_analysis_new_edit'),
+            # Novo Sistema de Análise Pontual
+            path('spot-analysis-new/', views_spot_new.spot_analysis_new_list, name='spot_analysis_new_list'),
+            path('spot-analysis-new/create/', views_spot_new.spot_analysis_new_create, name='spot_analysis_new_create'),
+            path('spot-analysis-new/<int:analysis_id>/', views_spot_new.spot_analysis_new_detail, name='spot_analysis_new_detail'),
+            path('spot-analysis-new/<int:analysis_id>/edit/', views_spot_new.spot_analysis_new_edit, name='spot_analysis_new_edit'),
+            
+            # Versão Simplificada para Teste
+            path('spot-analysis-simple/create/', views_spot_simple.spot_analysis_simple_create, name='spot_analysis_simple_create'),
     
     # Amostras Compostas
     path('composite-sample/', views_composite.composite_sample_list, name='composite_sample_list'),
