@@ -12,6 +12,8 @@ from core.models import ProductionLine, Shift
 from .models import Product, Property, AnalysisType
 from .models_production import (
     ProductionRegistration,
+    ProductionLineRegistration,
+    ProductionProductRegistration,
     SpotAnalysisRegistration,
     SpotAnalysisPropertyResult
 )
@@ -118,8 +120,8 @@ def spot_analysis_test_create(request):
             messages.error(request, f'Erro ao criar análise pontual: {str(e)}')
     
     # Obter dados para o formulário
-    lines = production.productionlines.filter(is_active=True)
-    products = production.products.filter(is_active=True)
+    lines = ProductionLineRegistration.objects.filter(production=production, is_active=True)
+    products = ProductionProductRegistration.objects.filter(production=production, is_active=True)
     
     # Obter propriedades
     analysis_type = AnalysisType.objects.get(code='PONTUAL')

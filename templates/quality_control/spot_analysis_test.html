@@ -102,14 +102,12 @@ const productsData = {
     {% for line in lines %}
     {{ line.production_line.id }}: [
         {% for product in products %}
-        {% if product.production_line.id == line.production_line.id %}
         {
             id: {{ product.product.id }},
             name: "{{ product.product.name }}",
             code: "{{ product.product.code }}",
             description: "{{ product.product.description|default:'' }}"
         },
-        {% endif %}
         {% endfor %}
     ],
     {% endfor %}
