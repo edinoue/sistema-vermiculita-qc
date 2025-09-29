@@ -105,8 +105,8 @@ def spot_analysis_final_create(request):
                                     messages.warning(request, f'Valor inválido para {property.name} do produto {product_id}. Ignorando.')
                                     continue
                         
-                        # Definir resultado da análise
-                        analysis.analysis_result = 'APPROVED'
+                        # Calcular resultado da análise baseado nas especificações
+                        analysis.analysis_result = analysis.calculate_analysis_result()
                         analysis.save()
                         products_processed += 1
                 
@@ -187,6 +187,8 @@ def spot_analysis_final_edit(request, analysis_id):
                             messages.warning(request, f'Valor inválido para {property_result.property.name}. Ignorando.')
                             continue
                 
+                # Recalcular resultado da análise
+                analysis.analysis_result = analysis.calculate_analysis_result()
                 analysis.save()
                 messages.success(request, 'Análise pontual atualizada com sucesso!')
                 return redirect('quality_control:spot_analysis_detail', analysis_id=analysis.id)

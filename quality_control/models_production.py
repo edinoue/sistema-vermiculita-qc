@@ -131,6 +131,44 @@ class SpotAnalysisRegistration(models.Model):
     
     def __str__(self):
         return f"Análise {self.pontual_number} - {self.product.name} - {self.date}"
+    
+    def calculate_analysis_result(self):
+        """
+        Calcula o resultado da análise baseado nas especificações do produto
+        """
+        from .models import Specification
+        
+        # Buscar especificações do produto
+        specifications = Specification.objects.filter(
+            product=self.product,
+            is_active=True
+        )
+        
+        if not specifications.exists():
+            # Se não há especificações, manter como aprovado
+            return 'APPROVED'
+        
+        # Verificar cada propriedade analisada
+        for property_result in self.property_results.all():
+            try:
+                # Buscar especificação para esta propriedade
+                spec = specifications.filter(property=property_result.property).first()
+                
+                if spec:
+                    value = property_result.value
+                    
+                    # Verificar limites
+                    if spec.lsl is not None and value < spec.lsl:
+                        return 'REJECTED'  # Abaixo do limite inferior
+                    if spec.usl is not None and value > spec.usl:
+                        return 'REJECTED'  # Acima do limite superior
+                        
+            except Exception:
+                # Em caso de erro, manter como aprovado
+                continue
+        
+        # Se chegou até aqui, está dentro dos limites
+        return 'APPROVED'
 
 
 class SpotAnalysisPropertyResult(models.Model):
