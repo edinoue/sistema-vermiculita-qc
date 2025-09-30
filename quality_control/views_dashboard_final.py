@@ -184,14 +184,6 @@ def spot_dashboard_by_line_view_final(request):
     
     print(f"🔍 DEBUG: Total de linhas processadas: {len(lines_list)}")
     
-    # Se não há dados do turno atual, mostrar mensagem informativa
-    if not lines_list:
-        print("🔍 DEBUG: Nenhuma amostra do turno atual encontrada - dashboard vazio")
-        
-        # Adicionar mensagem informativa ao contexto
-        context['no_data_message'] = f"Nenhuma amostra encontrada para o turno {current_shift.name} de hoje ({today.strftime('%d/%m/%Y')})"
-        context['current_shift_info'] = f"Turno {current_shift.name} ({'7h-19h' if current_shift.name == 'A' else '19h-7h'})"
-    
     # Estatísticas gerais - baseadas nas amostras encontradas
     total_samples = all_samples.count()
     print(f"🔍 DEBUG: Total de amostras para estatísticas: {total_samples}")
@@ -214,6 +206,7 @@ def spot_dashboard_by_line_view_final(request):
     # Determinar turno para exibição
     display_shift = used_shift if used_shift else current_shift
     
+    # Criar contexto base
     context = {
         'lines_data': lines_list,
         'properties': properties,
@@ -228,6 +221,12 @@ def spot_dashboard_by_line_view_final(request):
             'approval_rate': (approved_samples / total_samples * 100) if total_samples > 0 else 0
         }
     }
+    
+    # Se não há dados do turno atual, adicionar mensagem informativa
+    if not lines_list:
+        print("🔍 DEBUG: Nenhuma amostra do turno atual encontrada - dashboard vazio")
+        context['no_data_message'] = f"Nenhuma amostra encontrada para o turno {current_shift.name} de hoje ({today.strftime('%d/%m/%Y')})"
+        context['current_shift_info'] = f"Turno {current_shift.name} ({'7h-19h' if current_shift.name == 'A' else '19h-7h'})"
     
     print(f"🔍 DEBUG: Contexto preparado - {len(lines_list)} linhas, {properties.count()} propriedades")
     print(f"🔍 DEBUG: Estatísticas - Total: {total_samples}, Aprovadas: {approved_samples}, Rejeitadas: {rejected_samples}")
