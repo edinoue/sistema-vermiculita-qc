@@ -361,11 +361,22 @@
         <!-- Estado vazio -->
         <div class="empty-state">
             <i class="bi bi-building"></i>
-            <h5>Nenhuma linha de produção cadastrada para o turno atual</h5>
-            <p>É necessário cadastrar a produção do turno atual para visualizar o dashboard.</p>
+            {% if no_data_message %}
+                <h5>{{ no_data_message }}</h5>
+                <p>Não há amostras registradas para o turno atual.</p>
+                {% if current_shift_info %}
+                    <p><strong>{{ current_shift_info }}</strong></p>
+                {% endif %}
+            {% else %}
+                <h5>Nenhuma linha de produção cadastrada para o turno atual</h5>
+                <p>É necessário cadastrar a produção do turno atual para visualizar o dashboard.</p>
+            {% endif %}
             <div class="mt-3">
-                <a href="{% url 'quality_control:production_registration_create' %}" class="btn-action">
-                    <i class="bi bi-plus-circle"></i> Cadastrar Produção
+                <a href="{% url 'quality_control:spot_analysis_create' %}" class="btn-action">
+                    <i class="bi bi-plus-circle"></i> Nova Análise Pontual
+                </a>
+                <a href="{% url 'quality_control:production_registration_create' %}" class="btn-action ms-2">
+                    <i class="bi bi-gear"></i> Cadastrar Produção
                 </a>
             </div>
         </div>

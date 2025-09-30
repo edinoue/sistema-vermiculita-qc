@@ -184,9 +184,13 @@ def spot_dashboard_by_line_view_final(request):
     
     print(f"🔍 DEBUG: Total de linhas processadas: {len(lines_list)}")
     
-    # Se não há dados do turno atual, não mostrar nada
+    # Se não há dados do turno atual, mostrar mensagem informativa
     if not lines_list:
         print("🔍 DEBUG: Nenhuma amostra do turno atual encontrada - dashboard vazio")
+        
+        # Adicionar mensagem informativa ao contexto
+        context['no_data_message'] = f"Nenhuma amostra encontrada para o turno {current_shift.name} de hoje ({today.strftime('%d/%m/%Y')})"
+        context['current_shift_info'] = f"Turno {current_shift.name} ({'7h-19h' if current_shift.name == 'A' else '19h-7h'})"
     
     # Estatísticas gerais - baseadas nas amostras encontradas
     total_samples = all_samples.count()
