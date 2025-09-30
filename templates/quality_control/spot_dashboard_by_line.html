@@ -302,8 +302,8 @@
                             
                             {% for property in properties %}
                             <td class="property-value">
-                                {% if product_data.property_analyses|get_item:property.id %}
-                                    {% with analysis=product_data.property_analyses|get_item:property.id %}
+                                {% if product_data.property_analyses|lookup:property.id %}
+                                    {% with analysis=product_data.property_analyses|lookup:property.id %}
                                         <span class="{% if analysis.status == 'REJECTED' %}text-danger{% elif analysis.status == 'ALERT' %}text-warning{% else %}text-success{% endif %}">
                                             {{ analysis.value|floatformat:2 }} {{ property.unit }}
                                         </span>
