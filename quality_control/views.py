@@ -569,12 +569,10 @@ def spot_dashboard_view(request):
     current_shift = None
     
     # Lógica para determinar o turno atual baseado no horário
-    if 6 <= current_time.hour < 14:
-        current_shift = Shift.objects.filter(name__icontains='manhã').first()
-    elif 14 <= current_time.hour < 22:
-        current_shift = Shift.objects.filter(name__icontains='tarde').first()
+    if 6 <= current_time.hour < 18:
+        current_shift = Shift.objects.filter(name='A').first()
     else:
-        current_shift = Shift.objects.filter(name__icontains='noite').first()
+        current_shift = Shift.objects.filter(name='B').first()
     
     if not current_shift:
         current_shift = Shift.objects.first()
@@ -583,9 +581,9 @@ def spot_dashboard_view(request):
     if not current_shift:
         # Se não encontrou nenhum turno, criar um padrão
         current_shift = Shift.objects.create(
-            name='Manhã',
+            name='A',
             start_time='06:00',
-            end_time='14:00'
+            end_time='18:00'
         )
     
     
@@ -738,12 +736,10 @@ def spot_dashboard_by_plant_view(request):
     current_shift = None
     
     # Lógica para determinar o turno atual baseado no horário
-    if 6 <= current_time.hour < 14:
-        current_shift = Shift.objects.filter(name__icontains='manhã').first()
-    elif 14 <= current_time.hour < 22:
-        current_shift = Shift.objects.filter(name__icontains='tarde').first()
+    if 6 <= current_time.hour < 18:
+        current_shift = Shift.objects.filter(name='A').first()
     else:
-        current_shift = Shift.objects.filter(name__icontains='noite').first()
+        current_shift = Shift.objects.filter(name='B').first()
     
     if not current_shift:
         current_shift = Shift.objects.first()
@@ -752,9 +748,9 @@ def spot_dashboard_by_plant_view(request):
     if not current_shift:
         # Se não encontrou nenhum turno, criar um padrão
         current_shift = Shift.objects.create(
-            name='Manhã',
+            name='A',
             start_time='06:00',
-            end_time='14:00'
+            end_time='18:00'
         )
     
     # Obter todos os locais de produção ativos (Plantas)
