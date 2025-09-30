@@ -728,8 +728,9 @@ def spot_dashboard_view(request):
 def spot_dashboard_by_plant_view(request):
     """
     Dashboard de amostras pontuais por local de produção
-    Cards para cada local de produção ativo com tabelas de produtos, propriedades, observações e horário
+    Cards para cada local de produção cadastrado para o turno atual
     """
+    from .models_production import ProductionRegistration, ProductionLineRegistration, ProductionProductRegistration
     
     # Obter turno atual
     current_time = timezone.now()
@@ -753,8 +754,13 @@ def spot_dashboard_by_plant_view(request):
             end_time='18:00'
         )
     
-    # Obter todos os locais de produção ativos (Plantas)
-    active_plants = Plant.objects.filter(is_active=True)
+    # Obter produção ativa para o turno atual
+    today = timezone.now().date()
+    production = ProductionRegistration.objects.filter(
+        date=today,
+        shift=current_shift,
+        status='ACTIVE'
+    ).first()
     
     # Obter todas as propriedades ativas
     properties = Property.objects.filter(is_active=True).order_by('display_order')
@@ -762,98 +768,121 @@ def spot_dashboard_by_plant_view(request):
     # Dados para cada local de produção
     plants_data = []
     
-    for plant in active_plants:
-        # Obter linhas de produção ativas desta planta
-        production_lines = ProductionLine.objects.filter(plant=plant, is_active=True)
-        
-        # Obter produtos únicos das análises desta planta
-        products_with_analyses = Product.objects.filter(
-            spotsample__production_line__plant=plant,
-            spotsample__date=timezone.now().date(),
-            spotsample__shift=current_shift,
+    if production:
+        # Obter linhas de produção cadastradas para esta produção
+        production_lines = ProductionLineRegistration.objects.filter(
+            production=production,
             is_active=True
-        ).distinct().order_by('display_order', 'name')
+        ).select_related('production_line__plant')
         
-        # Dados dos produtos para esta planta
-        products_data = []
+        # Agrupar por planta
+        plants_dict = {}
+        for line_reg in production_lines:
+            plant = line_reg.production_line.plant
+            if plant.id not in plants_dict:
+                plants_dict[plant.id] = {
+                    'plant': plant,
+                    'production_lines': [],
+                    'products': []
+                }
+            plants_dict[plant.id]['production_lines'].append(line_reg.production_line)
         
-        for product in products_with_analyses:
-            # Buscar a amostra mais recente deste produto em qualquer linha desta planta
-            latest_sample = SpotSample.objects.filter(
-                production_line__plant=plant,
-                product=product,
-                date=timezone.now().date(),
-                shift=current_shift
-            ).order_by('-sample_sequence', '-created_at').first()
+        # Para cada planta, obter produtos cadastrados
+        for plant_id, plant_data in plants_dict.items():
+            plant = plant_data['plant']
+            plant_lines = plant_data['production_lines']
             
-            if latest_sample:
-                # Buscar todas as análises desta amostra
-                analyses = SpotAnalysis.objects.filter(
-                    spot_sample=latest_sample
-                ).select_related('property').order_by('property__display_order')
+            # Obter produtos cadastrados para esta produção
+            production_products = ProductionProductRegistration.objects.filter(
+                production=production,
+                is_active=True
+            ).select_related('product')
+            
+            # Dados dos produtos para esta planta
+            products_data = []
+            
+            for prod_reg in production_products:
+                product = prod_reg.product
                 
-                # Organizar análises por propriedade
-                property_analyses = {}
-                for analysis in analyses:
-                    property_analyses[analysis.property_id] = analysis
+                # Buscar a amostra mais recente deste produto em qualquer linha desta planta
+                latest_sample = SpotSample.objects.filter(
+                    production_line__plant=plant,
+                    product=product,
+                    date=today,
+                    shift=current_shift
+                ).order_by('-sample_sequence', '-created_at').first()
                 
-                # Calcular status geral da amostra
-                sample_status = 'APPROVED'
-                has_rejected = analyses.filter(status='REJECTED').exists()
-                has_alert = analyses.filter(status='ALERT').exists()
-                
-                if has_rejected:
-                    sample_status = 'REJECTED'
-                elif has_alert:
-                    sample_status = 'ALERT'
-                
-                products_data.append({
-                    'product': product,
-                    'sample': latest_sample,
-                    'analyses': analyses,
-                    'property_analyses': property_analyses,
-                    'status': sample_status,
-                    'sequence': latest_sample.sample_sequence,
-                    'observations': latest_sample.observations,
-                    'sample_time': latest_sample.sample_time,
-                    'production_line': latest_sample.production_line
-                })
-            else:
-                # Incluir produto mesmo sem amostra
-                products_data.append({
-                    'product': product,
-                    'sample': None,
-                    'analyses': None,
-                    'property_analyses': {},
-                    'status': 'PENDENTE',
-                    'sequence': None,
-                    'observations': '',
-                    'sample_time': None,
-                    'production_line': None
-                })
-        
-        # Incluir a planta mesmo que não tenha produtos com resultados
-        plants_data.append({
-            'plant': plant,
-            'products': products_data,
-            'production_lines': production_lines
-        })
+                if latest_sample:
+                    # Buscar todas as análises desta amostra
+                    analyses = SpotAnalysis.objects.filter(
+                        spot_sample=latest_sample
+                    ).select_related('property').order_by('property__display_order')
+                    
+                    # Organizar análises por propriedade
+                    property_analyses = {}
+                    for analysis in analyses:
+                        property_analyses[analysis.property_id] = analysis
+                    
+                    # Calcular status geral da amostra
+                    sample_status = 'APPROVED'
+                    has_rejected = analyses.filter(status='REJECTED').exists()
+                    has_alert = analyses.filter(status='ALERT').exists()
+                    
+                    if has_rejected:
+                        sample_status = 'REJECTED'
+                    elif has_alert:
+                        sample_status = 'ALERT'
+                    
+                    products_data.append({
+                        'product': product,
+                        'sample': latest_sample,
+                        'analyses': analyses,
+                        'property_analyses': property_analyses,
+                        'status': sample_status,
+                        'sequence': latest_sample.sample_sequence,
+                        'observations': latest_sample.observations,
+                        'sample_time': latest_sample.sample_time,
+                        'production_line': latest_sample.production_line
+                    })
+                else:
+                    # Incluir produto mesmo sem amostra
+                    products_data.append({
+                        'product': product,
+                        'sample': None,
+                        'analyses': None,
+                        'property_analyses': {},
+                        'status': 'PENDENTE',
+                        'sequence': None,
+                        'observations': '',
+                        'sample_time': None,
+                        'production_line': None
+                    })
+            
+            # Incluir a planta com seus dados
+            plants_data.append({
+                'plant': plant,
+                'products': products_data,
+                'production_lines': plant_lines
+            })
+    else:
+        # Se não há produção cadastrada, mostrar mensagem
+        plants_data = []
     
     # Estatísticas gerais
     total_samples_today = SpotSample.objects.filter(
-        date=timezone.now().date(),
+        date=today,
         shift=current_shift
     ).count()
     
     approved_samples = SpotSample.objects.filter(
-        date=timezone.now().date(),
+        date=today,
         shift=current_shift
     ).annotate(
         has_rejected=Count('spotanalysis', filter=Q(spotanalysis__status='REJECTED'))
     ).filter(has_rejected=0).count()
     
     rejected_samples = SpotSample.objects.filter(
-        date=timezone.now().date(),
+        date=today,
         shift=current_shift
     ).annotate(
         has_rejected=Count('spotanalysis', filter=Q(spotanalysis__status='REJECTED'))
@@ -863,7 +892,8 @@ def spot_dashboard_by_plant_view(request):
         'plants_data': plants_data,
         'properties': properties,
         'current_shift': current_shift,
-        'current_date': timezone.now().date(),
+        'current_date': today,
+        'production': production,
         'stats': {
             'total_samples': total_samples_today,
             'approved_samples': approved_samples,

@@ -139,7 +139,7 @@ def spot_analysis_new_create(request):
                 analysis.save()
                 
                 messages.success(request, f'Análise pontual {pontual_number} registrada com sucesso!')
-                return redirect('quality_control:spot_analysis_new_list')
+                return redirect('quality_control:spot_analysis_list')
                 
         except Exception as e:
             messages.error(request, f'Erro ao criar análise pontual: {str(e)}')
