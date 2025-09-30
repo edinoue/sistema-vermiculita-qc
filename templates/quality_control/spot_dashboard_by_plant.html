@@ -1,0 +1,475 @@
+{% extends "base.html" %}
+{% load static %}
+{% load quality_extras %}
+
+{% block title %}Dashboard - Análises Pontuais por Local{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-header {
+        background: linear-gradient(135deg, #2c5530, #4a7c59);
+        color: white;
+        padding: 1.5rem;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+    
+    .stats-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+    
+    .stat-card {
+        background: white;
+        border-radius: 8px;
+        padding: 1.5rem;
+        text-align: center;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        border-left: 4px solid #2c5530;
+        transition: transform 0.3s ease;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-2px);
+    }
+    
+    .stat-number {
+        font-size: 2rem;
+        font-weight: bold;
+        color: #2c5530;
+        margin-bottom: 0.5rem;
+    }
+    
+    .stat-label {
+        color: #6c757d;
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+    
+    .plants-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+    
+    .plant-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        overflow: hidden;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .plant-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 15px rgba(0,0,0,0.15);
+    }
+    
+    .plant-header {
+        background: linear-gradient(135deg, #007bff, #0056b3);
+        color: white;
+        padding: 1rem 1.5rem;
+        font-weight: 600;
+        font-size: 1.1rem;
+        text-align: center;
+    }
+    
+    .plant-content {
+        padding: 1.5rem;
+    }
+    
+    .products-table {
+        width: 100%;
+        font-size: 0.85rem;
+        border-collapse: collapse;
+        margin-top: 1rem;
+    }
+    
+    .products-table th {
+        background: #f8f9fa;
+        color: #495057;
+        font-weight: 600;
+        padding: 0.75rem 0.5rem;
+        border: 1px solid #dee2e6;
+        text-align: center;
+        font-size: 0.8rem;
+        white-space: nowrap;
+    }
+    
+    .products-table td {
+        padding: 0.75rem 0.5rem;
+        border: 1px solid #dee2e6;
+        text-align: center;
+        vertical-align: middle;
+    }
+    
+    .product-row {
+        transition: background-color 0.3s ease;
+    }
+    
+    .product-row:hover {
+        background-color: #f8f9fa;
+    }
+    
+    .product-row.rejected {
+        background-color: #ffebee;
+        border-left: 4px solid #dc3545;
+    }
+    
+    .product-row.alert {
+        background-color: #fff3cd;
+        border-left: 4px solid #ffc107;
+    }
+    
+    .product-name-cell {
+        font-weight: 600;
+        color: #2c5530;
+        text-align: left;
+        min-width: 120px;
+    }
+    
+    .property-cell {
+        font-size: 0.8rem;
+        font-weight: 500;
+        color: #495057;
+        min-width: 80px;
+    }
+    
+    .observations-cell {
+        font-size: 0.75rem;
+        color: #6c757d;
+        text-align: left;
+        max-width: 150px;
+        word-wrap: break-word;
+    }
+    
+    .time-cell {
+        font-size: 0.75rem;
+        color: #6c757d;
+        font-weight: 500;
+    }
+    
+    .status-indicator {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 0.5rem;
+    }
+    
+    .status-approved {
+        background-color: #28a745;
+    }
+    
+    .status-rejected {
+        background-color: #dc3545;
+    }
+    
+    .status-alert {
+        background-color: #ffc107;
+    }
+    
+    .status-pendente {
+        background-color: #6c757d;
+    }
+    
+    .analysis-value {
+        font-weight: 600;
+        font-size: 0.8rem;
+        color: #495057;
+        display: block;
+        margin-bottom: 0.25rem;
+    }
+    
+    .analysis-unit {
+        font-size: 0.7rem;
+        color: #6c757d;
+        display: block;
+    }
+    
+    .sequence-badge {
+        background: #2c5530;
+        color: white;
+        padding: 0.2rem 0.4rem;
+        border-radius: 4px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        display: inline-block;
+        margin-bottom: 0.25rem;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 3rem;
+        color: #6c757d;
+    }
+    
+    .empty-state i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        color: #dee2e6;
+    }
+    
+    .shift-info {
+        background: #e9ecef;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        color: #495057;
+        display: inline-block;
+        margin-bottom: 1rem;
+    }
+    
+    .plant-stats {
+        display: flex;
+        justify-content: space-around;
+        margin-bottom: 1rem;
+        padding: 0.5rem;
+        background: #f8f9fa;
+        border-radius: 6px;
+    }
+    
+    .plant-stat {
+        text-align: center;
+    }
+    
+    .plant-stat-number {
+        font-size: 1.2rem;
+        font-weight: bold;
+        color: #2c5530;
+    }
+    
+    .plant-stat-label {
+        font-size: 0.7rem;
+        color: #6c757d;
+    }
+    
+    @media (max-width: 768px) {
+        .plants-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .products-table {
+            font-size: 0.75rem;
+        }
+        
+        .products-table th,
+        .products-table td {
+            padding: 0.5rem 0.25rem;
+        }
+        
+        .product-name-cell {
+            min-width: 100px;
+        }
+        
+        .property-cell {
+            min-width: 60px;
+        }
+        
+        .observations-cell {
+            max-width: 100px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="dashboard-header">
+        <div class="container-fluid">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h2 class="mb-2">
+                        <i class="bi bi-building"></i> Dashboard - Análises Pontuais por Local
+                    </h2>
+                    <p class="mb-2">Resultados das análises pontuais organizados por local de produção</p>
+                    <div class="shift-info">
+                        <i class="bi bi-clock"></i> 
+                        Turno: {{ current_shift.name }} | 
+                        Data: {{ current_date|date:"d/m/Y" }}
+                    </div>
+                </div>
+                <div class="col-md-4 text-md-end">
+                    <div class="d-flex gap-2 justify-content-end">
+                        <button class="btn btn-outline-light btn-sm" onclick="location.reload()" title="Atualizar Dashboard">
+                            <i class="bi bi-arrow-clockwise"></i> Atualizar
+                        </button>
+                        <div class="dropdown">
+                            <button class="btn btn-light btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-speedometer2"></i> Dashboards
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="{% url 'quality_control:dashboard' %}">
+                                    <i class="bi bi-graph-up"></i> Dashboard Geral
+                                </a></li>
+                                <li><a class="dropdown-item" href="{% url 'quality_control:spot_dashboard' %}">
+                                    <i class="bi bi-clipboard-data"></i> Dashboard Pontual (Linhas)
+                                </a></li>
+                                <li><a class="dropdown-item active" href="{% url 'quality_control:spot_dashboard_by_plant' %}">
+                                    <i class="bi bi-building"></i> Dashboard Pontual (Locais)
+                                </a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Estatísticas Gerais -->
+    <div class="stats-cards">
+        <div class="stat-card">
+            <div class="stat-number">{{ stats.total_samples }}</div>
+            <div class="stat-label">Total de Amostras</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ stats.approved_samples }}</div>
+            <div class="stat-label">Aprovadas</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ stats.rejected_samples }}</div>
+            <div class="stat-label">Reprovadas</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ stats.approval_rate|floatformat:1 }}%</div>
+            <div class="stat-label">Taxa de Aprovação</div>
+        </div>
+    </div>
+    
+    <!-- Locais de Produção -->
+    <div class="plants-grid">
+        {% for plant_data in plants_data %}
+        <div class="plant-card">
+            <div class="plant-header">
+                <i class="bi bi-building"></i> {{ plant_data.plant.name }}
+                <br>
+                <small>{{ plant_data.plant.code }}</small>
+            </div>
+            <div class="plant-content">
+                <!-- Estatísticas do Local -->
+                <div class="plant-stats">
+                    <div class="plant-stat">
+                        <div class="plant-stat-number">{{ plant_data.products|length }}</div>
+                        <div class="plant-stat-label">Produtos</div>
+                    </div>
+                    <div class="plant-stat">
+                        <div class="plant-stat-number">{{ plant_data.production_lines|length }}</div>
+                        <div class="plant-stat-label">Linhas</div>
+                    </div>
+                    <div class="plant-stat">
+                        <div class="plant-stat-number">
+                            {% for product in plant_data.products %}
+                                {% if product.status == 'APPROVED' %}{{ forloop.counter0|add:1 }}{% endif %}
+                            {% empty %}0{% endfor %}
+                        </div>
+                        <div class="plant-stat-label">Aprovados</div>
+                    </div>
+                </div>
+                
+                <!-- Tabela de Produtos -->
+                {% if plant_data.products %}
+                <table class="products-table">
+                    <thead>
+                        <tr>
+                            <th>Produto</th>
+                            {% for property in properties %}
+                            <th>{{ property.identifier }}</th>
+                            {% endfor %}
+                            <th>Observações</th>
+                            <th>Horário</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for product_data in plant_data.products %}
+                        <tr class="product-row{% if product_data.status == 'REJECTED' %} rejected{% elif product_data.status == 'ALERT' %} alert{% endif %}">
+                            <td class="product-name-cell">
+                                <div class="fw-bold">{{ product_data.product.name }}</div>
+                                <small class="text-muted">{{ product_data.product.code }}</small>
+                                {% if product_data.sequence %}
+                                    <br><span class="sequence-badge">{{ product_data.sequence }}ª</span>
+                                {% endif %}
+                                <div class="status-indicator status-{{ product_data.status|lower }}"></div>
+                            </td>
+                            {% for property in properties %}
+                            <td class="property-cell">
+                                {% if product_data.property_analyses and property.id in product_data.property_analyses %}
+                                    {% with analysis=product_data.property_analyses|lookup:property.id %}
+                                        <div class="analysis-value">{{ analysis.value|floatformat:1 }} {{ analysis.unit }}</div>
+                                        <div class="status-indicator status-{{ analysis.status|lower }}"></div>
+                                    {% endwith %}
+                                {% else %}
+                                    <div style="color: #6c757d; font-size: 0.7rem;">-</div>
+                                {% endif %}
+                            </td>
+                            {% endfor %}
+                            <td class="observations-cell">
+                                {% if product_data.observations %}
+                                    {{ product_data.observations|truncatechars:50 }}
+                                {% else %}
+                                    <span style="color: #6c757d;">-</span>
+                                {% endif %}
+                            </td>
+                            <td class="time-cell">
+                                {% if product_data.sample_time %}
+                                    {{ product_data.sample_time|date:"H:i" }}
+                                    <br><small>{{ product_data.sample_time|date:"d/m" }}</small>
+                                {% else %}
+                                    <span style="color: #6c757d;">-</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="empty-state">
+                    <i class="bi bi-inbox"></i>
+                    <h6>Nenhum produto analisado</h6>
+                    <p>Este local não possui análises pontuais para o turno atual.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    {% if not plants_data %}
+    <div class="empty-state">
+        <i class="bi bi-building"></i>
+        <h5>Nenhum local de produção ativo</h5>
+        <p>Configure os locais de produção no sistema para visualizar o dashboard.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Animação de entrada
+    const cards = document.querySelectorAll('.stat-card, .plant-card');
+    cards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        
+        setTimeout(() => {
+            card.style.transition = 'all 0.5s ease';
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, index * 100);
+    });
+    
+    // Auto-refresh a cada 60 segundos
+    setTimeout(() => {
+        location.reload();
+    }, 60000); // 60 segundos
+    
+    console.log('🏭 Dashboard de análises pontuais por local carregado com sucesso!');
+});
+</script>
+{% endblock %}

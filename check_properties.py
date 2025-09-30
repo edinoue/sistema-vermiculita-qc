@@ -67,3 +67,4 @@ def check_properties():
 
 if __name__ == '__main__':
     check_properties()
+

@@ -723,3 +723,157 @@ def spot_dashboard_view(request):
     }
     
     return render(request, 'quality_control/spot_dashboard.html', context)
+
+
+@csrf_exempt
+@login_required
+def spot_dashboard_by_plant_view(request):
+    """
+    Dashboard de amostras pontuais por local de produção
+    Cards para cada local de produção ativo com tabelas de produtos, propriedades, observações e horário
+    """
+    
+    # Obter turno atual
+    current_time = timezone.now()
+    current_shift = None
+    
+    # Lógica para determinar o turno atual baseado no horário
+    if 6 <= current_time.hour < 14:
+        current_shift = Shift.objects.filter(name__icontains='manhã').first()
+    elif 14 <= current_time.hour < 22:
+        current_shift = Shift.objects.filter(name__icontains='tarde').first()
+    else:
+        current_shift = Shift.objects.filter(name__icontains='noite').first()
+    
+    if not current_shift:
+        current_shift = Shift.objects.first()
+    
+    # Garantir que temos um turno válido
+    if not current_shift:
+        # Se não encontrou nenhum turno, criar um padrão
+        current_shift = Shift.objects.create(
+            name='Manhã',
+            start_time='06:00',
+            end_time='14:00'
+        )
+    
+    # Obter todos os locais de produção ativos (Plantas)
+    active_plants = Plant.objects.filter(is_active=True)
+    
+    # Obter todas as propriedades ativas
+    properties = Property.objects.filter(is_active=True).order_by('display_order')
+    
+    # Dados para cada local de produção
+    plants_data = []
+    
+    for plant in active_plants:
+        # Obter linhas de produção ativas desta planta
+        production_lines = ProductionLine.objects.filter(plant=plant, is_active=True)
+        
+        # Obter produtos únicos das análises desta planta
+        products_with_analyses = Product.objects.filter(
+            spotsample__production_line__plant=plant,
+            spotsample__date=timezone.now().date(),
+            spotsample__shift=current_shift,
+            is_active=True
+        ).distinct().order_by('display_order', 'name')
+        
+        # Dados dos produtos para esta planta
+        products_data = []
+        
+        for product in products_with_analyses:
+            # Buscar a amostra mais recente deste produto em qualquer linha desta planta
+            latest_sample = SpotSample.objects.filter(
+                production_line__plant=plant,
+                product=product,
+                date=timezone.now().date(),
+                shift=current_shift
+            ).order_by('-sample_sequence', '-created_at').first()
+            
+            if latest_sample:
+                # Buscar todas as análises desta amostra
+                analyses = SpotAnalysis.objects.filter(
+                    spot_sample=latest_sample
+                ).select_related('property').order_by('property__display_order')
+                
+                # Organizar análises por propriedade
+                property_analyses = {}
+                for analysis in analyses:
+                    property_analyses[analysis.property_id] = analysis
+                
+                # Calcular status geral da amostra
+                sample_status = 'APPROVED'
+                has_rejected = analyses.filter(status='REJECTED').exists()
+                has_alert = analyses.filter(status='ALERT').exists()
+                
+                if has_rejected:
+                    sample_status = 'REJECTED'
+                elif has_alert:
+                    sample_status = 'ALERT'
+                
+                products_data.append({
+                    'product': product,
+                    'sample': latest_sample,
+                    'analyses': analyses,
+                    'property_analyses': property_analyses,
+                    'status': sample_status,
+                    'sequence': latest_sample.sample_sequence,
+                    'observations': latest_sample.observations,
+                    'sample_time': latest_sample.sample_time,
+                    'production_line': latest_sample.production_line
+                })
+            else:
+                # Incluir produto mesmo sem amostra
+                products_data.append({
+                    'product': product,
+                    'sample': None,
+                    'analyses': None,
+                    'property_analyses': {},
+                    'status': 'PENDENTE',
+                    'sequence': None,
+                    'observations': '',
+                    'sample_time': None,
+                    'production_line': None
+                })
+        
+        # Incluir a planta mesmo que não tenha produtos com resultados
+        plants_data.append({
+            'plant': plant,
+            'products': products_data,
+            'production_lines': production_lines
+        })
+    
+    # Estatísticas gerais
+    total_samples_today = SpotSample.objects.filter(
+        date=timezone.now().date(),
+        shift=current_shift
+    ).count()
+    
+    approved_samples = SpotSample.objects.filter(
+        date=timezone.now().date(),
+        shift=current_shift
+    ).annotate(
+        has_rejected=Count('spotanalysis', filter=Q(spotanalysis__status='REJECTED'))
+    ).filter(has_rejected=0).count()
+    
+    rejected_samples = SpotSample.objects.filter(
+        date=timezone.now().date(),
+        shift=current_shift
+    ).annotate(
+        has_rejected=Count('spotanalysis', filter=Q(spotanalysis__status='REJECTED'))
+    ).filter(has_rejected__gt=0).count()
+    
+    context = {
+        'plants_data': plants_data,
+        'properties': properties,
+        'current_shift': current_shift,
+        'current_date': timezone.now().date(),
+        'stats': {
+            'total_samples': total_samples_today,
+            'approved_samples': approved_samples,
+            'rejected_samples': rejected_samples,
+            'approval_rate': (approved_samples / total_samples_today * 100) if total_samples_today > 0 else 0
+        }
+    }
+    
+    return render(request, 'quality_control/spot_dashboard_by_plant.html', context)

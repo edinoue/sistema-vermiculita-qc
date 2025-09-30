@@ -88,3 +88,4 @@ def test_status_calculation():
 
 if __name__ == '__main__':
     test_status_calculation()
+
