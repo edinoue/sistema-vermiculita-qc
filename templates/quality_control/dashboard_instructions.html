@@ -17,13 +17,13 @@
                 <div class="card-body">
                     <div class="alert alert-info">
                         <h5><i class="bi bi-lightbulb"></i> Dashboard Correto</h5>
-                        <p>Para acessar o dashboard de análises pontuais que mostra apenas os locais de produção cadastrados para o turno atual, use o link correto:</p>
-                        <div class="mt-3">
-                            <a href="{% url 'quality_control:spot_dashboard_by_plant' %}" class="btn btn-success btn-lg">
-                                <i class="bi bi-building"></i>
-                                Dashboard Pontual (Locais de Produção)
-                            </a>
-                        </div>
+                        <p>Para acessar o dashboard de análises pontuais que mostra apenas as linhas de produção cadastradas para o turno atual, use o link correto:</p>
+                    <div class="mt-3">
+                        <a href="{% url 'quality_control:spot_dashboard' %}" class="btn btn-success btn-lg">
+                            <i class="bi bi-gear"></i>
+                            Dashboard Pontual (Linhas de Produção)
+                        </a>
+                    </div>
                     </div>
 
                     <div class="row">
@@ -33,7 +33,7 @@
                                     <h6><i class="bi bi-exclamation-triangle"></i> Dashboard Antigo</h6>
                                 </div>
                                 <div class="card-body">
-                                    <p><strong>URL:</strong> <code>/qc/dashboard/spot/</code></p>
+                                    <p><strong>URL:</strong> <code>/qc/dashboard/spot/legacy/</code></p>
                                     <p><strong>Problema:</strong> Mostra todos os locais do sistema, não apenas os cadastrados para o turno atual.</p>
                                     <p><strong>Características:</strong></p>
                                     <ul>
@@ -51,14 +51,14 @@
                                     <h6><i class="bi bi-check-circle"></i> Dashboard Novo (Correto)</h6>
                                 </div>
                                 <div class="card-body">
-                                    <p><strong>URL:</strong> <code>/qc/dashboard/spot/by-plant/</code></p>
-                                    <p><strong>Vantagem:</strong> Mostra apenas locais de produção cadastrados para o turno atual.</p>
+                                    <p><strong>URL:</strong> <code>/qc/dashboard/spot/</code></p>
+                                    <p><strong>Vantagem:</strong> Mostra apenas linhas de produção cadastradas para o turno atual.</p>
                                     <p><strong>Características:</strong></p>
                                     <ul>
                                         <li>Filtra por produção ativa do turno</li>
-                                        <li>Mostra apenas plantas cadastradas</li>
+                                        <li>Mostra apenas linhas cadastradas</li>
                                         <li>Exibe apenas produtos cadastrados</li>
-                                        <li>Agrupa dados por local de produção</li>
+                                        <li>Agrupa dados por linha de produção</li>
                                     </ul>
                                 </div>
                             </div>
@@ -78,15 +78,15 @@
                             <div class="col-md-4">
                                 <div class="text-center">
                                     <i class="bi bi-funnel text-primary" style="font-size: 2rem;"></i>
-                                    <h6 class="mt-2">2. Filtra Locais</h6>
-                                    <p class="text-muted">Mostra apenas plantas com linhas cadastradas</p>
+                                    <h6 class="mt-2">2. Filtra Linhas</h6>
+                                    <p class="text-muted">Mostra apenas linhas de produção cadastradas</p>
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="text-center">
                                     <i class="bi bi-grid text-primary" style="font-size: 2rem;"></i>
                                     <h6 class="mt-2">3. Agrupa Dados</h6>
-                                    <p class="text-muted">Organiza informações por local de produção</p>
+                                    <p class="text-muted">Organiza informações por linha de produção</p>
                                 </div>
                             </div>
                         </div>
@@ -107,7 +107,7 @@
                     </div>
 
                     <div class="mt-4 text-center">
-                        <a href="{% url 'quality_control:spot_dashboard_by_plant' %}" class="btn btn-primary btn-lg">
+                        <a href="{% url 'quality_control:spot_dashboard' %}" class="btn btn-primary btn-lg">
                             <i class="bi bi-arrow-right"></i>
                             Ir para Dashboard Correto
                         </a>

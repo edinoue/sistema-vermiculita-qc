@@ -911,3 +911,171 @@ def dashboard_instructions_view(request):
     Página de instruções para o dashboard correto
     """
     return render(request, 'quality_control/dashboard_instructions.html')
+
+
+@csrf_exempt
+@login_required
+def spot_dashboard_by_line_view(request):
+    """
+    Dashboard de amostras pontuais por linha de produção
+    Cards para cada linha de produção cadastrada para o turno atual
+    """
+    from .models_production import ProductionRegistration, ProductionLineRegistration, ProductionProductRegistration
+    
+    # Obter turno atual
+    current_time = timezone.now()
+    current_shift = None
+    
+    # Lógica para determinar o turno atual baseado no horário
+    if 6 <= current_time.hour < 18:
+        current_shift = Shift.objects.filter(name='A').first()
+    else:
+        current_shift = Shift.objects.filter(name='B').first()
+    
+    if not current_shift:
+        current_shift = Shift.objects.first()
+    
+    # Garantir que temos um turno válido
+    if not current_shift:
+        # Se não encontrou nenhum turno, criar um padrão
+        current_shift = Shift.objects.create(
+            name='A',
+            start_time='06:00',
+            end_time='18:00'
+        )
+    
+    # Obter produção ativa para o turno atual
+    today = timezone.now().date()
+    production = ProductionRegistration.objects.filter(
+        date=today,
+        shift=current_shift,
+        status='ACTIVE'
+    ).first()
+    
+    # Obter todas as propriedades ativas
+    properties = Property.objects.filter(is_active=True).order_by('display_order')
+    
+    # Dados para cada linha de produção
+    lines_data = []
+    
+    if production:
+        # Obter linhas de produção cadastradas para esta produção
+        production_lines = ProductionLineRegistration.objects.filter(
+            production=production,
+            is_active=True
+        ).select_related('production_line__plant')
+        
+        # Para cada linha, obter dados
+        for line_reg in production_lines:
+            line = line_reg.production_line
+            plant = line.plant
+            
+            # Obter produtos cadastrados para esta produção
+            production_products = ProductionProductRegistration.objects.filter(
+                production=production,
+                is_active=True
+            ).select_related('product')
+            
+            # Dados dos produtos para esta linha
+            products_data = []
+            
+            for prod_reg in production_products:
+                product = prod_reg.product
+                
+                # Buscar a amostra mais recente deste produto nesta linha
+                latest_sample = SpotSample.objects.filter(
+                    production_line=line,
+                    product=product,
+                    date=today,
+                    shift=current_shift
+                ).order_by('-sample_sequence', '-created_at').first()
+                
+                if latest_sample:
+                    # Buscar todas as análises desta amostra
+                    analyses = SpotAnalysis.objects.filter(
+                        spot_sample=latest_sample
+                    ).select_related('property').order_by('property__display_order')
+                    
+                    # Organizar análises por propriedade
+                    property_analyses = {}
+                    for analysis in analyses:
+                        property_analyses[analysis.property_id] = analysis
+                    
+                    # Calcular status geral da amostra
+                    sample_status = 'APPROVED'
+                    has_rejected = analyses.filter(status='REJECTED').exists()
+                    has_alert = analyses.filter(status='ALERT').exists()
+                    
+                    if has_rejected:
+                        sample_status = 'REJECTED'
+                    elif has_alert:
+                        sample_status = 'ALERT'
+                    
+                    products_data.append({
+                        'product': product,
+                        'sample': latest_sample,
+                        'analyses': analyses,
+                        'property_analyses': property_analyses,
+                        'status': sample_status,
+                        'sequence': latest_sample.sample_sequence,
+                        'observations': latest_sample.observations,
+                        'sample_time': latest_sample.sample_time
+                    })
+                else:
+                    # Incluir produto mesmo sem amostra
+                    products_data.append({
+                        'product': product,
+                        'sample': None,
+                        'analyses': None,
+                        'property_analyses': {},
+                        'status': 'PENDENTE',
+                        'sequence': None,
+                        'observations': '',
+                        'sample_time': None
+                    })
+            
+            # Incluir a linha com seus dados
+            lines_data.append({
+                'line': line,
+                'plant': plant,
+                'products': products_data
+            })
+    else:
+        # Se não há produção cadastrada, mostrar mensagem
+        lines_data = []
+    
+    # Estatísticas gerais
+    total_samples_today = SpotSample.objects.filter(
+        date=today,
+        shift=current_shift
+    ).count()
+    
+    approved_samples = SpotSample.objects.filter(
+        date=today,
+        shift=current_shift
+    ).annotate(
+        has_rejected=Count('spotanalysis', filter=Q(spotanalysis__status='REJECTED'))
+    ).filter(has_rejected=0).count()
+    
+    rejected_samples = SpotSample.objects.filter(
+        date=today,
+        shift=current_shift
+    ).annotate(
+        has_rejected=Count('spotanalysis', filter=Q(spotanalysis__status='REJECTED'))
+    ).filter(has_rejected__gt=0).count()
+    
+    context = {
+        'lines_data': lines_data,
+        'properties': properties,
+        'current_shift': current_shift,
+        'current_date': today,
+        'production': production,
+        'stats': {
+            'total_samples': total_samples_today,
+            'approved_samples': approved_samples,
+            'rejected_samples': rejected_samples,
+            'approval_rate': (approved_samples / total_samples_today * 100) if total_samples_today > 0 else 0
+        }
+    }
+    
+    return render(request, 'quality_control/spot_dashboard_by_line.html', context)

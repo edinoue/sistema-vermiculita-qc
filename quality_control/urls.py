@@ -12,8 +12,9 @@ urlpatterns = [
     path('', views_dashboard_new.dashboard_new_view, name='dashboard'),
     path('dashboard/', views_dashboard_new.dashboard_new_view, name='dashboard_main'),
     path('dashboard/legacy/', views.dashboard_view, name='dashboard_legacy'),
-    path('dashboard/spot/', views.spot_dashboard_view, name='spot_dashboard'),
+    path('dashboard/spot/', views.spot_dashboard_by_line_view, name='spot_dashboard'),
     path('dashboard/spot/by-plant/', views.spot_dashboard_by_plant_view, name='spot_dashboard_by_plant'),
+    path('dashboard/spot/by-line/', views.spot_dashboard_by_line_view, name='spot_dashboard_by_line'),
     path('dashboard/spot/instructions/', views.dashboard_instructions_view, name='dashboard_instructions'),
     path('debug/sequence/', views_debug.debug_sequence_view, name='debug_sequence'),
     

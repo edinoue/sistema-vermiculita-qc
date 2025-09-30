@@ -1,0 +1,399 @@
+{% extends "base.html" %}
+{% load static %}
+{% load quality_extras %}
+
+{% block title %}Dashboard - Análises Pontuais por Linha{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-header {
+        background: linear-gradient(135deg, #2c5530, #4a7c59);
+        color: white;
+        padding: 1.5rem;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+    
+    .stats-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+    
+    .stat-card {
+        background: white;
+        border-radius: 8px;
+        padding: 1.5rem;
+        text-align: center;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        border-left: 4px solid #2c5530;
+        transition: transform 0.3s ease;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-2px);
+    }
+    
+    .stat-card.success {
+        border-left-color: #28a745;
+    }
+    
+    .stat-card.warning {
+        border-left-color: #ffc107;
+    }
+    
+    .stat-card.danger {
+        border-left-color: #dc3545;
+    }
+    
+    .stat-number {
+        font-size: 2rem;
+        font-weight: bold;
+        color: #2c5530;
+        margin-bottom: 0.5rem;
+    }
+    
+    .stat-label {
+        color: #6c757d;
+        font-size: 0.9rem;
+    }
+    
+    .line-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+        overflow: hidden;
+    }
+    
+    .line-header {
+        background: linear-gradient(135deg, #007bff, #0056b3);
+        color: white;
+        padding: 1rem 1.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .line-title {
+        font-size: 1.2rem;
+        font-weight: bold;
+        margin: 0;
+    }
+    
+    .line-subtitle {
+        font-size: 0.9rem;
+        opacity: 0.9;
+        margin: 0;
+    }
+    
+    .products-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 0;
+    }
+    
+    .products-table th {
+        background-color: #f8f9fa;
+        color: #495057;
+        font-weight: 600;
+        padding: 0.75rem;
+        text-align: center;
+        border-bottom: 2px solid #dee2e6;
+        font-size: 0.85rem;
+    }
+    
+    .products-table td {
+        padding: 0.75rem;
+        border: 1px solid #dee2e6;
+        text-align: center;
+        vertical-align: middle;
+        font-size: 0.85rem;
+    }
+    
+    .product-row {
+        transition: background-color 0.3s ease;
+    }
+    
+    .product-row:hover {
+        background-color: #f8f9fa;
+    }
+    
+    .product-row.approved {
+        background-color: #d4edda;
+    }
+    
+    .product-row.alert {
+        background-color: #fff3cd;
+    }
+    
+    .product-row.rejected {
+        background-color: #f8d7da;
+    }
+    
+    .product-row.pending {
+        background-color: #e2e3e5;
+    }
+    
+    .product-name {
+        font-weight: 600;
+        color: #2c5530;
+        text-align: left;
+    }
+    
+    .property-value {
+        font-weight: 500;
+    }
+    
+    .status-badge {
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+    
+    .status-approved {
+        background-color: #d4edda;
+        color: #155724;
+    }
+    
+    .status-alert {
+        background-color: #fff3cd;
+        color: #856404;
+    }
+    
+    .status-rejected {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+    
+    .status-pending {
+        background-color: #e2e3e5;
+        color: #6c757d;
+    }
+    
+    .observations {
+        max-width: 200px;
+        word-wrap: break-word;
+        text-align: left;
+    }
+    
+    .sample-time {
+        font-size: 0.8rem;
+        color: #6c757d;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 3rem;
+        color: #6c757d;
+    }
+    
+    .empty-state i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        color: #adb5bd;
+    }
+    
+    .btn-action {
+        background: linear-gradient(135deg, #28a745, #20c997);
+        border: none;
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-action:hover {
+        background: linear-gradient(135deg, #218838, #1ea085);
+        color: white;
+        transform: translateY(-1px);
+    }
+    
+    .shift-info {
+        background: rgba(255,255,255,0.1);
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        font-size: 0.9rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="dashboard-header">
+        <h2><i class="bi bi-speedometer2"></i> Dashboard - Análises Pontuais por Linha</h2>
+        <p class="mb-2">Resultados das últimas amostras por linha de produção cadastrada para o turno atual</p>
+        <div class="shift-info">
+            <i class="bi bi-clock"></i> 
+            Turno: {{ current_shift.name }} | 
+            Data: {{ current_date|date:"d/m/Y" }}
+        </div>
+    </div>
+
+    <!-- Estatísticas Gerais -->
+    <div class="stats-cards">
+        <div class="stat-card">
+            <div class="stat-number">{{ stats.total_samples }}</div>
+            <div class="stat-label">Total de Amostras</div>
+        </div>
+        <div class="stat-card success">
+            <div class="stat-number">{{ stats.approved_samples }}</div>
+            <div class="stat-label">Aprovadas</div>
+        </div>
+        <div class="stat-card danger">
+            <div class="stat-number">{{ stats.rejected_samples }}</div>
+            <div class="stat-label">Reprovadas</div>
+        </div>
+        <div class="stat-card warning">
+            <div class="stat-number">{{ stats.approval_rate|floatformat:1 }}%</div>
+            <div class="stat-label">Taxa de Aprovação</div>
+        </div>
+    </div>
+
+    <!-- Cards por Linha de Produção -->
+    {% if lines_data %}
+        {% for line_data in lines_data %}
+        <div class="line-card">
+            <div class="line-header">
+                <div>
+                    <h3 class="line-title">
+                        <i class="bi bi-gear"></i> {{ line_data.line.name }}
+                    </h3>
+                    <p class="line-subtitle">
+                        <i class="bi bi-building"></i> {{ line_data.plant.name }}
+                    </p>
+                </div>
+                <div class="text-end">
+                    <small>{{ line_data.products|length }} produto(s)</small>
+                </div>
+            </div>
+            
+            <div class="table-responsive">
+                <table class="products-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 200px;">Produto</th>
+                            {% for property in properties %}
+                            <th style="width: 120px;">{{ property.name }}</th>
+                            {% endfor %}
+                            <th style="width: 200px;">Observações</th>
+                            <th style="width: 120px;">Horário</th>
+                            <th style="width: 100px;">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for product_data in line_data.products %}
+                        <tr class="product-row {{ product_data.status|lower }}">
+                            <td class="product-name">
+                                <strong>{{ product_data.product.name }}</strong>
+                                {% if product_data.sequence %}
+                                <br><small class="text-muted">Seq: {{ product_data.sequence }}</small>
+                                {% endif %}
+                            </td>
+                            
+                            {% for property in properties %}
+                            <td class="property-value">
+                                {% if product_data.property_analyses|get_item:property.id %}
+                                    {% with analysis=product_data.property_analyses|get_item:property.id %}
+                                        <span class="{% if analysis.status == 'REJECTED' %}text-danger{% elif analysis.status == 'ALERT' %}text-warning{% else %}text-success{% endif %}">
+                                            {{ analysis.value|floatformat:2 }} {{ property.unit }}
+                                        </span>
+                                        {% if analysis.status == 'REJECTED' %}
+                                            <br><small class="text-danger">❌</small>
+                                        {% elif analysis.status == 'ALERT' %}
+                                            <br><small class="text-warning">⚠️</small>
+                                        {% else %}
+                                            <br><small class="text-success">✅</small>
+                                        {% endif %}
+                                    {% endwith %}
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            {% endfor %}
+                            
+                            <td class="observations">
+                                {% if product_data.observations %}
+                                    {{ product_data.observations|truncatechars:50 }}
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            
+                            <td class="sample-time">
+                                {% if product_data.sample_time %}
+                                    {{ product_data.sample_time|time:"H:i" }}
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            
+                            <td>
+                                <span class="status-badge status-{{ product_data.status|lower }}">
+                                    {% if product_data.status == 'APPROVED' %}
+                                        ✅ Aprovado
+                                    {% elif product_data.status == 'ALERT' %}
+                                        ⚠️ Alerta
+                                    {% elif product_data.status == 'REJECTED' %}
+                                        ❌ Rejeitado
+                                    {% else %}
+                                        ⏳ Pendente
+                                    {% endif %}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <!-- Estado vazio -->
+        <div class="empty-state">
+            <i class="bi bi-building"></i>
+            <h5>Nenhuma linha de produção cadastrada para o turno atual</h5>
+            <p>É necessário cadastrar a produção do turno atual para visualizar o dashboard.</p>
+            <div class="mt-3">
+                <a href="{% url 'quality_control:production_registration_create' %}" class="btn-action">
+                    <i class="bi bi-plus-circle"></i> Cadastrar Produção
+                </a>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Botões de Ação -->
+    <div class="text-center mt-4">
+        <a href="{% url 'quality_control:spot_analysis_create' %}" class="btn btn-primary btn-lg">
+            <i class="bi bi-plus-circle"></i> Nova Análise Pontual
+        </a>
+        <a href="{% url 'quality_control:production_registration_create' %}" class="btn btn-outline-primary btn-lg ms-2">
+            <i class="bi bi-gear"></i> Cadastrar Produção
+        </a>
+    </div>
+</div>
+
+<script>
+// Auto-refresh a cada 30 segundos
+setInterval(function() {
+    location.reload();
+}, 30000);
+
+// Adicionar tooltips
+document.addEventListener('DOMContentLoaded', function() {
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+});
+</script>
+{% endblock %}
