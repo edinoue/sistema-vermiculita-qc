@@ -903,3 +903,11 @@ def spot_dashboard_by_plant_view(request):
     }
     
     return render(request, 'quality_control/spot_dashboard_by_plant.html', context)
+
+
+@login_required
+def dashboard_instructions_view(request):
+    """
+    Página de instruções para o dashboard correto
+    """
+    return render(request, 'quality_control/dashboard_instructions.html')

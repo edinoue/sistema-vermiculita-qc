@@ -291,6 +291,14 @@
 
 {% block content %}
 <div class="container-fluid">
+    <!-- Aviso sobre dashboard correto -->
+    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-triangle"></i>
+        <strong>Atenção!</strong> Este é o dashboard antigo. Para ver apenas os locais de produção cadastrados para o turno atual, use o 
+        <a href="{% url 'quality_control:spot_dashboard_by_plant' %}" class="alert-link">Dashboard Pontual (Locais)</a>.
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    
     <!-- Header -->
     <div class="dashboard-header">
         <div class="container-fluid">

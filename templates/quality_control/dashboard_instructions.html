@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Instruções - Dashboard Pontual{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="bi bi-info-circle"></i>
+                        Instruções - Dashboard de Análises Pontuais
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <h5><i class="bi bi-lightbulb"></i> Dashboard Correto</h5>
+                        <p>Para acessar o dashboard de análises pontuais que mostra apenas os locais de produção cadastrados para o turno atual, use o link correto:</p>
+                        <div class="mt-3">
+                            <a href="{% url 'quality_control:spot_dashboard_by_plant' %}" class="btn btn-success btn-lg">
+                                <i class="bi bi-building"></i>
+                                Dashboard Pontual (Locais de Produção)
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card border-warning">
+                                <div class="card-header bg-warning text-dark">
+                                    <h6><i class="bi bi-exclamation-triangle"></i> Dashboard Antigo</h6>
+                                </div>
+                                <div class="card-body">
+                                    <p><strong>URL:</strong> <code>/qc/dashboard/spot/</code></p>
+                                    <p><strong>Problema:</strong> Mostra todos os locais do sistema, não apenas os cadastrados para o turno atual.</p>
+                                    <p><strong>Características:</strong></p>
+                                    <ul>
+                                        <li>Mostra "Módulo I" e "Módulo II"</li>
+                                        <li>Exibe todos os locais do sistema</li>
+                                        <li>Não filtra por produção ativa</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="card border-success">
+                                <div class="card-header bg-success text-white">
+                                    <h6><i class="bi bi-check-circle"></i> Dashboard Novo (Correto)</h6>
+                                </div>
+                                <div class="card-body">
+                                    <p><strong>URL:</strong> <code>/qc/dashboard/spot/by-plant/</code></p>
+                                    <p><strong>Vantagem:</strong> Mostra apenas locais de produção cadastrados para o turno atual.</p>
+                                    <p><strong>Características:</strong></p>
+                                    <ul>
+                                        <li>Filtra por produção ativa do turno</li>
+                                        <li>Mostra apenas plantas cadastradas</li>
+                                        <li>Exibe apenas produtos cadastrados</li>
+                                        <li>Agrupa dados por local de produção</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <h5><i class="bi bi-gear"></i> Como Funciona o Dashboard Correto</h5>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="text-center">
+                                    <i class="bi bi-calendar-check text-primary" style="font-size: 2rem;"></i>
+                                    <h6 class="mt-2">1. Busca Produção Ativa</h6>
+                                    <p class="text-muted">Localiza a produção cadastrada para o turno atual</p>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="text-center">
+                                    <i class="bi bi-funnel text-primary" style="font-size: 2rem;"></i>
+                                    <h6 class="mt-2">2. Filtra Locais</h6>
+                                    <p class="text-muted">Mostra apenas plantas com linhas cadastradas</p>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="text-center">
+                                    <i class="bi bi-grid text-primary" style="font-size: 2rem;"></i>
+                                    <h6 class="mt-2">3. Agrupa Dados</h6>
+                                    <p class="text-muted">Organiza informações por local de produção</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <h5><i class="bi bi-question-circle"></i> Se Não Há Dados</h5>
+                        <div class="alert alert-warning">
+                            <p>Se o dashboard estiver vazio, significa que não há produção cadastrada para o turno atual. Neste caso:</p>
+                            <ol>
+                                <li>Clique no botão "Cadastrar Produção"</li>
+                                <li>Preencha os dados da produção</li>
+                                <li>Cadastre as linhas de produção ativas</li>
+                                <li>Cadastre os produtos que serão produzidos</li>
+                                <li>Volte ao dashboard para ver os dados</li>
+                            </ol>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 text-center">
+                        <a href="{% url 'quality_control:spot_dashboard_by_plant' %}" class="btn btn-primary btn-lg">
+                            <i class="bi bi-arrow-right"></i>
+                            Ir para Dashboard Correto
+                        </a>
+                        <a href="{% url 'quality_control:production_registration_create' %}" class="btn btn-outline-primary btn-lg ms-2">
+                            <i class="bi bi-plus-circle"></i>
+                            Cadastrar Produção
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
