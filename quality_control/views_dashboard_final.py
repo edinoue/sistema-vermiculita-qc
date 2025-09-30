@@ -62,13 +62,13 @@ def spot_dashboard_by_line_view_final(request):
     today = timezone.now().date()
     print(f"🔍 DEBUG: Data atual: {today}")
     
-    # ESTRATÉGIA INTELIGENTE: Priorizar turno atual, mas mostrar todos os turnos de hoje se necessário
+    # ESTRATÉGIA SIMPLES: APENAS turno atual, sem fallback
     all_samples = None
     used_shift = None
     strategy_used = ""
     
-    # 1. Tentar buscar amostras do turno atual
-    print(f"🔍 DEBUG: Tentando buscar amostras do turno {current_shift.name}...")
+    # Buscar APENAS amostras do turno atual
+    print(f"🔍 DEBUG: Buscando APENAS amostras do turno {current_shift.name}...")
     current_samples = SpotSample.objects.filter(
         date=today,
         shift=current_shift
@@ -84,41 +84,9 @@ def spot_dashboard_by_line_view_final(request):
         strategy_used = f"Turno {current_shift.name} de hoje"
         print(f"🔍 DEBUG: ✅ Usando amostras do turno {current_shift.name}")
     else:
-        # 2. Se não há amostras do turno atual, buscar todos os turnos de hoje
-        print("🔍 DEBUG: Nenhuma amostra do turno atual, buscando todos os turnos de hoje...")
-        all_today_samples = SpotSample.objects.filter(
-            date=today
-        ).select_related(
-            'product', 'production_line', 'production_line__plant', 'shift'
-        ).order_by('production_line', 'product', '-sample_sequence')
-        
-        print(f"🔍 DEBUG: Amostras de todos os turnos hoje: {all_today_samples.count()}")
-        
-        if all_today_samples.exists():
-            all_samples = all_today_samples
-            used_shift = None  # Múltiplos turnos
-            strategy_used = "Todos os turnos de hoje"
-            print("🔍 DEBUG: ✅ Usando amostras de todos os turnos de hoje")
-        else:
-            # 3. Se não há amostras hoje, buscar amostras recentes (SEM SLICE)
-            print("🔍 DEBUG: Nenhuma amostra hoje, buscando amostras recentes...")
-            recent_samples = SpotSample.objects.filter(
-                date__lte=today
-            ).select_related(
-                'product', 'production_line', 'production_line__plant', 'shift'
-            ).order_by('-date', 'production_line', 'product', '-sample_sequence')
-            
-            print(f"🔍 DEBUG: Amostras recentes: {recent_samples.count()}")
-            
-            if recent_samples.exists():
-                all_samples = recent_samples
-                used_shift = None  # Múltiplos turnos/datas
-                strategy_used = "Amostras recentes"
-                print("🔍 DEBUG: ✅ Usando amostras recentes")
-            else:
-                print("🔍 DEBUG: ❌ Nenhuma amostra encontrada no sistema")
-                all_samples = SpotSample.objects.none()
-                strategy_used = "Nenhuma amostra"
+        print("🔍 DEBUG: ❌ Nenhuma amostra do turno atual encontrada")
+        all_samples = SpotSample.objects.none()
+        strategy_used = "Nenhuma amostra do turno atual"
     
     print(f"🔍 DEBUG: Estratégia usada: {strategy_used}")
     print(f"🔍 DEBUG: Total de amostras a processar: {all_samples.count()}")
@@ -216,39 +184,9 @@ def spot_dashboard_by_line_view_final(request):
     
     print(f"🔍 DEBUG: Total de linhas processadas: {len(lines_list)}")
     
-    # Se não há dados, buscar produtos sem amostras
+    # Se não há dados do turno atual, não mostrar nada
     if not lines_list:
-        print("🔍 DEBUG: Nenhuma amostra encontrada, buscando produtos sem amostras")
-        
-        # Buscar todas as linhas ativas
-        all_lines = ProductionLine.objects.filter(is_active=True).select_related('plant')
-        print(f"🔍 DEBUG: Linhas ativas encontradas: {all_lines.count()}")
-        
-        for line in all_lines:
-            # Buscar todos os produtos ativos
-            all_products = Product.objects.filter(is_active=True)
-            print(f"🔍 DEBUG: Produtos ativos encontrados: {all_products.count()}")
-            
-            products_data = []
-            for product in all_products:
-                products_data.append({
-                    'product': product,
-                    'sample': None,
-                    'analyses': None,
-                    'property_analyses': {},
-                    'status': 'PENDENTE',
-                    'sequence': None,
-                    'observations': '',
-                    'sample_time': None
-                })
-            
-            if products_data:
-                lines_list.append({
-                    'line': line,
-                    'plant': line.plant,
-                    'products': products_data
-                })
-                print(f"🔍 DEBUG: Linha {line.name} adicionada com {len(products_data)} produtos")
+        print("🔍 DEBUG: Nenhuma amostra do turno atual encontrada - dashboard vazio")
     
     # Estatísticas gerais - baseadas nas amostras encontradas
     total_samples = all_samples.count()
