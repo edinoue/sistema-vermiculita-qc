@@ -3,7 +3,7 @@ URLs do app quality_control
 """
 
 from django.urls import path
-from . import views, views_import, views_composite, views_spot_fixed, views_spot_improved, views_spot_grouped, views_reports, views_debug, views_production, views_spot_final, views_dashboard_new, views_dashboard_fixed, views_dashboard_simple, views_dashboard_debug, views_dashboard_fixed_numbers, views_dashboard_simple_fixed, views_dashboard_current_shift, views_dashboard_flexible, views_dashboard_timezone_fixed, views_dashboard_smart
+from . import views, views_import, views_composite, views_spot_fixed, views_spot_improved, views_spot_grouped, views_reports, views_debug, views_production, views_spot_final, views_dashboard_new, views_dashboard_fixed, views_dashboard_simple, views_dashboard_debug, views_dashboard_fixed_numbers, views_dashboard_simple_fixed, views_dashboard_current_shift, views_dashboard_flexible, views_dashboard_timezone_fixed, views_dashboard_smart, views_dashboard_final
 
 app_name = 'quality_control'
 
@@ -12,7 +12,7 @@ urlpatterns = [
     path('', views_dashboard_new.dashboard_new_view, name='dashboard'),
     path('dashboard/', views_dashboard_new.dashboard_new_view, name='dashboard_main'),
     path('dashboard/legacy/', views.dashboard_view, name='dashboard_legacy'),
-    path('dashboard/spot/', views_dashboard_smart.spot_dashboard_by_line_view_smart, name='spot_dashboard'),
+    path('dashboard/spot/', views_dashboard_final.spot_dashboard_by_line_view_final, name='spot_dashboard'),
     path('dashboard/spot/by-plant/', views.spot_dashboard_by_plant_view, name='spot_dashboard_by_plant'),
     path('dashboard/spot/by-line/', views.spot_dashboard_by_line_view, name='spot_dashboard_by_line'),
     path('dashboard/spot/instructions/', views.dashboard_instructions_view, name='dashboard_instructions'),

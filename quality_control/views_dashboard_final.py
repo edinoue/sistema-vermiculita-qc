@@ -1,5 +1,5 @@
 """
-View inteligente para o dashboard - turno atual com fallback para todos os turnos de hoje
+View final para o dashboard - versão robusta sem problemas de slice
 """
 
 from django.shortcuts import render
@@ -14,12 +14,12 @@ import pytz
 
 @csrf_exempt
 @login_required
-def spot_dashboard_by_line_view_smart(request):
+def spot_dashboard_by_line_view_final(request):
     """
-    Dashboard de amostras pontuais - VERSÃO INTELIGENTE
+    Dashboard de amostras pontuais - VERSÃO FINAL ROBUSTA
     Prioriza turno atual, mas mostra todos os turnos de hoje se não houver dados do turno atual
     """
-    print("🔍 DEBUG: Iniciando dashboard inteligente")
+    print("🔍 DEBUG: Iniciando dashboard final")
     
     # Obter horário correto do Brasil
     brazil_tz = pytz.timezone('America/Sao_Paulo')
@@ -100,13 +100,13 @@ def spot_dashboard_by_line_view_smart(request):
             strategy_used = "Todos os turnos de hoje"
             print("🔍 DEBUG: ✅ Usando amostras de todos os turnos de hoje")
         else:
-            # 3. Se não há amostras hoje, buscar amostras recentes
+            # 3. Se não há amostras hoje, buscar amostras recentes (SEM SLICE)
             print("🔍 DEBUG: Nenhuma amostra hoje, buscando amostras recentes...")
             recent_samples = SpotSample.objects.filter(
                 date__lte=today
             ).select_related(
                 'product', 'production_line', 'production_line__plant', 'shift'
-            ).order_by('-date', 'production_line', 'product', '-sample_sequence')[:50]  # Limitar a 50 amostras
+            ).order_by('-date', 'production_line', 'product', '-sample_sequence')
             
             print(f"🔍 DEBUG: Amostras recentes: {recent_samples.count()}")
             
@@ -254,27 +254,18 @@ def spot_dashboard_by_line_view_smart(request):
     total_samples = all_samples.count()
     print(f"🔍 DEBUG: Total de amostras para estatísticas: {total_samples}")
     
-    # Para estatísticas, usar QuerySet original sem slice
-    if strategy_used == "Amostras recentes":
-        # Para amostras recentes, usar QuerySet original sem slice
-        stats_samples = SpotSample.objects.filter(
-            date__lte=today
-        ).select_related(
-            'product', 'production_line', 'production_line__plant', 'shift'
-        ).order_by('-date', 'production_line', 'product', '-sample_sequence')
-    else:
-        # Para outros casos, usar o QuerySet original
-        stats_samples = all_samples
+    # Calcular estatísticas de forma simples
+    approved_samples = 0
+    rejected_samples = 0
     
-    # Contar amostras aprovadas (sem análises rejeitadas)
-    approved_samples = stats_samples.annotate(
-        has_rejected=Count('spotanalysis', filter=Q(spotanalysis__status='REJECTED'))
-    ).filter(has_rejected=0).count()
-    
-    # Contar amostras rejeitadas (com pelo menos uma análise rejeitada)
-    rejected_samples = stats_samples.annotate(
-        has_rejected=Count('spotanalysis', filter=Q(spotanalysis__status='REJECTED'))
-    ).filter(has_rejected__gt=0).count()
+    for sample in all_samples:
+        analyses = SpotAnalysis.objects.filter(spot_sample=sample)
+        if analyses.exists():
+            has_rejected = analyses.filter(status='REJECTED').exists()
+            if has_rejected:
+                rejected_samples += 1
+            else:
+                approved_samples += 1
     
     print(f"🔍 DEBUG: Aprovadas: {approved_samples}, Rejeitadas: {rejected_samples}")
     
